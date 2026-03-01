@@ -55,3 +55,22 @@ See [SESSION_LOG.md](SESSION_LOG.md) for the full development history.
 ## License
 
 MIT
+
+## Web (prototype)
+
+Install web dependencies:
+
+```bash
+pip install -e .[web]
+```
+
+Run the dev server:
+
+```bash
+python -m web
+```
+
+Then open:
+- `http://127.0.0.1:8000/` (landing)
+- `http://127.0.0.1:8000/dashboard` (dashboard)
+
