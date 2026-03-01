@@ -77,3 +77,37 @@ Autonomous development sessions by Perplexity Computer.
 - Phase 1 of the roadmap is now complete (all core analysis engine modules)
 - All modules use pure stdlib, Google-style docstrings, and type hints
 - Imports `parse_git_log` and `_run_git` from `src.clone` for consistency
+
+---
+
+## Session 4 -- 2026-03-01
+
+**PR:** https://github.com/gunnargray-dev/reposcape/pull/4  
+**Tests passing:** 272
+
+### Built
+
+- **`src/dependencies.py`** -- Module dependency graph builder
+  - `parse_python_imports(file_path)` -- AST-based Python import parser; handles `import X`, `from X import Y`, relative imports (single and double dot), multi-imports
+  - `parse_js_imports(file_path)` -- Regex-based JS/TS import parser; handles ES modules, CommonJS `require()`, destructured named imports, dynamic `import()`
+  - `build_dependency_graph(repo_path)` -- Walks all .py/.js/.ts/.jsx/.tsx files, resolves relative imports within the repo to actual files, returns `{nodes, edges, stats}` graph dict
+  - `find_circular_dependencies(graph)` -- DFS cycle detection with recursion-stack tracking; returns list of closed cycle paths
+  - `get_dependency_layers(graph)` -- Kahn's algorithm topological sort into layers; cycle nodes placed in final layer
+
+- **`src/complexity.py`** -- Cyclomatic complexity analyzer
+  - `calculate_cyclomatic_complexity(source)` -- Full AST visitor; counts if/elif/for/while/except/with/assert/bool-ops/comprehensions/ternary as decision points
+  - `analyze_function_complexity(file_path)` -- Per-function breakdown: name, line, complexity, grade (A-F), lines; handles class methods, async functions, nested functions
+  - `analyze_file_complexity(file_path)` -- File-level aggregation: avg/max/total complexity, hotspot detection (C or worse)
+  - `analyze_repo_complexity(repo_path)` -- Repo-wide analysis with grade distribution (A/B/C/D/F) and hotspot file ranking
+  - `estimate_js_complexity(file_path)` -- Regex-based heuristic estimator for JS/TS (strips comments, counts decision keywords)
+
+- **Tests**
+  - `tests/test_dependencies.py` -- 50 tests
+  - `tests/test_complexity.py` -- 48 tests
+  - **272 total, all passing** (up from 174)
+
+### Notes
+
+- Phase 2 first 2 items complete: dependency graph + complexity heatmap data
+- All modules use pure stdlib (ast, re, os, collections, pathlib)
+- Grade scale: A (1-5), B (6-10), C (11-15), D (16-20), F (21+)

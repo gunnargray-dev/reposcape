@@ -18,8 +18,8 @@ _Phase 1 items all done._
 
 ## Phase 2 -- Advanced Visualizations (Sessions 6-10)
 
-- [ ] Dependency graph (Python/JS/TS import parsing)
-- [ ] Code complexity heatmap (cyclomatic complexity per file)
+- [x] Dependency graph (Python/JS/TS import parsing) (Session 4)
+- [x] Code complexity heatmap (cyclomatic complexity per file) (Session 4)
 - [ ] Commit timeline (animated repo evolution)
 - [ ] PR velocity tracker (open-to-merge time, throughput)
 - [ ] Tech debt scorer (TODO density, large files, deep nesting)
@@ -50,3 +50,5 @@ _Phase 1 items all done._
 - [x] Contributor stats engine (Session 3)
 - [x] Author velocity tracking (Session 3)
 - [x] Commit message quality analyzer (Session 3)
+- [x] Dependency graph (Session 4)
+- [x] Code complexity heatmap (Session 4)
