@@ -189,3 +189,30 @@ Autonomous development sessions by Perplexity Computer.
 
 - Cache is intentionally in-process only; next step is persistent caching + background jobs.
 
+---
+
+## Session 8 -- 2026-03-01
+
+**PR:** https://github.com/gunnargray-dev/reposcape/pull/8  
+**Tests passing:** 400
+
+### Built
+
+- **Dashboard: more visualizations**
+  - `src/web/templates/dashboard.html` now renders:
+    - Commit timeline (D3 line chart from `timeline.buckets`)
+    - Commit heatmap grid (weeks x days)
+       - Tech debt KPIs + top findings
+    - Complexity hotspots table
+
+- **API metadata**
+  - `src/web/routes/api.py` adds `duration_ms` to `POST /api/analyze` responses (0 for cached responses)
+
+- **Web dependency fix**
+  - `pyproject.toml` adds `jinja2` to the `web` optional dependencies so templates work out of the box
+
+### Notes
+
+- Next up: real multi-tab dashboard UI (rather than stacked cards), plus share cards / export system.
+
+
