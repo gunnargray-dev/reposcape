@@ -7,7 +7,7 @@ license = "MIT"
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov"]
-web = ["fastapi", "uvicorn"]
+web = ["fastapi", "uvicorn", "jinja2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

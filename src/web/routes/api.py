@@ -11,10 +11,10 @@ from pydantic import BaseModel, HttpUrl
 
 from src.clone import clone_repo
 from src.commit_quality import analyze_commit_quality
-from src.complexity import analyze_complexity
+from src.complexity import analyze_repo_complexity
 from src.contributors import analyze_contributors
-from src.dependencies import get_dependency_graph
-from src.heatmap import generate_commit_heatmap
+from src.dependencies import build_dependency_graph
+from src.heatmap import build_commit_heatmap
 from src.languages import analyze_languages
 from src.pr_velocity import estimate_pr_velocity
 from src.techdebt import calculate_tech_debt_score
@@ -71,9 +71,10 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
     cache_key = str(req.repo_url)
     cached = _cache_get(cache_key)
     if cached is not None:
-        return {"cached": True, **cached}
+        return {"cached": True, "duration_ms": 0, **cached}
 
     try:
+        start = time.perf_counter()
         with tempfile.TemporaryDirectory(prefix="reposcape-") as tmpdir:
             repo_path = clone_repo(str(req.repo_url), tmpdir)
 
@@ -84,14 +85,16 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
                 "contributors": analyze_contributors(repo_path),
                 "commit_quality": analyze_commit_quality(repo_path),
                 "timeline": build_commit_timeline(repo_path, bucket="week"),
-                "complexity": analyze_complexity(repo_path),
-                "dependencies": get_dependency_graph(repo_path),
+                "complexity": analyze_repo_complexity(repo_path),
+                "dependencies": build_dependency_graph(repo_path),
                 "pr_velocity": estimate_pr_velocity(repo_path),
                 "techdebt": calculate_tech_debt_score(repo_path),
-                "heatmap": generate_commit_heatmap(repo_path),
+                "heatmap": build_commit_heatmap(repo_path),
             }
 
+            duration_ms = int((time.perf_counter() - start) * 1000)
+
             _cache_set(cache_key, payload)
-            return {"cached": False, **payload}
+            return {"cached": False, "duration_ms": duration_ms, **payload}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

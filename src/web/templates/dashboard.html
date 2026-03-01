@@ -39,6 +39,26 @@
         <h3>Commit Quality</h3>
         <div id="commitQuality"></div>
       </section>
+
+      <section class="card">
+        <h3>Commit Timeline</h3>
+        <div id="timeline"></div>
+      </section>
+
+      <section class="card">
+        <h3>Commit Heatmap</h3>
+        <div id="heatmap"></div>
+      </section>
+
+      <section class="card">
+        <h3>Tech Debt</h3>
+        <div id="techdebt"></div>
+      </section>
+
+      <section class="card">
+        <h3>Complexity Hotspots</h3>
+        <div id="complexity"></div>
+      </section>
     </main>
 
     <script>
@@ -54,6 +74,12 @@
 
       function safeJson(obj) {
         return JSON.stringify(obj || null, null, 2);
+      }
+
+      function formatDuration(ms) {
+        if (ms == null) return '';
+        if (ms < 1000) return `${ms}ms`;
+        return `${(ms / 1000).toFixed(1)}s`;
       }
 
       function renderContributors(contrib) {
@@ -110,6 +136,164 @@
         container.appendChild(dist);
       }
 
+      function renderTimeline(tl) {
+        const container = el('timeline');
+        container.innerHTML = '';
+
+        if (!tl || !Array.isArray(tl.buckets)) {
+          container.textContent = 'No timeline data available.';
+          return;
+        }
+
+        const width = Math.min(960, container.clientWidth || 960);
+        const height = 240;
+        const margin = { top: 10, right: 20, bottom: 30, left: 40 };
+
+        const buckets = tl.buckets.map(b => ({
+          date: new Date(b.start),
+          commits: b.count || 0
+        }));
+
+        const x = d3.scaleTime()
+          .domain(d3.extent(buckets, d => d.date))
+          .range([margin.left, width - margin.right]);
+
+        const y = d3.scaleLinear()
+          .domain([0, d3.max(buckets, d => d.commits) || 1]).nice()
+          .range([height - margin.bottom, margin.top]);
+
+        const svg = d3.select(container).append('svg')
+          .attr('width', width)
+          .attr('height', height)
+          .attr('viewBox', `0 0 ${width} ${height}`);
+
+        svg.append('path')
+          .datum(buckets)
+          .attr('fill', 'none')
+          .attr('stroke', '#2E90FA')
+          .attr('stroke-width', 2)
+          .attr('d', d3.line()
+            .x(d => x(d.date))
+            .y(d => y(d.commits))
+          );
+
+        svg.append('g')
+          .attr('transform', `translate(0,${height - margin.bottom})`)
+          .call(d3.axisBottom(x).ticks(6));
+
+        svg.append('g')
+          .attr('transform', `translate(${margin.left},0)`)
+          .call(d3.axisLeft(y).ticks(4));
+      }
+
+      function renderHeatmap(hm) {
+        const container = el('heatmap');
+        container.innerHTML = '';
+
+        if (!hm || !Array.isArray(hm.weeks)) {
+          container.textContent = 'No heatmap data available.';
+          return;
+        }
+
+        const cell = 14;
+        const gap = 2;
+        const weeks = hm.weeks;
+        const width = (weeks.length * (cell + gap)) + 60;
+        const height = (7 * (cell + gap)) + 40;
+
+        const maxVal = d3.max(weeks.flatMap(w => w.days.map(d => d.count || 0))) || 1;
+        const color = d3.scaleLinear()
+          .domain([0, maxVal])
+          .range(['#EEF2FF', '#2E90FA']);
+
+        const svg = d3.select(container).append('svg')
+          .attr('width', width)
+          .attr('height', height)
+          .attr('viewBox', `0 0 ${width} ${height}`);
+
+        svg.append('text')
+          .attr('x', 0)
+          .attr('y', 12)
+          .attr('class', 'mono')
+          .text(`${hm.start || ''} → ${hm.end || ''}`);
+
+        const g = svg.append('g').attr('transform', 'translate(40,20)');
+
+        weeks.forEach((w, wi) => {
+          w.days.forEach((d, di) => {
+            g.append('rect')
+              .attr('x', wi * (cell + gap))
+              .attr('y', di * (cell + gap))
+              .attr('width', cell)
+              .attr('height', cell)
+              .attr('fill', color(d.count || 0))
+              .append('title')
+              .text(`${d.date}: ${d.count} commits`);
+          });
+        });
+      }
+
+      function renderTechDebt(td) {
+        const container = el('techdebt');
+        container.innerHTML = '';
+
+        if (!td) {
+          container.textContent = 'No tech debt data available.';
+          return;
+        }
+
+        const summary = document.createElement('div');
+        summary.className = 'grid';
+        const score = td.score != null ? td.score : 'n/a';
+        const grade = td.grade || 'n/a';
+
+        summary.innerHTML = `
+          <div class="kpi"><div class="kpiLabel">Score</div><div class="kpiValue">${score}</div></div>
+          <div class="kpi"><div class="kpiLabel">Grade</div><div class="kpiValue">${grade}</div></div>
+        `;
+        container.appendChild(summary);
+
+        const details = document.createElement('pre');
+        details.className = 'mono';
+        details.textContent = safeJson({
+          todo_count: td.todo_count,
+          large_files: (td.large_files || []).slice(0, 5),
+          deep_nesting: (td.deep_nesting || []).slice(0, 5)
+        });
+        container.appendChild(details);
+      }
+
+      function renderComplexity(cx) {
+        const container = el('complexity');
+        container.innerHTML = '';
+
+        if (!cx) {
+          container.textContent = 'No complexity data available.';
+          return;
+        }
+
+        const hotspots = (cx.hotspots || []).slice(0, 10);
+        if (hotspots.length === 0) {
+          container.textContent = 'No hotspots found.';
+          return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'table';
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>Function</th><th>Complexity</th><th>File</th></tr>';
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        for (const h of hotspots) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td class="mono">${h.function_name}</td><td>${h.complexity}</td><td class="mono">${h.file}</td>`;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        container.appendChild(table);
+      }
+
       async function run() {
         const repoUrl = getRepoUrl();
         el('repoTitle').textContent = repoUrl;
@@ -128,12 +312,17 @@
         }
 
         const data = await resp.json();
-        el('status').textContent = data.cached ? 'Done (cached)' : 'Done';
+        const dur = formatDuration(data.duration_ms);
+        el('status').textContent = data.cached ? `Done (cached${dur ? ', ' + dur : ''})` : `Done${dur ? ' (' + dur + ')' : ''}`;
 
         el('languages').textContent = safeJson(data.languages);
         renderTreemap(data.treemap);
         renderContributors(data.contributors);
         renderCommitQuality(data.commit_quality);
+        renderTimeline(data.timeline);
+        renderHeatmap(data.heatmap);
+        renderTechDebt(data.techdebt);
+        renderComplexity(data.complexity);
       }
 
       function renderTreemap(treeData) {
