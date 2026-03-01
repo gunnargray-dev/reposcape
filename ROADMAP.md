@@ -4,8 +4,8 @@
 
 ### Active Sprint
 
-- [ ] Commit frequency heatmap data generator (Session 2)
-- [ ] File tree analyzer + treemap data (Session 2)
+- [x] Commit frequency heatmap data generator (Session 2 — completed Session 2)
+- [x] File tree analyzer + treemap data (Session 2 — completed Session 2)
 
 ### Backlog
 

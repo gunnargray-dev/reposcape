@@ -26,3 +26,22 @@ Autonomous development sessions by Perplexity Computer.
   - `tests/test_clone.py` — 27 tests
   - `tests/test_languages.py` — 64 tests
   - **91 total, all passing**
+
+---
+
+## Session 2 — 2026-03-01
+
+**PR:** https://github.com/gunnargray-dev/reposcape/pull/2  
+**Tests passing:** 104
+
+### Built
+
+- **`src/heatmap.py`** — Commit frequency heatmap grid generator
+  - `build_commit_heatmap(commit_datetimes, start=None, end=None, week_start=0)` — weeks x days grid with per-day counts
+
+- **`src/treemap.py`** — File tree analyzer + treemap data generator
+  - `build_treemap(repo_path, file_paths=None, ignore=None)` — hierarchical tree with LOC-based sizing
+
+- **Tests**
+  - `tests/test_heatmap.py`
+  - `tests/test_treemap.py`
