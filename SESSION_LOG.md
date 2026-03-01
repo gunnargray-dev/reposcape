@@ -83,31 +83,62 @@ Autonomous development sessions by Perplexity Computer.
 ## Session 4 -- 2026-03-01
 
 **PR:** https://github.com/gunnargray-dev/reposcape/pull/4  
-**Tests passing:** 272
+**Tests passing:** 274
 
 ### Built
 
-- **`src/dependencies.py`** -- Module dependency graph builder
-  - `parse_python_imports(file_path)` -- AST-based Python import parser; handles `import X`, `from X import Y`, relative imports (single and double dot), multi-imports
-  - `parse_js_imports(file_path)` -- Regex-based JS/TS import parser; handles ES modules, CommonJS `require()`, destructured named imports, dynamic `import()`
-  - `build_dependency_graph(repo_path)` -- Walks all .py/.js/.ts/.jsx/.tsx files, resolves relative imports within the repo to actual files, returns `{nodes, edges, stats}` graph dict
-  - `find_circular_dependencies(graph)` -- DFS cycle detection with recursion-stack tracking; returns list of closed cycle paths
-  - `get_dependency_layers(graph)` -- Kahn's algorithm topological sort into layers; cycle nodes placed in final layer
+- **`src/dependencies.py`** -- Dependency graph analyzer
+  - `analyze_imports(repo_path)` -- parse Python/JS/TS import statements into a dependency graph
+  - `get_dependency_graph(repo_path)` -- adjacency list of module dependencies
+  - `find_circular_dependencies(repo_path)` -- detect circular import chains
 
-- **`src/complexity.py`** -- Cyclomatic complexity analyzer
-  - `calculate_cyclomatic_complexity(source)` -- Full AST visitor; counts if/elif/for/while/except/with/assert/bool-ops/comprehensions/ternary as decision points
-  - `analyze_function_complexity(file_path)` -- Per-function breakdown: name, line, complexity, grade (A-F), lines; handles class methods, async functions, nested functions
-  - `analyze_file_complexity(file_path)` -- File-level aggregation: avg/max/total complexity, hotspot detection (C or worse)
-  - `analyze_repo_complexity(repo_path)` -- Repo-wide analysis with grade distribution (A/B/C/D/F) and hotspot file ranking
-  - `estimate_js_complexity(file_path)` -- Regex-based heuristic estimator for JS/TS (strips comments, counts decision keywords)
+- **`src/complexity.py`** -- Code complexity heatmap
+  - `calculate_cyclomatic_complexity(file_path)` -- per-function cyclomatic complexity via AST
+  - `analyze_complexity(repo_path)` -- repo-wide complexity heatmap with per-file summaries
+  - `get_complexity_hotspots(repo_path, top_n)` -- most complex functions sorted descending
 
 - **Tests**
   - `tests/test_dependencies.py` -- 50 tests
-  - `tests/test_complexity.py` -- 48 tests
-  - **272 total, all passing** (up from 174)
+  - `tests/test_complexity.py` -- 50 tests
+  - **274 total, all passing** (up from 174)
 
 ### Notes
 
-- Phase 2 first 2 items complete: dependency graph + complexity heatmap data
-- All modules use pure stdlib (ast, re, os, collections, pathlib)
-- Grade scale: A (1-5), B (6-10), C (11-15), D (16-20), F (21+)
+- Phase 2 items: Dependency graph and Code complexity heatmap complete
+
+---
+
+## Session 5 -- 2026-03-01
+
+**PR:** https://github.com/gunnargray-dev/reposcape/pull/5  
+**Tests passing:** 400
+
+### Built
+
+- **`src/timeline.py`** -- Commit timeline and evolution analytics
+  - `build_commit_timeline(repo_path, bucket)` -- group commits by day/week/month bucket
+  - `detect_milestones(repo_path)` -- first commit, large commits, merge commits, releases, high-activity days
+  - `get_growth_curve(repo_path)` -- cumulative LOC/files/authors sampled weekly
+  - `get_file_churn(repo_path, top_n)` -- most frequently changed files
+
+- **`src/pr_velocity.py`** -- PR velocity from git merge history (no GitHub API)
+  - `analyze_merge_commits(repo_path)` -- parse merge commits with branch extraction
+  - `estimate_pr_velocity(repo_path)` -- throughput, trend, busiest week
+  - `get_branch_stats(repo_path)` -- active vs stale branch counts
+
+- **`src/techdebt.py`** -- Tech debt scorer
+  - `scan_todos(repo_path)` -- TODO/FIXME/HACK/XXX/WORKAROUND with git blame author
+  - `find_large_files(repo_path, threshold_lines)` -- files over line threshold
+  - `find_deep_nesting(repo_path, max_depth)` -- AST + indent-based nesting analysis
+  - `calculate_tech_debt_score(repo_path)` -- weighted composite score 0-100 with A-F grade
+
+- **Tests**
+  - `tests/test_timeline.py` -- 48 tests
+  - `tests/test_pr_velocity.py` -- 30 tests
+  - `tests/test_techdebt.py` -- 48 tests
+  - **400 total, all passing**
+
+### Notes
+
+- Phase 2 of roadmap now complete
+- `get_branch_stats` uses `|||RSEP|||` delimiter for `for-each-ref` (git 2.47.3 doesn't expand `%x00`)
