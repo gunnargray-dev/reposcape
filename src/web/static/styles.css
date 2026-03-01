@@ -79,10 +79,54 @@ input[type=url] {
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border:  1px solid var(--border);
   border-radius: 12px;
   padding: 14px 16px;
   margin-top: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.kpi {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding:  10px 12px;
+}
+
+.kpiLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.kpiValue {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.table th, .table td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 6px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.table th {
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .mono {
