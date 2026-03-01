@@ -26,10 +26,10 @@ _Phase 1 items all done._
 
 **Phase 2 complete!**
 
-## Phase 3 -- Web Frontend (Sessions 11-15)
+## Phase 3 -- Web Frontend (Sessions 6-10)
 
-- [ ] Landing page with repo URL input
-- [ ] Visualization dashboard (tabbed multi-view)
+- [x] Landing page with repo URL input (Session 6)
+- [x] Visualization dashboard (initial dashboard + treemap) (Session 6)
 - [ ] Share cards (Open Graph images for social)
 - [ ] Export system (PNG, PDF, SVG, embed iframe)
 - [ ] Nightshift showcase (pre-generated demo using nightshift repo)
