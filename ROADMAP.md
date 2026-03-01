@@ -31,6 +31,7 @@ _Phase 1 items all done._
 - [x] Landing page with repo URL input (Session 6)
 - [x] Visualization dashboard (initial dashboard + treemap) (Session 6)
 - [x] Expand analyze payload + add basic caching + extra dashboard sections (Session 7)
+- [x] Expand dashboard to render additional analyzers (timeline, heatmap, tech debt, complexity) (Session 8)
 - [ ] Share cards (Open Graph images for social)
 - [ ] Export system (PNG, PDF, SVG, embed iframe)
 - [ ] Nightshift showcase (pre-generated demo using nightshift repo)
@@ -58,3 +59,4 @@ _Phase 1 items all done._
 - [x] Commit timeline (Session 5)
 - [x] PR velocity tracker (Session 5)
 - [x] Tech debt scorer (Session 5)
+
