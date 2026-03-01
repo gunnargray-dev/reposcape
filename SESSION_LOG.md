@@ -166,3 +166,26 @@ Autonomous development sessions by Perplexity Computer.
 - This is the first Phase 3 milestone: end-to-end flow from URL -> clone -> JSON -> visualization.
 - Next sessions should expand analysis payload, add caching/background jobs, and implement multi-view dashboard tabs.
 
+---
+
+## Session 7 -- 2026-03-01
+
+**PR:** https://github.com/gunnargray-dev/reposcape/pull/7  
+**Tests passing:** 528
+
+### Built
+
+- **Expanded analysis API payload**
+  - `src/web/routes/api.py` -- `POST /api/analyze` now returns full engine output: languages, treemap, contributors, commit quality, timeline, complexity, dependencies, PR velocity, tech debt, heatmap
+
+- **Basic caching**
+  - In-memory TTL cache (5 minutes) keyed by `repo_url` to avoid repeated clone + analysis work
+
+- **Dashboard sections**
+  - `src/web/templates/dashboard.html` -- renders Top Contributors table + Commit Quality KPIs (avg score/grade + grade distribution)
+  - `src/web/static/styles.css` -- adds table + KPI styling
+
+### Notes
+
+- Cache is intentionally in-process only; next step is persistent caching + background jobs.
+
