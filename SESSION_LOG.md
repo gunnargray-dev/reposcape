@@ -142,3 +142,27 @@ Autonomous development sessions by Perplexity Computer.
 
 - Phase 2 of roadmap now complete
 - `get_branch_stats` uses `|||RSEP|||` delimiter for `for-each-ref` (git 2.47.3 doesn't expand `%x00`)
+
+---
+
+## Session 6 -- 2026-03-01
+
+**PR:** https://github.com/gunnargray-dev/reposcape/pull/6  
+**Tests passing:** 400
+
+### Built
+
+- **Web frontend skeleton (FastAPI + templates + static assets)**
+  - `src/web/app.py` -- FastAPI app factory with static + page routers
+  - `src/web/routes/pages.py` -- landing page (`/`) + dashboard (`/dashboard`)
+  - `src/web/routes/api.py` -- `POST /api/analyze` (clone repo + return language + treemap JSON)
+  - `src/web/templates/index.html` -- landing page with repo URL input
+  - `src/web/templates/dashboard.html` -- dashboard with D3 treemap renderer
+  - `src/web/static/styles.css` -- minimal styling
+  - `src/web/__main__.py` -- local dev entrypoint (`python -m web`)
+
+### Notes
+
+- This is the first Phase 3 milestone: end-to-end flow from URL -> clone -> JSON -> visualization.
+- Next sessions should expand analysis payload, add caching/background jobs, and implement multi-view dashboard tabs.
+
