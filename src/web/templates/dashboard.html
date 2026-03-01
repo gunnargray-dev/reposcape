@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reposcape Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <a href="/">Reposcape</a>
+        <div class="spacer"></div>
+        <button id="rerun" type="button">Re-run</button>
+      </header>
+
+      <section>
+        <h2 id="repoTitle">Loading…</h2>
+        <div id="status" class="status">Starting analysis…</div>
+      </section>
+
+      <section class="card">
+        <h3>Treemap (LOC by file)</h3>
+        <div id="treemap"></div>
+      </section>
+
+      <section class="card">
+        <h3>Languages</h3>
+        <pre id="languages" class="mono"></pre>
+      </section>
+    </main>
+
+    <script>
+      function getRepoUrl() {
+        const url = new URL(window.location.href);
+        const repo = url.searchParams.get('repo');
+        return repo || 'https://github.com/gunnargray-dev/reposcape';
+      }
+
+      async function run() {
+        const repoUrl = getRepoUrl();
+        document.getElementById('repoTitle').textContent = repoUrl;
+        document.getElementById('status').textContent = 'Analyzing…';
+
+        const resp = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json();
+          document.getElementById('status').textContent = 'Error: ' + (err.detail || 'unknown');
+          return;
+        }
+
+        const data = await resp.json();
+        document.getElementById('status').textContent = 'Done';
+
+        document.getElementById('languages').textContent = JSON.stringify(data.languages, null, 2);
+        renderTreemap(data.treemap);
+      }
+
+      function renderTreemap(treeData) {
+        const container = document.getElementById('treemap');
+        container.innerHTML = '';
+
+        const width = Math.min(960, container.clientWidth || 960);
+        const height = 520;
+
+        const root = d3.hierarchy(treeData)
+          .sum(d => d.value || 0)
+          .sort((a,b) => (b.value||0) - (a.value||0));
+
+        d3.treemap()
+          .size([width, height])
+          .padding(2)(root);
+
+        const svg = d3.select(container).append('svg')
+          .attr('width', width)
+          .attr('height', height)
+          .attr('viewBox', `0 0 ${width} ${height}`);
+
+        const nodes = svg.selectAll('g')
+          .data(root.leaves())
+          .enter().append('g')
+          .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+        nodes.append('rect')
+          .attr('width', d => d.x1 - d.x0)
+          .attr('height', d => d.y1 - d.y0)
+          .attr('fill', '#2E90FA')
+          .attr('fill-opacity', 0.25)
+          .attr('stroke', '#2E90FA');
+
+        nodes.append('title')
+          .text(d => `${d.data.name}\n${d.value} LOC`);
+
+        nodes.append('text')
+          .attr('x', 4)
+          .attr('y', 14)
+          .attr('font-size', '12px')
+          .attr('fill', '#0B1220')
+          .text(d => d.data.name)
+          .each(function(d) {
+            const rectWidth = d.x1 - d.x0;
+            const self = d3.select(this);
+            if (self.node().getComputedTextLength() > rectWidth - 6) {
+              const name = d.data.name;
+              self.text(name.length > 16 ? name.slice(0, 15) + '…' : name);
+            }
+          });
+      }
+
+      document.getElementById('rerun').addEventListener('click', run);
+      run();
+    </script>
+  </body>
+</html>
