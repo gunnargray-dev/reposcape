@@ -12,10 +12,10 @@ Paste a repo URL. Get stunning, shareable visualizations.
 
 | Metric | Value |
 |--------|-------|
-| Sessions | 5 |
-| PRs merged | 5 |
-| Source modules | 11 |
-| Tests passing | 400 |
+| Sessions | 7 |
+| PRs merged | 7 |
+| Source modules | 12 |
+| Tests passing | 528 |
 | Visualizations | 0 |
 
 ---
