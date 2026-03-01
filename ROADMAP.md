@@ -4,9 +4,6 @@
 
 ### Active Sprint
 
-- [ ] Repo cloner + git log parser (Session 1)
-- [ ] Language breakdown analyzer (Session 1)
-- [ ] Test framework + CI pipeline (Session 1)
 - [ ] Commit frequency heatmap data generator (Session 2)
 - [ ] File tree analyzer + treemap data (Session 2)
 
@@ -42,4 +39,6 @@
 
 ## Completed
 
-(none yet)
+- [x] Repo cloner + git log parser (Session 1)
+- [x] Language breakdown analyzer (Session 1)
+- [x] Test framework + CI pipeline (Session 1)
