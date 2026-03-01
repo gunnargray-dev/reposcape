@@ -16,8 +16,8 @@
       </header>
 
       <section>
-        <h2 id="repoTitle">Loading</h2>
-        <div id="status" class="status">Starting analysis</div>
+        <h2 id="repoTitle">Loading…</h2>
+        <div id="status" class="status">Starting analysis…</div>
       </section>
 
       <section class="card">
@@ -215,7 +215,7 @@
           .attr('x', 0)
           .attr('y', 12)
           .attr('class', 'mono')
-          .text(`${hm.start || ''}  ${hm.end || ''}`);
+          .text(`${hm.start || ''} → ${hm.end || ''}`);
 
         const g = svg.append('g').attr('transform', 'translate(40,20)');
 
@@ -297,7 +297,7 @@
       async function run() {
         const repoUrl = getRepoUrl();
         el('repoTitle').textContent = repoUrl;
-        el('status').textContent = 'Analyzing';
+        el('status').textContent = 'Analyzing…';
 
         const resp = await fetch('/api/analyze', {
           method: 'POST',
@@ -376,7 +376,7 @@
             const self = d3.select(this);
             if (self.node().getComputedTextLength() > rectWidth - 6) {
               const name = d.data.name;
-              self.text(name.length > 16 ? name.slice(0, 15) + '' : name);
+              self.text(name.length > 16 ? name.slice(0, 15) + '…' : name);
             }
           });
       }
