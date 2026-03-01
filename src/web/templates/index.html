@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reposcape</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Reposcape</h1>
+      <p>Turn any GitHub repo into a visual story.</p>
+
+      <form action="/dashboard" method="get" class="repo-form">
+        <label for="repo">GitHub repo URL</label>
+        <input id="repo" name="repo" type="url" placeholder="https://github.com/owner/repo" required />
+        <button type="submit">Analyze</button>
+      </form>
+
+      <p class="hint">This is an early prototype. Results may take 10-30 seconds for larger repos.</p>
+    </main>
+  </body>
+</html>
