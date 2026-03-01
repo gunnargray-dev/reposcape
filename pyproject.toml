@@ -1,0 +1,14 @@
+[project]
+name = "reposcape"
+version = "0.1.0"
+description = "Turn any GitHub repo into a beautiful visual story"
+requires-python = ">=3.10"
+license = "MIT"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov"]
+web = ["fastapi", "uvicorn"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
