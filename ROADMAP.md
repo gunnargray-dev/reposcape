@@ -20,9 +20,11 @@ _Phase 1 items all done._
 
 - [x] Dependency graph (Python/JS/TS import parsing) (Session 4)
 - [x] Code complexity heatmap (cyclomatic complexity per file) (Session 4)
-- [ ] Commit timeline (animated repo evolution)
-- [ ] PR velocity tracker (open-to-merge time, throughput)
-- [ ] Tech debt scorer (TODO density, large files, deep nesting)
+- [x] Commit timeline (animated repo evolution) (Session 5)
+- [x] PR velocity tracker (open-to-merge time, throughput) (Session 5)
+- [x] Tech debt scorer (TODO density, large files, deep nesting) (Session 5)
+
+**Phase 2 complete!**
 
 ## Phase 3 -- Web Frontend (Sessions 11-15)
 
@@ -52,3 +54,6 @@ _Phase 1 items all done._
 - [x] Commit message quality analyzer (Session 3)
 - [x] Dependency graph (Session 4)
 - [x] Code complexity heatmap (Session 4)
+- [x] Commit timeline (Session 5)
+- [x] PR velocity tracker (Session 5)
+- [x] Tech debt scorer (Session 5)
