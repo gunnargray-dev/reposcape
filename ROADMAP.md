@@ -4,14 +4,17 @@
 
 ### Active Sprint
 
-- [x] Commit frequency heatmap data generator (Session 2 — completed Session 2)
-- [x] File tree analyzer + treemap data (Session 2 — completed Session 2)
+- [x] Commit frequency heatmap data generator (Session 2 -- completed Session 2)
+- [x] File tree analyzer + treemap data (Session 2 -- completed Session 2)
+- [x] Contributor stats engine (Session 3 -- completed Session 3)
+- [x] Author velocity tracking (Session 3 -- completed Session 3)
+- [x] Commit message quality analyzer (Session 3 -- completed Session 3)
+
+**Phase 1 complete!** All core analysis engine modules are built and tested.
 
 ### Backlog
 
-- [ ] Contributor stats engine
-- [ ] Author velocity tracking
-- [ ] Commit message quality analyzer
+_Phase 1 items all done._
 
 ## Phase 2 -- Advanced Visualizations (Sessions 6-10)
 
@@ -42,3 +45,8 @@
 - [x] Repo cloner + git log parser (Session 1)
 - [x] Language breakdown analyzer (Session 1)
 - [x] Test framework + CI pipeline (Session 1)
+- [x] Commit frequency heatmap data generator (Session 2)
+- [x] File tree analyzer + treemap data (Session 2)
+- [x] Contributor stats engine (Session 3)
+- [x] Author velocity tracking (Session 3)
+- [x] Commit message quality analyzer (Session 3)
