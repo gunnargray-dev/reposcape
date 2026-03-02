@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uvicorn
 
-from web.app import create_app
+from src.web.app import create_app
 
 
 def main() -> None:
