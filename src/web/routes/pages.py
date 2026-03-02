@@ -26,3 +26,10 @@ def dashboard(request: Request) -> HTMLResponse:
     """Dashboard placeholder; JS triggers analysis and renders a treemap."""
 
     return templates.TemplateResponse("dashboard.html", {"request": request})
+
+
+@router.get("/share", response_class=HTMLResponse)
+def share_preview(request: Request) -> HTMLResponse:
+    """Preview the default share card image."""
+
+    return templates.TemplateResponse("share_preview.html", {"request": request})
