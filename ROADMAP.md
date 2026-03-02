@@ -34,7 +34,7 @@ _Phase 1 items all done._
 - [x] Expand dashboard to render additional analyzers (timeline, heatmap, tech debt, complexity) (Session 8)
 - [x] Share cards (Open Graph images for social) (Session 9)
 - [x] Export system (HTML snapshot download; printable to PDF) (Session 10)
-- [ ] Nightshift showcase (pre-generated demo using nightshift repo)
+- [x] Nightshift showcase (pre-generated demo using nightshift repo) (Session 11)
 
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
 
