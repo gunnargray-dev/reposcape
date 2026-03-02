@@ -216,3 +216,20 @@ Autonomous development sessions by Perplexity Computer.
 - Next up: real multi-tab dashboard UI (rather than stacked cards), plus share cards / export system.
 
 
+
+## Session 9 — Share cards (Open Graph preview images)
+
+**Date:** 2026-03-02
+
+### Goals
+- Implement the first slice of social sharing support (Open Graph-friendly image generation).
+- Provide a simple preview page to verify the generated asset visually.
+
+### Shipped
+- Added a new FastAPI router at `/share`.
+- Implemented `/share/card.png` which generates a 1200×630 PNG share card with customizable `title` and `subtitle` query params.
+- Added `/share` server-rendered preview page.
+
+### Notes / Next
+- Next step is to create per-repo “story” pages and include Open Graph meta tags (`og:image`) that point at the generated share card for the specific repo.
+- Consider caching generated images by (repo, title/subtitle) to reduce repeated renders.
