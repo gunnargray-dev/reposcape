@@ -46,6 +46,7 @@ _Phase 1 items all done._
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
 
 - [x] CLI tool (`reposcape analyze <url>`) (Session 18)
+- [x] Packaging: fix `pip install -e .` / setuptools discovery for `src/` layout (Session 19)
 - [ ] Comparison mode (two repos side by side)
 - [ ] Historical tracking (repo evolution over time)
 - [ ] GitHub Action (auto-generate on release)
