@@ -24,6 +24,7 @@ def nightshift(request: Request) -> HTMLResponse:
     """
 
     return templates.TemplateResponse(
+        request,
         "dashboard.html",
         {
             "request": request,

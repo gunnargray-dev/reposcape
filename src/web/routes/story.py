@@ -41,4 +41,4 @@ def story(request: Request, owner: str, repo: str) -> HTMLResponse:
         "og_description": subtitle,
         "og_image": og_image,
     }
-    return templates.TemplateResponse("story.html", context)
+    return templates.TemplateResponse(request, "story.html", context)
