@@ -45,7 +45,7 @@ _Phase 1 items all done._
 
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
 
-- [ ] CLI tool (`reposcape analyze <url>`)
+- [x] CLI tool (`reposcape analyze <url>`) (Session 18)
 - [ ] Comparison mode (two repos side by side)
 - [ ] Historical tracking (repo evolution over time)
 - [ ] GitHub Action (auto-generate on release)

@@ -98,3 +98,21 @@ A chronological record of all autonomous development sessions.
 ### Notes
 - Tests: `407 passed`.
 - PR: #23 (squash merged).
+
+---
+
+## Session 18 (2026-03-02)
+
+**Focus:** Finish CLI tool + share analysis entrypoint.
+
+### Shipped
+- Refactored analysis into a shared module: `src/analyze.py`.
+  - Provides `analyze_repo_url(repo_url: str)` for reuse.
+  - Keeps the analysis layer free of FastAPI/Pydantic dependencies.
+- Fixed the CLI analyze command to call shared analysis logic.
+  - `python -m src.cli.main analyze <repo_url>` now produces JSON output (previously crashed due to passing a string into the FastAPI request handler).
+- Fixed the web module runner import path.
+  - `python -m src.web` now imports the app factory correctly.
+
+### Notes
+- Next: comparison mode, historical tracking, GitHub Action.

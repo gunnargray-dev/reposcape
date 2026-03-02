@@ -19,7 +19,7 @@ import sys
 from dataclasses import dataclass
 from typing import Any
 
-from src.web.routes.api import analyze_repo
+from src.analyze import analyze_repo_url as analyze_repo
 
 
 @dataclass(frozen=True)
