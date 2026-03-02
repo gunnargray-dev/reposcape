@@ -1,13 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "reposcape"
 version = "0.1.0"
 description = "Turn any GitHub repo into a beautiful visual story"
 requires-python = ">=3.10"
-license = "MIT"
+license = {text = "MIT"}
+
+[project.scripts]
+reposcape = "src.cli.main:main"
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov"]
 web = ["fastapi", "uvicorn", "jinja2"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

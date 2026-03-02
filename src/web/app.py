@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from web.routes import api, pages, share, showcase, story
+from src.web.routes import api, pages, share, showcase, story
 
 
 def create_app() -> FastAPI:
