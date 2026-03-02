@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Share Preview · Reposcape</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    .share-preview { max-width: 980px; margin: 0 auto; padding: 32px 20px; }
+    .share-preview img { width: 100%; height: auto; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); }
+    .share-preview code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container share-preview">
+    <h1>Share card preview</h1>
+    <p>This image is generated dynamically at <code>/share/card.png</code>.</p>
+
+    <img src="/share/card.png?title=Reposcape&subtitle=Turn%20any%20GitHub%20repo%20into%20a%20beautiful%20visual%20story" alt="Reposcape share card" />
+
+    <h2>Tips</h2>
+    <ul>
+      <li>Use <code>title</code> and <code>subtitle</code> query params to customize.</li>
+      <li>Next step: wire this into Open Graph meta tags on a per-repo “story” page.</li>
+    </ul>
+  </div>
+</body>
+</html>
