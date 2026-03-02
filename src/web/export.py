@@ -52,10 +52,34 @@ def build_export_html(payload: dict[str, Any]) -> str:
       @media print {{ body {{ margin: 0.5in; }} .card {{ break-inside: avoid; }} }}
     </style>
     <script src=\"https://d3js.org/d3.v7.min.js\"></script>
+    <script defer src=\"/static/export.js\"></script>
   </head>
   <body>
     <h1>Reposcape export</h1>
     <div class=\"meta\">{repo_url}</div>
+
+    <div class=\"controls card\" style=\"margin-bottom: 18px;\">
+      <h2>Exports</h2>
+      <div style=\"display:flex; gap:12px; align-items:center; flex-wrap:wrap;\">
+        <label>Panel
+          <select id=\"panel-select\">
+            <option value=\"treemap\">Treemap</option>
+            <option value=\"timeline\">Timeline</option>
+            <option value=\"heatmap\">Heatmap</option>
+          </select>
+        </label>
+        <label>Scale
+          <select id=\"scale-select\">
+            <option value=\"1\">1x</option>
+            <option value=\"2\" selected>2x</option>
+            <option value=\"3\">3x</option>
+          </select>
+        </label>
+        <button id=\"download-panel\" type=\"button\" style=\"padding:8px 10px; border-radius:8px; border:1px solid #E4E7EC; background:#FFFFFF;\">Download PNG</button>
+        <button type=\"button\" onclick=\"window.print()\" style=\"padding:8px 10px; border-radius:8px; border:1px solid #E4E7EC; background:#FFFFFF;\">Print / Save PDF</button>
+      </div>
+      <div style=\"margin-top:8px; color:#667085; font-size:12px;\">PNG export is client-side (SVG → canvas). For best results, use Chrome.</div>
+    </div>
 
     <div class=\"grid\">
       <section class=\"card\">
