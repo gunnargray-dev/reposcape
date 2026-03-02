@@ -37,6 +37,12 @@ _Phase 1 items all done._
 - [x] Export system (HTML snapshot download; printable to PDF) (Session 10)
 - [x] Nightshift showcase (pre-generated demo using nightshift repo) (Session 11)
 
+## Phase 3.1 -- Story + Export Enhancements (Sessions 11-15)
+
+- [x] Story pages: populate subtitle/metadata (stars, primary language, last updated) from GitHub metadata (Session 14)
+- [ ] Export system: client-side SVG->PNG for shareable assets; optional iframe embed
+- [ ] Export system: server-side PDF generation or print-to-PDF helper
+
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
 
 - [ ] CLI tool (`reposcape analyze <url>`)
@@ -60,5 +66,4 @@ _Phase 1 items all done._
 - [x] Commit timeline (Session 5)
 - [x] PR velocity tracker (Session 5)
 - [x] Tech debt scorer (Session 5)
-
 
