@@ -17,19 +17,16 @@ templates = Jinja2Templates(directory=str(_templates_dir))
 @router.get("/", response_class=HTMLResponse)
 def landing(request: Request) -> HTMLResponse:
     """Landing page with repo URL input."""
-
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html", {"request": request})
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request) -> HTMLResponse:
     """Dashboard placeholder; JS triggers analysis and renders a treemap."""
-
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    return templates.TemplateResponse(request, "dashboard.html", {"request": request})
 
 
 @router.get("/share", response_class=HTMLResponse)
 def share_preview(request: Request) -> HTMLResponse:
     """Preview the default share card image."""
-
-    return templates.TemplateResponse("share_preview.html", {"request": request})
+    return templates.TemplateResponse(request, "share_preview.html", {"request": request})
