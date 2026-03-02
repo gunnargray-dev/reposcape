@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{{ og_title }}</title>
+
+    <meta name="description" content="{{ og_description }}" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ og_title }}" />
+    <meta property="og:description" content="{{ og_description }}" />
+    <meta property="og:image" content="{{ og_image }}" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ og_title }}" />
+    <meta name="twitter:description" content="{{ og_description }}" />
+    <meta name="twitter:image" content="{{ og_image }}" />
+
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>{{ repo_slug }}</h1>
+      <p>{{ og_description }}</p>
+
+      <div class="actions">
+        <a class="button" href="/dashboard?repo=https://github.com/{{ repo_slug }}">
+          Open dashboard
+        </a>
+        <a class="button secondary" href="https://github.com/{{ repo_slug }}" target="_blank" rel="noreferrer">
+          View on GitHub
+        </a>
+      </div>
+
+      <p style="margin-top: 1.25rem; color: #b8beca; font-size: 0.95rem;">
+        Tip: share this URL to get a rich preview card.
+      </p>
+    </div>
+  </body>
+</html>

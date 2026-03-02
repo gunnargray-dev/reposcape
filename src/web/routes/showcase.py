@@ -5,6 +5,8 @@ These routes provide a fast way to explore the UI without waiting for analysis.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates

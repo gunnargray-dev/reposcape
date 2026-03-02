@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from web.routes import api, pages, share, showcase
+from web.routes import api, pages, share, showcase, story
 
 
 def create_app() -> FastAPI:
@@ -23,6 +23,7 @@ def create_app() -> FastAPI:
     app.include_router(pages.router)
     app.include_router(share.router)
     app.include_router(showcase.router)
+    app.include_router(story.router)
 
     static_dir = Path(__file__).parent / "static"
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
