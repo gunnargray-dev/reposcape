@@ -20,6 +20,7 @@ from src.pr_velocity import estimate_pr_velocity
 from src.techdebt import calculate_tech_debt_score
 from src.timeline import build_commit_timeline
 from src.treemap import build_treemap
+from src.web.demo import load_demo_payload
 from src.web.export import build_export_html
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -99,6 +100,23 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
             return {"cached": False, "duration_ms": duration_ms, **payload}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.get("/demo/{name}")
+def demo_payload(name: str) -> dict[str, Any]:
+    """Return a packaged demo payload by name.
+
+    Args:
+        name: Demo payload name (without extension).
+
+    Returns:
+        Demo analysis payload as JSON.
+    """
+
+    try:
+        return load_demo_payload(name)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Unknown demo: {name}") from e
 
 
 @router.post("/export.html")

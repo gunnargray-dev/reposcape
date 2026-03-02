@@ -1,0 +1,108 @@
+{
+  "repo_url": "https://github.com/gunnargray-dev/nightshift",
+  "cached": true,
+  "duration_ms": 842,
+  "generated_at": "demo",
+  "languages": {
+    "Python": 18342,
+    "HTML": 2140,
+    "CSS": 980,
+    "JavaScript": 1120,
+    "Markdown": 640
+  },
+  "treemap": {
+    "name": "nightshift",
+    "children": [
+      {
+        "name": "src",
+        "children": [
+          {"name": "app.py", "value": 820},
+          {"name": "core.py", "value": 1240},
+          {"name": "pipeline.py", "value": 930},
+          {"name": "utils.py", "value": 560}
+        ]
+      },
+      {
+        "name": "tests",
+        "children": [
+          {"name": "test_core.py", "value": 420},
+          {"name": "test_pipeline.py", "value": 380}
+        ]
+      },
+      {
+        "name": "docs",
+        "children": [
+          {"name": "README.md", "value": 220},
+          {"name": "CHANGELOG.md", "value": 140}
+        ]
+      }
+    ]
+  },
+  "contributors": {
+    "authors": [
+      {"author": "gunnar", "commits": 148, "insertions": 15420, "deletions": 8120},
+      {"author": "dependabot", "commits": 12, "insertions": 340, "deletions": 220}
+    ]
+  },
+  "commit_quality": {
+    "average_score": 78.6,
+    "average_grade": "B",
+    "grade_distribution": {"A": 42, "B": 71, "C": 29, "D": 12, "F": 6}
+  },
+  "timeline": {
+    "bucket": "month",
+    "buckets": [
+      {"start": "2023-06-01", "count": 4},
+      {"start": "2023-07-01", "count": 9},
+      {"start": "2023-08-01", "count": 14},
+      {"start": "2023-09-01", "count": 11},
+      {"start": "2023-10-01", "count": 7},
+      {"start": "2023-11-01", "count": 10},
+      {"start": "2023-12-01", "count": 6},
+      {"start": "2024-01-01", "count": 8},
+      {"start": "2024-02-01", "count": 13},
+      {"start": "2024-03-01", "count": 12}
+    ]
+  },
+  "heatmap": {
+    "start": "2024-01-01",
+    "end": "2024-03-31",
+    "weeks": [
+      {"days": [
+        {"date": "2024-01-01", "count": 0},
+        {"date": "2024-01-02", "count": 1},
+        {"date": "2024-01-03", "count": 2},
+        {"date": "2024-01-04", "count": 1},
+        {"date": "2024-01-05", "count": 0},
+        {"date": "2024-01-06", "count": 0},
+        {"date": "2024-01-07", "count": 0}
+      ]},
+      {"days": [
+        {"date": "2024-01-08", "count": 0},
+        {"date": "2024-01-09", "count": 3},
+        {"date": "2024-01-10", "count": 1},
+        {"date": "2024-01-11", "count": 1},
+        {"date": "2024-01-12", "count": 2},
+        {"date": "2024-01-13", "count": 0},
+        {"date": "2024-01-14", "count": 0}
+      ]}
+    ]
+  },
+  "techdebt": {
+    "score": 27,
+    "grade": "A",
+    "todo_count": 3,
+    "large_files": [
+      {"path": "src/core.py", "loc": 1240}
+    ],
+    "deep_nesting": [
+      {"path": "src/pipeline.py", "max_depth": 5}
+    ]
+  },
+  "complexity": {
+    "hotspots": [
+      {"function_name": "build_pipeline", "complexity": 18, "file": "src/pipeline.py"},
+      {"function_name": "run_task", "complexity": 14, "file": "src/core.py"}
+    ]
+  }
+}

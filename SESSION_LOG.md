@@ -42,7 +42,7 @@ Autonomous development sessions by Perplexity Computer.
 - **`src/treemap.py`** -- File tree analyzer + treemap data generator
   - `build_treemap(repo_path, file_paths=None, ignore=None)` -- hierarchical tree with LOC-based sizing
 
-- **Tests**
+- **Tests
   - `tests/test_heatmap.py`
   - `tests/test_treemap.py`
 
@@ -248,3 +248,12 @@ Autonomous development sessions by Perplexity Computer.
 
 **PRs:**
 - #11 (squash merged)
+
+## Session 11 - Nightshift showcase + dashboard auto-run
+
+- Added a `/showcase/nightshift` page that loads a packaged demo payload (no analysis wait).
+- Added `/api/demo/{name}` endpoint and a `src/web/demo/` payload directory.
+- Updated the landing page to link to the Nightshift demo.
+- Improved dashboard UX by automatically running analysis on page load and wiring up the Re-run button.
+
+PR: (to be filled)

@@ -63,10 +63,13 @@
     </main>
 
     <script>
+      const DEMO_MODE = {{ demo_mode | default(false) | tojson }};
+      const DEMO_REPO_URL = {{ repo_url | default('') | tojson }};
+
       function getRepoUrl() {
         const url = new URL(window.location.href);
         const repo = url.searchParams.get('repo');
-        return repo || 'https://github.com/gunnargray-dev/reposcape';
+        return repo || (DEMO_REPO_URL || 'https://github.com/gunnargray-dev/reposcape');
       }
 
       function el(id) {
@@ -300,21 +303,38 @@
         el('repoTitle').textContent = repoUrl;
         el('status').textContent = 'Analyzing…';
 
-        const resp = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repo_url: repoUrl })
-        });
+        let data;
 
-        if (!resp.ok) {
-          const err = await resp.json();
-          el('status').textContent = 'Error: ' + (err.detail || 'unknown');
-          return;
+        if (DEMO_MODE) {
+          const resp = await fetch('/api/demo/nightshift');
+          if (!resp.ok) {
+            const err = await resp.json();
+            el('status').textContent = 'Demo error: ' + (err.detail || 'unknown');
+            return;
+          }
+          data = await resp.json();
+        } else {
+          const resp = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ repo_url: repoUrl })
+          });
+
+          if (!resp.ok) {
+            const err = await resp.json();
+            el('status').textContent = 'Error: ' + (err.detail || 'unknown');
+            return;
+          }
+
+          data = await resp.json();
         }
 
-        const data = await resp.json();
         const dur = formatDuration(data.duration_ms);
-        el('status').textContent = data.cached ? `Done (cached${dur ? ', ' + dur : ''})` : `Done${dur ? ' (' + dur + ')' : ''}`;
+        if (DEMO_MODE) {
+          el('status').textContent = 'Demo loaded';
+        } else {
+          el('status').textContent = data.cached ? `Done (cached${dur ? ', ' + dur : ''})` : `Done${dur ? ' (' + dur + ')' : ''}`;
+        }
 
         el('languages').textContent = safeJson(data.languages);
         renderTreemap(data.treemap);
@@ -409,6 +429,8 @@
       }
 
       el('exportHtml').addEventListener('click', exportHtml);
+      el('rerun').addEventListener('click', run);
+      run();
     </script>
   </body>
 </html>
