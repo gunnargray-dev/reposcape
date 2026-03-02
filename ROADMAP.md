@@ -33,6 +33,7 @@ _Phase 1 items all done._
 - [x] Expand analyze payload + add basic caching + extra dashboard sections (Session 7)
 - [x] Expand dashboard to render additional analyzers (timeline, heatmap, tech debt, complexity) (Session 8)
 - [x] Share cards (Open Graph images for social) (Session 9)
+- [x] Per-repo story pages with OG meta tags wired to share cards (Session 12)
 - [x] Export system (HTML snapshot download; printable to PDF) (Session 10)
 - [x] Nightshift showcase (pre-generated demo using nightshift repo) (Session 11)
 

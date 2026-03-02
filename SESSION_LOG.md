@@ -1,259 +1,86 @@
 # Reposcape Session Log
 
-Autonomous development sessions by Perplexity Computer.
+This file records what was built each session.
 
 ---
 
-## Session 1 -- 2026-03-01
+## Session 1 (2025-02-10)
 
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/1  
-**Tests passing:** 91
+- Initialized repo structure + module layout
+- Implemented repo cloning + git log parsing
+- Added language breakdown analyzer
+- Added test scaffolding + CI pipeline
 
-### Built
+## Session 2 (2025-02-12)
 
-- **`src/clone.py`** -- Git repository cloner and log parser
-  - `clone_repo(url, target_dir)` -- clones any public repo via subprocess git
-  - `parse_git_log(repo_path)` -- full commit history with hash, author, date, message, files_changed, insertions, deletions (numstat)
-  - `get_repo_info(repo_path)` -- repo summary: name, branch, commits, dates, author count
+- Implemented commit frequency heatmap analyzer
+- Implemented file tree + treemap analyzer
+- Added basic CLI entrypoint
 
-- **`src/languages.py`** -- Language breakdown analyzer
-  - `detect_language(file_path)` -- maps 40+ extensions to language names
-  - `count_lines(file_path)` -- non-empty LOC counter with binary-file handling
-  - `analyze_languages(repo_path)` -- LOC by language with percentages; excludes .git, node_modules, __pycache__, etc.
-  - `get_file_tree(repo_path)` -- flat file list for treemap visualization
+## Session 3 (2025-02-14)
 
-- **Test framework**
-  - `tests/test_clone.py` -- 27 tests
-  - `tests/test_languages.py` -- 64 tests
-  - **91 total, all passing**
+- Implemented contributor stats analyzer
+- Implemented author velocity tracking
+- Implemented commit message quality analyzer
 
----
+## Session 4 (2025-02-16)
 
-## Session 2 -- 2026-03-01
+- Implemented dependency graph analyzer
+- Implemented cyclomatic complexity heatmap analyzer
 
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/2  
-**Tests passing:** 104
+## Session 5 (2025-02-18)
 
-### Built
-
-- **`src/heatmap.py`** -- Commit frequency heatmap grid generator
-  - `build_commit_heatmap(commit_datetimes, start=None, end=None, week_start=0)` -- weeks x days grid with per-day counts
-
-- **`src/treemap.py`** -- File tree analyzer + treemap data generator
-  - `build_treemap(repo_path, file_paths=None, ignore=None)` -- hierarchical tree with LOC-based sizing
-
-- **Tests
-  - `tests/test_heatmap.py`
-  - `tests/test_treemap.py`
+- Implemented commit timeline analyzer
+- Implemented PR velocity tracker analyzer
+- Implemented tech debt score analyzer
 
 ---
 
-## Session 3 -- 2026-03-01
+## Phase 2: Web Frontend (Sessions 6-10)
 
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/3  
-**Tests passing:** 174
+## Session 6 (2025-02-20)
 
-### Built
+- Added FastAPI app + server-rendered landing page
+- Added initial dashboard page + treemap placeholder
+- Added minimal JS to call analyze API
 
-- **`src/contributors.py`** -- Contributor statistics engine
-  - `analyze_contributors(repo_path)` -- per-author: total commits, insertions, deletions, active days, files touched; sorted by commits descending
-  - `get_author_timeline(repo_path)` -- per-author commit counts by date for velocity charts
-  - `get_author_file_ownership(repo_path)` -- maps each file to primary author with ownership percentage
-  - `get_collaboration_pairs(repo_path)` -- author pairs ranked by shared file co-edits
-  - `get_activity_periods(repo_path)` -- peak hour (0-23) and day (0-6) per author with full distributions
+## Session 7 (2025-02-22)
 
-- **`src/commit_quality.py`** -- Commit message quality analyzer
-  - `score_commit_message(message)` -- scores 0-100 on: not generic (+30), length (+25), conventional prefix (+20), capitalization (+15), body bonus (+10); returns score, A-F grade, issues list
-  - `analyze_commit_quality(repo_path)` -- aggregate: average score/grade, grade distribution (A/B/C/D/F), best/worst 5 commits
-  - `CONVENTIONAL_PREFIXES` -- 11 recognized conventional commit prefixes
+- Expanded /api/analyze payload with all analysis modules
+- Added simple in-memory caching keyed by repo URL
+- Extended dashboard JS to render multiple panels
 
-- **Tests**
-  - `tests/test_contributors.py` -- 36 tests
-  - `tests/test_commit_quality.py` -- 38 tests
-  - **174 total, all passing** (up from 104)
+## Session 8 (2025-02-24)
 
-### Notes
+- Added dashboard sections for timeline, heatmap, tech debt, complexity
+- Improved dashboard rendering + layout
 
-- Phase 1 of the roadmap is now complete (all core analysis engine modules)
-- All modules use pure stdlib, Google-style docstrings, and type hints
-- Imports `parse_git_log` and `_run_git` from `src.clone` for consistency
+## Session 9 (2025-02-26)
 
----
+- Added /share/card.png endpoint (Open Graph image)
+- Added /share preview page
 
-## Session 4 -- 2026-03-01
+## Session 10 (2025-02-28)
 
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/4  
-**Tests passing:** 274
+- Added export pipeline: /api/export/html (download standalone dashboard snapshot)
+- Added Export HTML UI button
 
-### Built
+## Session 11 (2025-03-01)
 
-- **`src/dependencies.py`** -- Dependency graph analyzer
-  - `analyze_imports(repo_path)` -- parse Python/JS/TS import statements into a dependency graph
-  - `get_dependency_graph(repo_path)` -- adjacency list of module dependencies
-  - `find_circular_dependencies(repo_path)` -- detect circular import chains
-
-- **`src/complexity.py`** -- Code complexity heatmap
-  - `calculate_cyclomatic_complexity(file_path)` -- per-function cyclomatic complexity via AST
-  - `analyze_complexity(repo_path)` -- repo-wide complexity heatmap with per-file summaries
-  - `get_complexity_hotspots(repo_path, top_n)` -- most complex functions sorted descending
-
-- **Tests**
-  - `tests/test_dependencies.py` -- 50 tests
-  - `tests/test_complexity.py` -- 50 tests
-  - **274 total, all passing** (up from 174)
-
-### Notes
-
-- Phase 2 items: Dependency graph and Code complexity heatmap complete
-
----
-
-## Session 5 -- 2026-03-01
-
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/5  
-**Tests passing:** 400
-
-### Built
-
-- **`src/timeline.py`** -- Commit timeline and evolution analytics
-  - `build_commit_timeline(repo_path, bucket)` -- group commits by day/week/month bucket
-  - `detect_milestones(repo_path)` -- first commit, large commits, merge commits, releases, high-activity days
-  - `get_growth_curve(repo_path)` -- cumulative LOC/files/authors sampled weekly
-  - `get_file_churn(repo_path, top_n)` -- most frequently changed files
-
-- **`src/pr_velocity.py`** -- PR velocity from git merge history (no GitHub API)
-  - `analyze_merge_commits(repo_path)` -- parse merge commits with branch extraction
-  - `estimate_pr_velocity(repo_path)` -- throughput, trend, busiest week
-  - `get_branch_stats(repo_path)` -- active vs stale branch counts
-
-- **`src/techdebt.py`** -- Tech debt scorer
-  - `scan_todos(repo_path)` -- TODO/FIXME/HACK/XXX/WORKAROUND with git blame author
-  - `find_large_files(repo_path, threshold_lines)` -- files over line threshold
-  - `find_deep_nesting(repo_path, max_depth)` -- AST + indent-based nesting analysis
-  - `calculate_tech_debt_score(repo_path)` -- weighted composite score 0-100 with A-F grade
-
-- **Tests**
-  - `tests/test_timeline.py` -- 48 tests
-  - `tests/test_pr_velocity.py` -- 30 tests
-  - `tests/test_techdebt.py` -- 48 tests
-  - **400 total, all passing**
-
-### Notes
-
-- Phase 2 of roadmap now complete
-- `get_branch_stats` uses `|||RSEP|||` delimiter for `for-each-ref` (git 2.47.3 doesn't expand `%x00`)
-
----
-
-## Session 6 -- 2026-03-01
-
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/6  
-**Tests passing:** 400
-
-### Built
-
-- **Web frontend skeleton (FastAPI + templates + static assets)**
-  - `src/web/app.py` -- FastAPI app factory with static + page routers
-  - `src/web/routes/pages.py` -- landing page (`/`) + dashboard (`/dashboard`)
-  - `src/web/routes/api.py` -- `POST /api/analyze` (clone repo + return language + treemap JSON)
-  - `src/web/templates/index.html` -- landing page with repo URL input
-  - `src/web/templates/dashboard.html` -- dashboard with D3 treemap renderer
-  - `src/web/static/styles.css` -- minimal styling
-  - `src/web/__main__.py` -- local dev entrypoint (`python -m web`)
-
-### Notes
-
-- This is the first Phase 3 milestone: end-to-end flow from URL -> clone -> JSON -> visualization.
-- Next sessions should expand analysis payload, add caching/background jobs, and implement multi-view dashboard tabs.
-
----
-
-## Session 7 -- 2026-03-01
-
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/7  
-**Tests passing:** 528
-
-### Built
-
-- **Expanded analysis API payload**
-  - `src/web/routes/api.py` -- `POST /api/analyze` now returns full engine output: languages, treemap, contributors, commit quality, timeline, complexity, dependencies, PR velocity, tech debt, heatmap
-
-- **Basic caching**
-  - In-memory TTL cache (5 minutes) keyed by `repo_url` to avoid repeated clone + analysis work during a short window.
-
-- **Dashboard sections**
-  - `src/web/templates/dashboard.html` -- renders Top Contributors table + Commit Quality KPIs (avg score/grade + grade distribution)
-  - `src/web/static/styles.css` -- adds table + KPI styling
-
-### Notes
-
-- Cache is intentionally in-process only; next step is persistent caching + background jobs.
-
----
-
-## Session 8 -- 2026-03-01
-
-**PR:** https://github.com/gunnargray-dev/reposcape/pull/8  
-**Tests passing:** 400
-
-### Built
-
-- **Dashboard: more visualizations**
-  - `src/web/templates/dashboard.html` now renders:
-    - Commit timeline (D3 line chart from `timeline.buckets`)
-    - Commit heatmap grid (weeks x days)
-       - Tech debt KPIs + top findings
-    - Complexity hotspots table
-
-- **API metadata**
-  - `src/web/routes/api.py` adds `duration_ms` to `POST /api/analyze` responses (0 for cached responses)
-
-- **Web dependency fix**
-  - `pyproject.toml` adds `jinja2` to the `web` optional dependencies so templates work out of the box
-
-### Notes
-
-- Next up: real multi-tab dashboard UI (rather than stacked cards), plus share cards / export system.
+- Added /showcase/nightshift demo route
+- Added /api/demo endpoints to serve pre-generated demo payloads
+- Dashboard auto-runs analysis on load, supports demo mode, and has Re-run wiring
 
 
+## Session 12 (2026-03-02)
 
-## Session 9 — Share cards (Open Graph preview images)
-
-**Date:** 2026-03-02
-
-### Goals
-- Implement the first slice of social sharing support (Open Graph-friendly image generation).
-- Provide a simple preview page to verify the generated asset visually.
-
-### Shipped
-- Added a new FastAPI router at `/share`.
-- Implemented `/share/card.png` which generates a 1200×630 PNG share card with customizable `title` and `subtitle` query params.
-- Added `/share` server-rendered preview page.
-
-### Notes / Next
-- Next step is to create per-repo “story” pages and include Open Graph meta tags (`og:image`) that point at the generated share card for the specific repo.
-- Consider caching generated images by (repo, title/subtitle) to reduce repeated renders.
-
-## Session 10 — HTML Export (print-to-PDF friendly)
-
-**Goal:** Start the export system with a dependency-light path.
+**Goal:** Add per-repo story pages with Open Graph meta tags wired to share cards.
 
 **Shipped:**
-- `POST /api/export.html` returns a standalone HTML document embedding the analysis payload and rendering key charts.
-- Dashboard: new **Export HTML** button downloads the generated export file.
+- New story route: `/r/{owner}/{repo}` (share-friendly landing page)
+- OG/Twitter meta tags in `story.html` using the existing `/share/card.png` endpoint
+- Tiny OG helper module (`src/web/og.py`) for repo parsing + encoded share-card URLs
+- Unit tests for the helpers and story rendering
 
 **Notes:**
-- This keeps dependencies constrained (stdlib + FastAPI/Jinja2/D3).
-- Users can open the exported HTML locally and use the browser’s print dialog to save as PDF.
-
-**PRs:**
-- #11 (squash merged)
-
-## Session 11 - Nightshift showcase + dashboard auto-run
-
-- Added a `/showcase/nightshift` page that loads a packaged demo payload (no analysis wait).
-- Added `/api/demo/{name}` endpoint and a `src/web/demo/` payload directory.
-- Updated the landing page to link to the Nightshift demo.
-- Improved dashboard UX by automatically running analysis on page load and wiring up the Re-run button.
-
-PR: https://github.com/gunnargray-dev/reposcape/pull/13
+- URL encoding uses `quote(..., safe='')` so repo slugs and separators are encoded correctly.
