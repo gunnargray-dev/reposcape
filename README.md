@@ -12,10 +12,10 @@ Paste a repo URL. Get stunning, shareable visualizations.
 
 | Metric | Value |
 |--------|-------|
-| Sessions | 15 |
-| PRs merged | 20 |
-| Source modules | 12 |
-| Tests passing | 406 |
+| Sessions | 17 |
+| PRs merged | 23 |
+| Source modules | 13 |
+| Tests passing | 407 |
 | Visualizations | 9 |
 
 ---
@@ -82,6 +82,9 @@ From the dashboard, click **Export HTML** to download a standalone HTML snapshot
 In the exported page you can:
 - **Download PNG** for individual chart panels (client-side SVG → canvas → PNG)
 - **Print / Save PDF** via your browser’s print dialog
+
+For a more guided PDF flow, open:
+- `/pdf?repo_url=https://github.com/OWNER/REPO`
 
 Tip: for best PNG results, use Chrome.
 

@@ -1,84 +1,100 @@
-# Session Log
+# Reposcape Session Log
 
-This file records what was built in each autonomous development session.
+A chronological record of all autonomous development sessions.
 
-## Session 1 -- Repo cloning + baseline analyzers
+---
 
-- Built repo cloner with temp directory support.
-- Implemented language breakdown analyzer.
-- Added initial test harness and CI pipeline.
+## Session 1
 
-## Session 2 -- Treemap + commit heatmap
+✅ Built core repo cloning + analysis engine (language breakdown, git log parser)
+✅ Set up project structure, tests, and CI
 
-- Implemented file tree analyzer and treemap data model.
-- Added commit heatmap generator with week/day bucket output.
-- Expanded test coverage.
+## Session 2
 
-## Session 3 -- Contributor stats + commit quality
+✅ Added commit frequency heatmap analyzer
+✅ Built file tree treemap analyzer
 
-- Added contributor stats analyzer (commits, LOC estimates, active periods).
-- Built author velocity tracking (commits over time per author).
-- Implemented commit message quality analyzer (length, keywords, conventions).
+## Session 3
 
-## Session 4 -- Dependencies + complexity
+✅ Built contributor stats analyzer
+✅ Built commit message quality analyzer
+✅ Built author velocity tracking
 
-- Implemented dependency graph parser for Python and JS/TS imports.
-- Added cyclomatic complexity estimator per file.
+## Session 4
 
-## Session 5 -- Timeline + PR velocity + tech debt
+✅ Implemented dependency graph analyzer (Python/JS/TS import parsing)
+✅ Implemented cyclomatic complexity analyzer
 
-- Added commit timeline builder with daily/weekly buckets.
-- Implemented PR velocity estimator from merge commits.
-- Added tech debt score model (TODO density, deep nesting, large files).
+## Session 5
 
-## Session 6 -- Web app skeleton
+✅ Built commit timeline generator
+✅ Built PR velocity tracker
+✅ Built tech debt scorer
 
-- Built FastAPI server with landing page.
-- Added initial dashboard with treemap visualization.
+## Session 6
 
-## Session 7 -- Expanded dashboard + caching
+✅ Built initial web app with landing page and treemap dashboard
+✅ Wired repo analysis engine into FastAPI API
 
-- Expanded /api/analyze payload.
-- Added basic in-memory caching (TTL).
-- Added dashboard sections for languages, contributors, and tech debt.
+## Session 7
 
-## Session 8 -- Dashboard visualization expansion
+✅ Expanded dashboard data payload
+✅ Added simple in-memory caching
+✅ Added additional dashboard visualizations
 
-- Rendered timeline and heatmap charts.
-- Added sections for complexity, dependencies, and PR velocity.
+## Session 8
 
-## Session 9 -- Share cards
+✅ Completed dashboard visualizer suite
+✅ Added timeline, heatmap, dependency, complexity panels
 
-- Implemented Open Graph share card image generation.
-- Added /share/{owner}/{repo} endpoint.
+## Session 9
 
-## Session 10 -- Export HTML snapshot
+✅ Built Open Graph share-card generator
+✅ Added /share preview route
 
-- Added /api/export.html endpoint.
-- Implemented standalone export HTML generator.
+## Session 10
 
-## Session 11 -- Nightshift showcase
+✅ Built export system: standalone HTML snapshot download
+✅ Export page renders treemap/timeline/heatmap
+✅ Export includes Print / Save PDF button
 
-- Added /showcase route with a demo story.
-- Packaged a demo payload JSON.
+## Session 11
 
-## Session 12 -- Story pages
+✅ Built Nightshift showcase (pre-generated demo)
 
-- Added /r/{owner}/{repo} story pages.
-- Wired OG meta tags to share cards.
+## Session 12
 
-## Session 13 -- Story page polish
+✅ Built per-repo story pages with OG tags
+✅ Added demo payload loading for story page routing
 
-- Improved story layout, added more sections.
-- Fixed minor bugs across story/share routes.
+## Session 13
 
-## Session 14 -- GitHub metadata in story subtitles
+✅ Improved story routing and metadata handling
 
-- Added lightweight GitHub API helper (stdlib) to fetch repo metadata.
-- Populated story subtitle with stars, primary language, last updated.
+## Session 14
 
-## Session 15 -- Export: client-side PNG + print/PDF helper
+✅ Story pages now populate subtitle/metadata using GitHub metadata (stars, primary language, last updated)
 
-- Added an export controls panel to the HTML snapshot view (panel selector, scale selector, Download PNG, and Print/Save PDF via window.print()).
-- Implemented a dependency-free client-side SVG → PNG pipeline using canvas in `src/web/static/export.js` and wired it into the export HTML.
-- Tests: 406 passed.
+## Session 15
+
+✅ Added client-side export of dashboard panels to PNG (SVG → canvas)
+✅ Added iframe embed option for exports
+
+---
+
+## Session 17 (2026-03-02)
+
+**Focus:** Export enhancement + payload reliability.
+
+### Shipped
+- Added a zero-dependency **print-to-PDF helper route**: `/pdf?repo_url=...`.
+  - Renders the existing export view inside an iframe with a sticky instruction bar and a one-click "Print / Save PDF" button.
+  - Avoids introducing heavy server-side PDF rendering dependencies (Chromium/wkhtmltopdf/etc.).
+- Fixed `/api/analyze` **JSON serialization** issues:
+  - `treemap` is now converted from `TreemapNode` to a JSON dict (`treemap_to_dict`).
+  - `heatmap` is now converted from `HeatmapCell` grid to a JSON dict (`heatmap.to_json`).
+- Made `reposcape_cli.py` runnable as a module/script (`python -m reposcape_cli ...`).
+
+### Notes
+- Tests: `407 passed`.
+- PR: #23 (squash merged).

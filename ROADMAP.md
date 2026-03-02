@@ -41,7 +41,7 @@ _Phase 1 items all done._
 
 - [x] Story pages: populate subtitle/metadata (stars, primary language, last updated) from GitHub metadata (Session 14)
 - [x] Export system: client-side SVG->PNG for shareable assets; optional iframe embed (Session 15)
-- [ ] Export system: server-side PDF generation or print-to-PDF helper
+- [x] Export system: server-side PDF generation or print-to-PDF helper (Session 17)
 
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
 
