@@ -40,7 +40,7 @@ _Phase 1 items all done._
 ## Phase 3.1 -- Story + Export Enhancements (Sessions 11-15)
 
 - [x] Story pages: populate subtitle/metadata (stars, primary language, last updated) from GitHub metadata (Session 14)
-- [ ] Export system: client-side SVG->PNG for shareable assets; optional iframe embed
+- [x] Export system: client-side SVG->PNG for shareable assets; optional iframe embed (Session 15)
 - [ ] Export system: server-side PDF generation or print-to-PDF helper
 
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
@@ -66,4 +66,3 @@ _Phase 1 items all done._
 - [x] Commit timeline (Session 5)
 - [x] PR velocity tracker (Session 5)
 - [x] Tech debt scorer (Session 5)
-

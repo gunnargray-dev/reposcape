@@ -1,80 +1,84 @@
-# Reposcape Session Log
+# Session Log
 
-This file records what was built each session.
+This file records what was built in each autonomous development session.
 
-## Session 1 (2026-03-01)
+## Session 1 -- Repo cloning + baseline analyzers
 
-- Built core repo cloning + git log parser (`src/clone.py`)
-- Added language breakdown analyzer (`src/languages.py`)
-- Set up pytest + GitHub Actions CI
+- Built repo cloner with temp directory support.
+- Implemented language breakdown analyzer.
+- Added initial test harness and CI pipeline.
 
-## Session 2 (2026-03-01)
+## Session 2 -- Treemap + commit heatmap
 
-- Added commit frequency heatmap generator (`src/heatmap.py`)
-- Added file tree analyzer + treemap data generator (`src/treemap.py`)
+- Implemented file tree analyzer and treemap data model.
+- Added commit heatmap generator with week/day bucket output.
+- Expanded test coverage.
 
-## Session 3 (2026-03-01)
+## Session 3 -- Contributor stats + commit quality
 
-- Built contributor stats engine (`src/contributors.py`)
-- Built author velocity tracker (`src/velocity.py`)
-- Built commit message quality analyzer (`src/commit_quality.py`)
+- Added contributor stats analyzer (commits, LOC estimates, active periods).
+- Built author velocity tracking (commits over time per author).
+- Implemented commit message quality analyzer (length, keywords, conventions).
 
-## Session 4 (2026-03-01)
+## Session 4 -- Dependencies + complexity
 
-- Added dependency graph analyzer (`src/dependencies.py`)
-- Added code complexity heatmap analyzer (`src/complexity.py`)
+- Implemented dependency graph parser for Python and JS/TS imports.
+- Added cyclomatic complexity estimator per file.
 
-## Session 5 (2026-03-01)
+## Session 5 -- Timeline + PR velocity + tech debt
 
-- Added commit timeline analyzer (`src/timeline.py`)
-- Added PR velocity analyzer (`src/pr_velocity.py`)
-- Added tech debt scorer (`src/techdebt.py`)
+- Added commit timeline builder with daily/weekly buckets.
+- Implemented PR velocity estimator from merge commits.
+- Added tech debt score model (TODO density, deep nesting, large files).
 
-## Session 6 (2026-03-01)
+## Session 6 -- Web app skeleton
 
-- Built FastAPI app scaffold (`src/web/app.py`)
-- Added landing page + dashboard skeleton
+- Built FastAPI server with landing page.
+- Added initial dashboard with treemap visualization.
 
-## Session 7 (2026-03-01)
+## Session 7 -- Expanded dashboard + caching
 
-- Expanded `/api/analyze` payload
-- Added in-memory caching to avoid repeated clone/analysis
-- Improved dashboard sections and chart rendering
+- Expanded /api/analyze payload.
+- Added basic in-memory caching (TTL).
+- Added dashboard sections for languages, contributors, and tech debt.
 
-## Session 8 (2026-03-01)
+## Session 8 -- Dashboard visualization expansion
 
-- Added timeline / heatmap / tech debt / complexity dashboard charts
-- Added “analysis duration” status indicator
+- Rendered timeline and heatmap charts.
+- Added sections for complexity, dependencies, and PR velocity.
 
-## Session 9 (2026-03-01)
+## Session 9 -- Share cards
 
-- Added share card generator (`/share/card.png`) using Pillow
-- Added share preview page (`/share/preview`)
+- Implemented Open Graph share card image generation.
+- Added /share/{owner}/{repo} endpoint.
 
-## Session 10 (2026-03-01)
+## Session 10 -- Export HTML snapshot
 
-- Added export system: `/api/export.html` returns standalone HTML snapshot
-- Added export HTML view builder (`src/web/export.py`) and a simple shareable export layout
+- Added /api/export.html endpoint.
+- Implemented standalone export HTML generator.
 
-## Session 11 (2026-03-01)
+## Session 11 -- Nightshift showcase
 
-- Added a “showcase” demo using a pre-generated payload (nightshift)
-- Added routes + template for `/showcase/nightshift`
+- Added /showcase route with a demo story.
+- Packaged a demo payload JSON.
 
-## Session 12 (2026-03-02)
+## Session 12 -- Story pages
 
-- Added per-repo story pages: `/r/{owner}/{repo}` with OG meta tags
-- Wired OG image to share card route (`/share/card.png`) with repo-specific title
+- Added /r/{owner}/{repo} story pages.
+- Wired OG meta tags to share cards.
 
-## Session 13 (2026-03-02)
+## Session 13 -- Story page polish
 
-- Fixed Starlette template deprecation warnings by updating TemplateResponse call signatures.
+- Improved story layout, added more sections.
+- Fixed minor bugs across story/share routes.
 
-**Notes:**
-- URL encoding uses `quote(..., safe='')` so repo slugs and separators are encoded correctly.
+## Session 14 -- GitHub metadata in story subtitles
 
-## Session 14 (2026-03-02)
+- Added lightweight GitHub API helper (stdlib) to fetch repo metadata.
+- Populated story subtitle with stars, primary language, last updated.
 
-- PR #18 (squash merge, commit e4cb1a5)
-- Story pages now use GitHub repo metadata (stars/language/updated) for OG description + on-page metadata pills.
-- Added `src/github_meta.py` (stdlib, best-effort) + parsing tests.
+## Session 15 -- Export: client-side PNG + print/PDF helper
+
+- Added an export controls panel to the HTML snapshot view (panel selector, scale selector, Download PNG, and Print/Save PDF via window.print()).
+- Implemented a dependency-free client-side SVG → PNG pipeline using canvas in `src/web/static/export.js` and wired it into the export HTML.
+- Tests: 406 passed.

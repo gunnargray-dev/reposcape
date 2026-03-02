@@ -12,10 +12,10 @@ Paste a repo URL. Get stunning, shareable visualizations.
 
 | Metric | Value |
 |--------|-------|
-| Sessions | 13 |
-| PRs merged | 16 |
-| Source modules | 11 |
-| Tests passing | 404 |
+| Sessions | 15 |
+| PRs merged | 20 |
+| Source modules | 12 |
+| Tests passing | 406 |
 | Visualizations | 9 |
 
 ---
@@ -78,7 +78,12 @@ Then open:
 ### Export
 
 From the dashboard, click **Export HTML** to download a standalone HTML snapshot of the current analysis.
-Open the file locally (or host it anywhere static) and use your browser’s print dialog to save as PDF.
+
+In the exported page you can:
+- **Download PNG** for individual chart panels (client-side SVG → canvas → PNG)
+- **Print / Save PDF** via your browser’s print dialog
+
+Tip: for best PNG results, use Chrome.
 
 
 ### Story URLs
