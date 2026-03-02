@@ -4,22 +4,23 @@ from __future__ import annotations
 
 import tempfile
 import time
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, HttpUrl
 
-from src.clone import clone_repo
+from src.clone import clone_repo, parse_git_log
 from src.commit_quality import analyze_commit_quality
 from src.complexity import analyze_repo_complexity
 from src.contributors import analyze_contributors
 from src.dependencies import build_dependency_graph
-from src.heatmap import build_commit_heatmap
+from src.heatmap import build_commit_heatmap, to_json as heatmap_to_json
 from src.languages import analyze_languages
 from src.pr_velocity import estimate_pr_velocity
 from src.techdebt import calculate_tech_debt_score
 from src.timeline import build_commit_timeline
-from src.treemap import build_treemap
+from src.treemap import build_treemap, treemap_to_dict
 from src.web.demo import load_demo_payload
 from src.web.export import build_export_html
 
@@ -48,6 +49,23 @@ def _cache_set(key: str, payload: dict[str, Any]) -> None:
     """Store payload with a TTL."""
 
     _analysis_cache[key] = (time.time() + _CACHE_TTL_SECONDS, payload)
+
+
+def _load_commit_datetimes(repo_path: str) -> list[datetime]:
+    """Load commit datetimes for a repository.
+
+    Args:
+        repo_path: Local git repository path.
+
+    Returns:
+        List of datetimes (newest first).
+    """
+
+    commits = parse_git_log(repo_path)
+    dts: list[datetime] = []
+    for commit in commits:
+        dts.append(datetime.fromisoformat(str(commit.get("date"))))
+    return dts
 
 
 class AnalyzeRequest(BaseModel):
@@ -79,11 +97,12 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
         start = time.perf_counter()
         with tempfile.TemporaryDirectory(prefix="reposcape-") as tmpdir:
             repo_path = clone_repo(str(req.repo_url), tmpdir)
+            commit_datetimes = _load_commit_datetimes(repo_path)
 
             payload: dict[str, Any] = {
                 "repo_url": str(req.repo_url),
                 "languages": analyze_languages(repo_path),
-                "treemap": build_treemap(repo_path),
+                "treemap": treemap_to_dict(build_treemap(repo_path)),
                 "contributors": analyze_contributors(repo_path),
                 "commit_quality": analyze_commit_quality(repo_path),
                 "timeline": build_commit_timeline(repo_path, bucket="week"),
@@ -91,7 +110,7 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
                 "dependencies": build_dependency_graph(repo_path),
                 "pr_velocity": estimate_pr_velocity(repo_path),
                 "techdebt": calculate_tech_debt_score(repo_path),
-                "heatmap": build_commit_heatmap(repo_path),
+                "heatmap": heatmap_to_json(build_commit_heatmap(commit_datetimes)),
             }
 
             duration_ms = int((time.perf_counter() - start) * 1000)

@@ -10,6 +10,13 @@ By placing a thin wrapper module at the repository root, we can reliably expose
 
 from __future__ import annotations
 
+import sys
+
 from src.cli.main import main
 
 __all__ = ["main"]
+
+
+if __name__ == "__main__":
+    # Allow `python reposcape_cli.py ...` or `python -m reposcape_cli ...`.
+    main()

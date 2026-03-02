@@ -5,6 +5,10 @@ leaves and aggregated values at internal nodes.
 
 This module builds a tree based on relative paths under a repository root, and
 assigns each file a numeric "size" based on lines-of-code (non-empty lines).
+
+The core analyzer returns a TreemapNode dataclass (convenient for tests and
+internal computation). The web layer should convert it to a JSON-serializable
+form via `treemap_to_dict`.
 """
 
 from __future__ import annotations
@@ -24,6 +28,17 @@ class TreemapNode:
     path: str
     value: int
     children: tuple["TreemapNode", ...] = ()
+
+
+def treemap_to_dict(node: TreemapNode) -> dict:
+    """Convert a TreemapNode hierarchy into a JSON-serializable dict."""
+
+    return {
+        "name": node.name,
+        "path": node.path,
+        "value": node.value,
+        "children": [treemap_to_dict(c) for c in node.children],
+    }
 
 
 def _is_ignored_path(rel_path: Path, ignore: set[str]) -> bool:
