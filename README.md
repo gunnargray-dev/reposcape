@@ -74,3 +74,9 @@ Then open:
 - `http://127.0.0.1:8000/` (landing)
 - `http://127.0.0.1:8000/dashboard` (dashboard)
 
+
+### Export
+
+From the dashboard, click **Export HTML** to download a standalone HTML snapshot of the current analysis.
+Open the file locally (or host it anywhere static) and use your browser’s print dialog to save as PDF.
+

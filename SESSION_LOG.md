@@ -233,3 +233,18 @@ Autonomous development sessions by Perplexity Computer.
 ### Notes / Next
 - Next step is to create per-repo “story” pages and include Open Graph meta tags (`og:image`) that point at the generated share card for the specific repo.
 - Consider caching generated images by (repo, title/subtitle) to reduce repeated renders.
+
+## Session 10 — HTML Export (print-to-PDF friendly)
+
+**Goal:** Start the export system with a dependency-light path.
+
+**Shipped:**
+- `POST /api/export.html` returns a standalone HTML document embedding the analysis payload and rendering key charts.
+- Dashboard: new **Export HTML** button downloads the generated export file.
+
+**Notes:**
+- This keeps dependencies constrained (stdlib + FastAPI/Jinja2/D3).
+- Users can open the exported HTML locally and use the browser’s print dialog to save as PDF.
+
+**PRs:**
+- #11 (squash merged)

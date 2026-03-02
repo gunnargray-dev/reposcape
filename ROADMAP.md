@@ -33,7 +33,7 @@ _Phase 1 items all done._
 - [x] Expand analyze payload + add basic caching + extra dashboard sections (Session 7)
 - [x] Expand dashboard to render additional analyzers (timeline, heatmap, tech debt, complexity) (Session 8)
 - [x] Share cards (Open Graph images for social) (Session 9)
-- [ ] Export system (PNG, PDF, SVG, embed iframe)
+- [x] Export system (HTML snapshot download; printable to PDF) (Session 10)
 - [ ] Nightshift showcase (pre-generated demo using nightshift repo)
 
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
@@ -59,4 +59,5 @@ _Phase 1 items all done._
 - [x] Commit timeline (Session 5)
 - [x] PR velocity tracker (Session 5)
 - [x] Tech debt scorer (Session 5)
+
 
