@@ -13,6 +13,7 @@
         <a href="/">Reposcape</a>
         <div class="spacer"></div>
         <button id="rerun" type="button">Re-run</button>
+        <button id="exportHtml" type="button">Export HTML</button>
       </header>
 
       <section>
@@ -381,8 +382,33 @@
           });
       }
 
-      el('rerun').addEventListener('click', run);
-      run();
+      async function exportHtml() {
+        const repoUrl = getRepoUrl();
+        const resp = await fetch('/api/export.html', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json();
+          alert('Export failed: ' + (err.detail || 'unknown'));
+          return;
+        }
+
+        const data = await resp.json();
+        const blob = new Blob([data.html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'reposcape-export.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      el('exportHtml').addEventListener('click', exportHtml);
     </script>
   </body>
 </html>
