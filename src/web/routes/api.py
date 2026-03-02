@@ -20,6 +20,7 @@ from src.pr_velocity import estimate_pr_velocity
 from src.techdebt import calculate_tech_debt_score
 from src.timeline import build_commit_timeline
 from src.treemap import build_treemap
+from src.web.export import build_export_html
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -98,3 +99,22 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
             return {"cached": False, "duration_ms": duration_ms, **payload}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.post("/export.html")
+def export_html(req: AnalyzeRequest) -> dict[str, Any]:
+    """Create a standalone HTML export view.
+
+    This is a first step toward the broader export system. It reuses the same
+    analysis + caching as /api/analyze.
+
+    Args:
+        req: Analyze request.
+
+    Returns:
+        JSON containing the HTML document string.
+    """
+
+    analysis = analyze_repo(req)
+    payload = {k: v for k, v in analysis.items() if k not in {"cached", "duration_ms"}}
+    return {"repo_url": payload.get("repo_url"), "html": build_export_html(payload)}
