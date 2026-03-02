@@ -72,6 +72,14 @@ This file records what was built each session.
 - Dashboard auto-runs analysis on load, supports demo mode, and has Re-run wiring
 
 
+## Session 13 (2026-03-02)
+
+**Goal:** Remove Starlette TemplateResponse deprecation warnings in tests.
+
+**Shipped:**
+- Updated server-rendered page routes to call `TemplateResponse(request, name, context)`
+- Eliminated test warning from Starlette templating
+
 ## Session 12 (2026-03-02)
 
 **Goal:** Add per-repo story pages with Open Graph meta tags wired to share cards.

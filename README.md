@@ -12,8 +12,8 @@ Paste a repo URL. Get stunning, shareable visualizations.
 
 | Metric | Value |
 |--------|-------|
-| Sessions | 12 |
-| PRs merged | 14 |
+| Sessions | 13 |
+| PRs merged | 16 |
 | Source modules | 11 |
 | Tests passing | 404 |
 | Visualizations | 9 |
