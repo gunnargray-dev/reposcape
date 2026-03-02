@@ -12,11 +12,11 @@ Paste a repo URL. Get stunning, shareable visualizations.
 
 | Metric | Value |
 |--------|-------|
-| Sessions | 7 |
-| PRs merged | 7 |
-| Source modules | 12 |
-| Tests passing | 528 |
-| Visualizations | 0 |
+| Sessions | 12 |
+| PRs merged | 14 |
+| Source modules | 11 |
+| Tests passing | 404 |
+| Visualizations | 9 |
 
 ---
 
@@ -80,3 +80,7 @@ Then open:
 From the dashboard, click **Export HTML** to download a standalone HTML snapshot of the current analysis.
 Open the file locally (or host it anywhere static) and use your browser’s print dialog to save as PDF.
 
+
+### Story URLs
+
+Use `/r/{owner}/{repo}` to get a share-friendly landing page with Open Graph meta tags.
