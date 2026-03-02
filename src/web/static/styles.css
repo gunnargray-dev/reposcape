@@ -130,6 +130,42 @@ body {
   font-weight: 600;
 }
 
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.button.secondary {
+  background: white;
+  color: #2E90FA;
+  border: 1px solid rgba(46, 144, 250, 0.35);
+}
+
+.button.secondary:hover {
+  filter: none;
+  background: rgba(46, 144, 250, 0.06);
+}
+
+.meta {
+  list-style: none;
+  padding: 0;
+  margin:  12px 0 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #475467;
+  font-size: 0.95rem;
+}
+
+.meta li {
+  background: rgba(46, 144, 250, 0.06);
+  border: 1px solid rgba(46, 144, 250, 0.18);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
 .button:hover {
   filter: brightness(0.95);
 }

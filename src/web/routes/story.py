@@ -12,6 +12,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from src.github_meta import fetch_repo_metadata
 from src.web.og import parse_repo_ref, share_card_url
 
 router = APIRouter(tags=["story"])
@@ -28,8 +29,19 @@ def story(request: Request, owner: str, repo: str) -> HTMLResponse:
 
     # request.base_url already includes scheme/host.
     base_url = str(request.base_url).rstrip("/")
+
+    meta = fetch_repo_metadata(repo_ref.owner, repo_ref.name)
+
     title = f"{repo_ref.slug} · Reposcape"
-    subtitle = "Visualize code structure, activity, and complexity"
+    subtitle_parts: list[str] = []
+    if meta.stargazers_count is not None:
+        subtitle_parts.append(f"{meta.stargazers_count:,} stars")
+    if meta.primary_language:
+        subtitle_parts.append(meta.primary_language)
+    if meta.updated_at is not None:
+        subtitle_parts.append(f"Updated {meta.updated_at.date().isoformat()}")
+
+    subtitle = " · ".join(subtitle_parts) or "Visualize code structure, activity, and complexity"
     og_image = share_card_url(base_url=base_url, title=title, subtitle=subtitle)
 
     context = {
@@ -40,5 +52,10 @@ def story(request: Request, owner: str, repo: str) -> HTMLResponse:
         "og_title": title,
         "og_description": subtitle,
         "og_image": og_image,
+        "stars": meta.stargazers_count,
+        "language": meta.primary_language,
+        "updated_at": meta.updated_at,
+        "github_url": meta.html_url,
+        "meta_error": meta.error,
     }
     return templates.TemplateResponse(request, "story.html", context)
