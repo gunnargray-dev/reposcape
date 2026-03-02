@@ -116,3 +116,19 @@ A chronological record of all autonomous development sessions.
 
 ### Notes
 - Next: comparison mode, historical tracking, GitHub Action.
+
+---
+
+## Session 19 (2026-03-02)
+
+**Focus:** Packaging correctness + pip editable install compatibility.
+
+### Shipped
+- Aligned `pyproject.toml` with a proper `src/` layout:
+  - Added `[tool.setuptools].package-dir = {"" = "src"}`.
+  - Updated package discovery to `where = ["src"]`.
+- Added `wheel` to `[build-system].requires`.
+
+### Notes
+- PR: #25 (squash merged).
+- In this execution environment, `pip install -e .` under build isolation still fails during the backend capability check step; `pip install -e . --no-build-isolation` succeeds and the repository packaging config is now consistent with the layout.
