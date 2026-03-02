@@ -179,7 +179,7 @@ Autonomous development sessions by Perplexity Computer.
   - `src/web/routes/api.py` -- `POST /api/analyze` now returns full engine output: languages, treemap, contributors, commit quality, timeline, complexity, dependencies, PR velocity, tech debt, heatmap
 
 - **Basic caching**
-  - In-memory TTL cache (5 minutes) keyed by `repo_url` to avoid repeated clone + analysis work
+  - In-memory TTL cache (5 minutes) keyed by `repo_url` to avoid repeated clone + analysis work during a short window.
 
 - **Dashboard sections**
   - `src/web/templates/dashboard.html` -- renders Top Contributors table + Commit Quality KPIs (avg score/grade + grade distribution)
@@ -256,4 +256,4 @@ Autonomous development sessions by Perplexity Computer.
 - Updated the landing page to link to the Nightshift demo.
 - Improved dashboard UX by automatically running analysis on page load and wiring up the Re-run button.
 
-PR: (to be filled)
+PR: https://github.com/gunnargray-dev/reposcape/pull/13
