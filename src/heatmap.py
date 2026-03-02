@@ -31,7 +31,7 @@ def _start_of_week(d: date, week_start: int) -> date:
 
     Returns:
         The date of the week start.
-    """
+    """ 
 
     delta = (d.weekday() - week_start) % 7
     return d - timedelta(days=delta)
@@ -95,3 +95,34 @@ def build_commit_heatmap(
         current += timedelta(days=7)
 
     return weeks
+
+
+def to_json(grid: list[list[HeatmapCell]]) -> dict:
+    """Convert HeatmapCell grid to JSON-serializable dict.
+
+    Args:
+        grid: Heatmap output.
+
+    Returns:
+        Dict with a list of weeks and date ranges.
+    """
+
+    if not grid:
+        return {"weeks": [], "start": None, "end": None}
+
+    flat = [c for week in grid for c in week]
+    start = min(c.day for c in flat)
+    end = max(c.day for c in flat)
+
+    weeks: list[dict] = []
+    for week in grid:
+        if not week:
+            continue
+        weeks.append(
+            {
+                "start": week[0].day.isoformat(),
+                "days": [{"date": c.day.isoformat(), "count": c.count} for c in week],
+            }
+        )
+
+    return {"weeks": weeks, "start": start.isoformat(), "end": end.isoformat()}

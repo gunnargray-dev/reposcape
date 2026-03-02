@@ -1,5 +1,7 @@
-"""Router package for the web application."""
+"""Route package exports."""
 
-from src.web.routes import api, pages, share, showcase, story
+from __future__ import annotations
 
-__all__ = ["api", "pages", "share", "showcase", "story"]
+from src.web.routes import api, pages, pdf, share, showcase, story
+
+__all__ = ["api", "pages", "pdf", "share", "showcase", "story"]

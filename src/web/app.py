@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from src.web.routes import api, pages, share, showcase, story
+from src.web.routes import api, pages, pdf, share, showcase, story
 
 
 def create_app() -> FastAPI:
@@ -21,6 +21,7 @@ def create_app() -> FastAPI:
 
     app.include_router(api.router)
     app.include_router(pages.router)
+    app.include_router(pdf.router)
     app.include_router(share.router)
     app.include_router(showcase.router)
     app.include_router(story.router)
