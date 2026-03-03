@@ -194,7 +194,7 @@ Historical tracking foundation (snapshot storage + index utilities).
   - Snapshot date bucketing (weekly by default).
   - Helpers for stable snapshot filenames and per-repo history directories.
   - JSON persistence helpers (write/load).
-  ��� Index builder for consumers (web/CLI).
+  - Index builder for consumers (web/CLI).
 - Added unit tests: `tests/test_history.py`.
 
 ### Notes
