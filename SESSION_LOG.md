@@ -194,9 +194,29 @@ Historical tracking foundation (snapshot storage + index utilities).
   - Snapshot date bucketing (weekly by default).
   - Helpers for stable snapshot filenames and per-repo history directories.
   - JSON persistence helpers (write/load).
-  - Index builder for consumers (web/CLI).
+  ��� Index builder for consumers (web/CLI).
 - Added unit tests: `tests/test_history.py`.
 
 ### Notes
 - Tests: history unit tests pass (`5 passed`).
 - Next: wire snapshots into CLI/web and add a GitHub Action to publish/update history artifacts.
+
+---
+
+## Session 24 (2026-03-03)
+
+**PR:** #29 (squash merged)
+
+### Focus
+Wire snapshot generation into the CLI/shared analysis entrypoint.
+
+### Shipped
+- Extended `src.analyze.analyze_repo_url()` with an **optional** `snapshot_base_dir: Path | None`.
+  - When provided, Reposcape writes a point-in-time snapshot JSON to disk using `src.history.write_snapshot()`.
+- Added CLI support:
+  - `reposcape analyze ... --snapshot-dir <dir>`
+  - Or `REPOSCAPE_SNAPSHOT_DIR=<dir>`.
+
+### Notes
+- Tests: `tests/test_cli.py`, `tests/test_history.py`.
+- Next: add a web endpoint to list/download snapshots and a GitHub Action to generate snapshots on a schedule.
