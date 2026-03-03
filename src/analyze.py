@@ -12,7 +12,9 @@ from __future__ import annotations
 import tempfile
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from src.clone import clone_repo, parse_git_log
 from src.commit_quality import analyze_commit_quality
@@ -20,6 +22,7 @@ from src.complexity import analyze_repo_complexity
 from src.contributors import analyze_contributors
 from src.dependencies import build_dependency_graph
 from src.heatmap import build_commit_heatmap, to_json as heatmap_to_json
+from src.history import get_repo_history_dir, write_snapshot
 from src.languages import analyze_languages
 from src.pr_velocity import estimate_pr_velocity
 from src.techdebt import calculate_tech_debt_score
@@ -68,11 +71,38 @@ def _load_commit_datetimes(repo_path: str) -> list[datetime]:
     return dts
 
 
-def analyze_repo_url(repo_url: str) -> dict[str, Any]:
+def _parse_github_owner_repo(repo_url: str) -> tuple[str, str]:
+    """Parse a GitHub repo URL into (owner, name).
+
+    Args:
+        repo_url: Repository URL.
+
+    Returns:
+        Tuple of (owner, repo_name).
+
+    Raises:
+        ValueError: If the URL does not look like a GitHub repo URL.
+    """
+
+    parsed = urlparse(repo_url)
+    parts = [p for p in parsed.path.split("/") if p]
+    if len(parts) < 2:
+        raise ValueError(f"Invalid GitHub repo URL: {repo_url}")
+    return parts[0], parts[1]
+
+
+def analyze_repo_url(
+    repo_url: str,
+    *,
+    snapshot_base_dir: Path | None = None,
+) -> dict[str, Any]:
     """Analyze a GitHub repo URL and return a JSON-serializable payload.
 
     Args:
         repo_url: Public repository URL.
+        snapshot_base_dir: Optional directory for storing a point-in-time snapshot
+            JSON file (for historical tracking). If provided, a snapshot is
+            written for today's UTC date.
 
     Returns:
         Analysis payload suitable for JSON serialization.
@@ -104,6 +134,11 @@ def analyze_repo_url(repo_url: str) -> dict[str, Any]:
             "techdebt": calculate_tech_debt_score(repo_path),
             "heatmap": heatmap_to_json(build_commit_heatmap(commit_datetimes)),
         }
+
+        if snapshot_base_dir is not None:
+            owner, name = _parse_github_owner_repo(str(repo_url))
+            history_dir = get_repo_history_dir(owner, name, snapshot_base_dir)
+            write_snapshot(history_dir, datetime.utcnow().date(), payload)
 
         duration_ms = int((time.perf_counter() - start) * 1000)
 
