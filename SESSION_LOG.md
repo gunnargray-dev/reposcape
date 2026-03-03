@@ -159,3 +159,23 @@ Full pytest suite (407 tests) terminated early with exit_code=-1 when run as a s
 
 ### Notes
 - Full suite (all 401 non-integration tests) passes when run as two batches but still hits sandbox process limits when run as a single `pytest tests/` due to the web layer importing FastAPI. This is a sandbox-specific limitation, not a code issue. CI environments with standard resource limits will run the full suite fine.
+
+---
+
+## Session 22 (2026-03-03)
+
+**PR:** #27 (squash merged)
+
+### Focus
+Comparison mode (two repos side by side).
+
+### Shipped
+- Added a core comparison module: `src/compare.py`.
+  - Reuses `analyze_repo_url()` for each repo.
+  - Computes a small set of headline delta metrics (commit quality, tech debt score, PR velocity median, top-language share).
+- Added `/api/compare` endpoint.
+- Added a new `/compare` page with a simple table UI.
+- Added a comparison mode entry point on the landing page.
+
+### Notes
+- Next: historical tracking, GitHub Action.
