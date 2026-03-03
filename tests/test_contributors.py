@@ -23,11 +23,10 @@ from src.contributors import (
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
-def single_author_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def single_author_repo(tmp_path_factory) -> str:
     """Create a minimal git repo with a single author and several commits."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("repo")
     _git(["init"], repo)
     _git(["config", "user.email", "alice@example.com"], repo)
     _git(["config", "user.name", "Alice"], repo)
@@ -44,11 +43,10 @@ def single_author_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def two_author_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def two_author_repo(tmp_path_factory) -> str:
     """Create a git repo with two authors who both touch the same file."""
-    repo = tmp_path / "repo2"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("repo2")
     _git(["init"], repo)
 
     _set_author(repo, "alice@example.com", "Alice")

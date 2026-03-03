@@ -40,11 +40,10 @@ def _set_author(repo: Path, email: str, name: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
-def no_merge_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def no_merge_repo(tmp_path_factory) -> str:
     """Simple linear repo with no merge commits."""
-    repo = tmp_path / "linear"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("linear")
     _git(["init"], repo)
     _set_author(repo, "dev@example.com", "Dev")
 
@@ -56,11 +55,10 @@ def no_merge_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def merge_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def merge_repo(tmp_path_factory) -> str:
     """Repo with a real merge commit via branch + merge."""
-    repo = tmp_path / "merged"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("merged")
     _git(["init"], repo)
     _set_author(repo, "dev@example.com", "Dev")
 
@@ -89,19 +87,17 @@ def merge_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def empty_repo(tmp_path: Path) -> str:
-    repo = tmp_path / "empty"
-    repo.mkdir()
+@pytest.fixture(scope="module")
+def empty_repo(tmp_path_factory) -> str:
+    repo = tmp_path_factory.mktemp("empty")
     _git(["init"], repo)
     return str(repo)
 
 
-@pytest.fixture()
-def multi_branch_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def multi_branch_repo(tmp_path_factory) -> str:
     """Repo with multiple branches including stale ones."""
-    repo = tmp_path / "branches"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("branches")
     _git(["init"], repo)
     _set_author(repo, "dev@example.com", "Dev")
 
@@ -171,7 +167,6 @@ def test_analyze_merge_commits_structure(merge_repo: str) -> None:
 def test_analyze_merge_commits_branch_name_extracted(merge_repo: str) -> None:
     result = analyze_merge_commits(merge_repo)
     assert len(result) >= 1
-    # The merge message is "Merge branch 'feature/my-feature'"
     assert result[0]["branch_name"] == "feature/my-feature"
 
 

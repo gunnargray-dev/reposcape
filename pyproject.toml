@@ -25,3 +25,5 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = ["integration: network-dependent tests (deselect with '-m not integration')"]
+addopts = "-m 'not integration'"
