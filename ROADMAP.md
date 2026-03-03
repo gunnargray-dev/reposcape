@@ -51,6 +51,7 @@ _Phase 1 items all done._
 - [x] Comparison mode (two repos side by side) (Session 22)
 - [ ] Historical tracking (repo evolution over time)
     - [x] Foundation: snapshot bucketing + persistence utilities (`src/history.py`) (Session 23)
+    - [x] Wire snapshot generation into CLI (`reposcape analyze --snapshot-dir ...`) (Session 24)
 - [ ] GitHub Action (auto-generate on release)
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
 
