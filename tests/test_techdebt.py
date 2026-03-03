@@ -38,11 +38,10 @@ def _make_repo(path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
-def repo_with_todos(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def repo_with_todos(tmp_path_factory) -> str:
     """Repo containing TODO and FIXME comments across several files."""
-    repo = tmp_path / "todo_repo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("todo_repo")
     _make_repo(repo)
 
     (repo / "main.py").write_text(
@@ -66,11 +65,10 @@ def repo_with_todos(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def large_file_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def large_file_repo(tmp_path_factory) -> str:
     """Repo containing files above and below the large-file threshold."""
-    repo = tmp_path / "large_repo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("large_repo")
     _make_repo(repo)
 
     big_content = "\n".join(f"x_{i} = {i}" for i in range(600))
@@ -82,11 +80,10 @@ def large_file_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def deep_nesting_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def deep_nesting_repo(tmp_path_factory) -> str:
     """Repo with a Python function that has 6 levels of nesting."""
-    repo = tmp_path / "nesting_repo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("nesting_repo")
     _make_repo(repo)
 
     deep_code = (
@@ -109,11 +106,10 @@ def deep_nesting_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def excluded_dirs_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def excluded_dirs_repo(tmp_path_factory) -> str:
     """Repo with TODOs inside node_modules (should be excluded)."""
-    repo = tmp_path / "excluded_repo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("excluded_repo")
     _make_repo(repo)
 
     (repo / "main.py").write_text("x = 1\n")
@@ -126,11 +122,10 @@ def excluded_dirs_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def clean_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def clean_repo(tmp_path_factory) -> str:
     """Repo with clean, well-structured code and no debt."""
-    repo = tmp_path / "clean_repo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("clean_repo")
     _make_repo(repo)
 
     (repo / "main.py").write_text(
@@ -149,10 +144,9 @@ def clean_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def empty_repo(tmp_path: Path) -> str:
-    repo = tmp_path / "empty"
-    repo.mkdir()
+@pytest.fixture(scope="module")
+def empty_repo(tmp_path_factory) -> str:
+    repo = tmp_path_factory.mktemp("empty")
     _make_repo(repo)
     return str(repo)
 
