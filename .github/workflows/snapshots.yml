@@ -30,3 +30,11 @@ jobs:
         with:
           name: reposcape-snapshots
           path: snapshots/
+
+      - name: Upload snapshot bundle to release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          zip -r reposcape-snapshots.zip snapshots
+          gh release upload "${{ github.event.release.tag_name }}" reposcape-snapshots.zip --clobber
