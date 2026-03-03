@@ -21,6 +21,16 @@
         <div id="status" class="status">Starting analysis…</div>
       </section>
 
+      <section class="card" id="snapshotCard">
+        <div class="row">
+          <h3 style="margin: 0;">Snapshots</h3>
+          <div class="spacer"></div>
+          <select id="snapshotSelect" aria-label="Select snapshot"></select>
+          <button id="loadSnapshot" type="button">Load</button>
+        </div>
+        <div id="snapshotStatus" class="status" style="margin-top: 0.75rem;"></div>
+      </section>
+
       <section class="card">
         <h3>Treemap (LOC by file)</h3>
         <div id="treemap"></div>
@@ -65,6 +75,7 @@
     <script>
       const DEMO_MODE = {{ demo_mode | default(false) | tojson }};
       const DEMO_REPO_URL = {{ repo_url | default('') | tojson }};
+      const SNAPSHOTS_ENABLED = {{ snapshots_enabled | default(false) | tojson }};
 
       function getRepoUrl() {
         const url = new URL(window.location.href);
@@ -298,10 +309,106 @@
         container.appendChild(table);
       }
 
+      async function loadSnapshotIndex(repoUrl) {
+        const card = el('snapshotCard');
+        const select = el('snapshotSelect');
+        const status = el('snapshotStatus');
+
+        if (!SNAPSHOTS_ENABLED || DEMO_MODE) {
+          card.style.display = 'none';
+          return null;
+        }
+
+        status.textContent = 'Loading snapshot index…';
+
+        const resp = await fetch('/api/snapshots/index', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          status.textContent = 'Snapshots unavailable: ' + (err.detail || resp.status);
+          select.innerHTML = '';
+          return null;
+        }
+
+        const data = await resp.json();
+        const snaps = (data.snapshots || []).slice().reverse();
+        select.innerHTML = '';
+
+        if (snaps.length === 0) {
+          status.textContent = 'No snapshots found yet.';
+          return { repo_url: repoUrl, snapshots: [] };
+        }
+
+        for (const s of snaps) {
+          const opt = document.createElement('option');
+          opt.value = s.as_of;
+          opt.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
+          select.appendChild(opt);
+        }
+
+        status.textContent = `Found ${snaps.length} snapshot(s).`;
+        return { repo_url: repoUrl, snapshots: snaps };
+      }
+
+      async function loadSelectedSnapshot(repoUrl) {
+        const select = el('snapshotSelect');
+        const status = el('snapshotStatus');
+
+        const asOf = select.value;
+        if (!asOf) {
+          status.textContent = 'Pick a snapshot first.';
+          return;
+        }
+
+        status.textContent = `Loading snapshot ${asOf}…`;
+
+        const resp = await fetch('/api/snapshots/get', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl, as_of: asOf })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          status.textContent = 'Snapshot load failed: ' + (err.detail || resp.status);
+          return;
+        }
+
+        const data = await resp.json();
+        status.textContent = `Loaded snapshot ${asOf}.`;
+        renderPayload(data, { cached: true, duration_ms: null });
+      }
+
+      function renderPayload(data, options) {
+        const dur = formatDuration(options?.duration_ms);
+        if (DEMO_MODE) {
+          el('status').textContent = 'Demo loaded';
+        } else if (options?.cached) {
+          el('status').textContent = `Done (cached${dur ? ', ' + dur : ''})`;
+        } else {
+          el('status').textContent = `Done${dur ? ' (' + dur + ')' : ''}`;
+        }
+
+        el('languages').textContent = safeJson(data.languages);
+        renderTreemap(data.treemap);
+        renderContributors(data.contributors);
+        renderCommitQuality(data.commit_quality);
+        renderTimeline(data.timeline);
+        renderHeatmap(data.heatmap);
+        renderTechDebt(data.techdebt);
+        renderComplexity(data.complexity);
+      }
+
       async function run() {
         const repoUrl = getRepoUrl();
         el('repoTitle').textContent = repoUrl;
         el('status').textContent = 'Analyzing…';
+
+        await loadSnapshotIndex(repoUrl);
 
         let data;
 
@@ -329,21 +436,7 @@
           data = await resp.json();
         }
 
-        const dur = formatDuration(data.duration_ms);
-        if (DEMO_MODE) {
-          el('status').textContent = 'Demo loaded';
-        } else {
-          el('status').textContent = data.cached ? `Done (cached${dur ? ', ' + dur : ''})` : `Done${dur ? ' (' + dur + ')' : ''}`;
-        }
-
-        el('languages').textContent = safeJson(data.languages);
-        renderTreemap(data.treemap);
-        renderContributors(data.contributors);
-        renderCommitQuality(data.commit_quality);
-        renderTimeline(data.timeline);
-        renderHeatmap(data.heatmap);
-        renderTechDebt(data.techdebt);
-        renderComplexity(data.complexity);
+        renderPayload(data, { cached: data.cached, duration_ms: data.duration_ms });
       }
 
       function renderTreemap(treeData) {
@@ -428,6 +521,7 @@
         URL.revokeObjectURL(url);
       }
 
+      el('loadSnapshot').addEventListener('click', () => loadSelectedSnapshot(getRepoUrl()));
       el('exportHtml').addEventListener('click', exportHtml);
       el('rerun').addEventListener('click', run);
       run();
