@@ -23,7 +23,12 @@ def landing(request: Request) -> HTMLResponse:
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request) -> HTMLResponse:
     """Dashboard placeholder; JS triggers analysis and renders a treemap."""
-    return templates.TemplateResponse(request, "dashboard.html", {"request": request})
+
+    context = {
+        "request": request,
+        "snapshots_enabled": bool(request.app.state.get("snapshots_enabled", False)),
+    }
+    return templates.TemplateResponse(request, "dashboard.html", context)
 
 
 @router.get("/compare", response_class=HTMLResponse)
@@ -36,4 +41,3 @@ def compare(request: Request) -> HTMLResponse:
 def share_preview(request: Request) -> HTMLResponse:
     """Preview the default share card image."""
     return templates.TemplateResponse(request, "share_preview.html", {"request": request})
-

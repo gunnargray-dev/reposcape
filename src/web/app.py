@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -18,6 +19,8 @@ def create_app() -> FastAPI:
     """
 
     app = FastAPI(title="Reposcape", version="0.1.0")
+
+    app.state["snapshots_enabled"] = bool(os.environ.get("REPOSCAPE_SNAPSHOT_DIR"))
 
     app.include_router(api.router)
     app.include_router(pages.router)
