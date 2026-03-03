@@ -36,11 +36,10 @@ def _set_author(repo: Path, email: str, name: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
-def basic_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def basic_repo(tmp_path_factory) -> str:
     """Simple single-author repo with several commits on different dates."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("repo")
     _git(["init"], repo)
     _set_author(repo, "alice@example.com", "Alice")
 
@@ -58,11 +57,10 @@ def basic_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def two_author_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def two_author_repo(tmp_path_factory) -> str:
     """Repo with two authors to check author counting per bucket."""
-    repo = tmp_path / "repo2"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("repo2")
     _git(["init"], repo)
 
     _set_author(repo, "alice@example.com", "Alice")
@@ -78,11 +76,10 @@ def two_author_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def large_commit_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def large_commit_repo(tmp_path_factory) -> str:
     """Repo with one very large commit for milestone detection."""
-    repo = tmp_path / "bigrepo"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("bigrepo")
     _git(["init"], repo)
     _set_author(repo, "dev@example.com", "Dev")
 
@@ -100,19 +97,17 @@ def large_commit_repo(tmp_path: Path) -> str:
     return str(repo)
 
 
-@pytest.fixture()
-def empty_repo(tmp_path: Path) -> str:
-    repo = tmp_path / "empty"
-    repo.mkdir()
+@pytest.fixture(scope="module")
+def empty_repo(tmp_path_factory) -> str:
+    repo = tmp_path_factory.mktemp("empty")
     _git(["init"], repo)
     return str(repo)
 
 
-@pytest.fixture()
-def multi_file_churn_repo(tmp_path: Path) -> str:
+@pytest.fixture(scope="module")
+def multi_file_churn_repo(tmp_path_factory) -> str:
     """Repo where one file is modified many times."""
-    repo = tmp_path / "churn"
-    repo.mkdir()
+    repo = tmp_path_factory.mktemp("churn")
     _git(["init"], repo)
     _set_author(repo, "dev@example.com", "Dev")
 
@@ -158,7 +153,6 @@ def test_build_commit_timeline_day_bucket(basic_repo: str) -> None:
     result = build_commit_timeline(basic_repo, bucket="day")
     assert len(result) >= 1
     for entry in result:
-        # Day format: YYYY-MM-DD
         assert len(entry["period"]) == 10
         assert entry["period"][4] == "-"
 
@@ -167,7 +161,6 @@ def test_build_commit_timeline_month_bucket(basic_repo: str) -> None:
     result = build_commit_timeline(basic_repo, bucket="month")
     assert len(result) >= 1
     for entry in result:
-        # Month format: YYYY-MM
         assert len(entry["period"]) == 7
 
 
@@ -219,7 +212,7 @@ def test_build_commit_timeline_not_a_repo(tmp_path: Path) -> None:
 def test_build_commit_timeline_total_commits_match(basic_repo: str) -> None:
     result = build_commit_timeline(basic_repo, bucket="day")
     total = sum(e["commits"] for e in result)
-    assert total == 4  # We created 4 commits in basic_repo
+    assert total == 4
 
 
 # ---------------------------------------------------------------------------
@@ -311,7 +304,6 @@ def test_get_growth_curve_structure(basic_repo: str) -> None:
 
 def test_get_growth_curve_authors_increase(basic_repo: str) -> None:
     result = get_growth_curve(basic_repo)
-    # Authors never decrease over time
     for i in range(1, len(result)):
         assert result[i]["total_authors"] >= result[i - 1]["total_authors"]
 
@@ -390,7 +382,7 @@ def test_get_file_churn_last_changed_format(multi_file_churn_repo: str) -> None:
     result = get_file_churn(multi_file_churn_repo)
     for entry in result:
         if entry["last_changed"]:
-            assert len(entry["last_changed"]) == 10  # YYYY-MM-DD
+            assert len(entry["last_changed"]) == 10
 
 
 # ---------------------------------------------------------------------------
@@ -437,8 +429,6 @@ def test_parse_iso_datetime_date_only() -> None:
     assert dt.month == 6
     assert dt.day == 15
 
-
-# ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Integration tests using shared local_git_repo fixture (no network)
