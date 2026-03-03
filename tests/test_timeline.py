@@ -439,40 +439,51 @@ def test_parse_iso_datetime_date_only() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Integration: test on gunnargray-dev/reposcape itself
+
+# ---------------------------------------------------------------------------
+# Integration tests using shared local_git_repo fixture (no network)
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="module")
-def reposcape_clone(tmp_path_factory) -> str:
-    """Clone the reposcape repo for integration testing."""
-    target = tmp_path_factory.mktemp("reposcape")
-    result = subprocess.run(
-        ["git", "clone", "https://github.com/gunnargray-dev/reposcape.git", str(target)],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if result.returncode != 0:
-        pytest.skip("Could not clone reposcape repo (network unavailable)")
-    return str(target)
-
-
-def test_build_commit_timeline_on_reposcape(reposcape_clone: str) -> None:
-    result = build_commit_timeline(reposcape_clone, bucket="week")
+def test_build_commit_timeline_on_local_repo(local_git_repo: str) -> None:
+    result = build_commit_timeline(local_git_repo, bucket="week")
     assert len(result) >= 1
     assert all(e["commits"] >= 1 for e in result)
 
 
-def test_detect_milestones_on_reposcape(reposcape_clone: str) -> None:
-    result = detect_milestones(reposcape_clone)
+def test_detect_milestones_on_local_repo(local_git_repo: str) -> None:
+    result = detect_milestones(local_git_repo)
     assert isinstance(result, list)
     assert len(result) >= 1
     types = {m["type"] for m in result}
     assert "first_commit" in types
 
 
-def test_get_file_churn_on_reposcape(reposcape_clone: str) -> None:
-    result = get_file_churn(reposcape_clone)
+def test_get_file_churn_on_local_repo(local_git_repo: str) -> None:
+    result = get_file_churn(local_git_repo)
     assert isinstance(result, list)
     assert len(result) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Network integration tests (skipped by default)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+class TestTimelineNetworkIntegration:
+    @pytest.fixture(scope="class")
+    def reposcape_clone(self, tmp_path_factory) -> str:
+        import subprocess
+        target = tmp_path_factory.mktemp("reposcape")
+        result = subprocess.run(
+            ["git", "clone", "https://github.com/gunnargray-dev/reposcape.git", str(target)],
+            capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode != 0:
+            pytest.skip("Could not clone reposcape repo (network unavailable)")
+        return str(target)
+
+    def test_timeline_on_reposcape(self, reposcape_clone):
+        result = build_commit_timeline(reposcape_clone, bucket="week")
+        assert len(result) >= 1
