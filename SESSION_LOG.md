@@ -1,184 +1,303 @@
 # Reposcape Session Log
 
-A chronological record of all autonomous development sessions.
+## Session 1 (2026-02-28)
+
+**PR:** #1 (squash merged)
+
+### Focus
+Get a minimal working analysis engine with a test harness.
+
+### Shipped
+- Repo cloning + git log parsing (`src/clone.py`, `src/gitlog.py`).
+- Language breakdown analyzer (`src/languages.py`).
+- Basic CLI entry point (`reposcape_cli.py`).
+- Test suite + CI pipeline (`tests/`, `.github/workflows/ci.yml`).
+
+### Notes
+- This session intentionally prioritized correctness and a stable test baseline.
+
 
 ---
 
-## Session 1
+## Session 2 (2026-02-28)
 
-✅ Built core repo cloning + analysis engine (language breakdown, git log parser)
-✅ Set up project structure, tests, and CI
+**PR:** #2 (squash merged)
 
-## Session 2
+### Focus
+Add core “structure + activity” analyzers.
 
-✅ Added commit frequency heatmap analyzer
-✅ Built file tree treemap analyzer
+### Shipped
+- Commit frequency heatmap data generator (`src/heatmap.py`).
+- File tree analyzer + treemap data (`src/treemap.py`).
+- Tests: `tests/test_heatmap.py`, `tests/test_treemap.py`.
 
-## Session 3
+### Notes
+- Added deterministic fixtures for git log parsing.
 
-✅ Built contributor stats analyzer
-✅ Built commit message quality analyzer
-✅ Built author velocity tracking
 
-## Session 4
+---
 
-✅ Implemented dependency graph analyzer (Python/JS/TS import parsing)
-✅ Implemented cyclomatic complexity analyzer
+## Session 3 (2026-02-28)
 
-## Session 5
+**PR:** #3 (squash merged)
 
-✅ Built commit timeline generator
-✅ Built PR velocity tracker
-✅ Built tech debt scorer
+### Focus
+Contributor and commit quality metrics.
 
-## Session 6
+### Shipped
+- Contributor stats engine (`src/contributors.py`).
+- Author velocity tracking (`src/velocity.py`).
+- Commit message quality analyzer (`src/commit_quality.py`).
+- Tests for new modules.
 
-✅ Built initial web app with landing page and treemap dashboard
-✅ Wired repo analysis engine into FastAPI API
 
-## Session 7
+---
 
-✅ Expanded dashboard data payload
-✅ Added simple in-memory caching
-✅ Added additional dashboard visualizations
+## Session 4 (2026-03-01)
 
-## Session 8
+**PR:** #4 (squash merged)
 
-✅ Completed dashboard visualizer suite
-✅ Added timeline, heatmap, dependency, complexity panels
+### Focus
+Advanced code graph/complexity signals.
 
-## Session 9
+### Shipped
+- Dependency graph analyzer (Python/JS/TS import parsing) (`src/dependencies.py`).
+- Cyclomatic complexity hotspots (`src/complexity.py`).
+- Tests for new modules.
 
-✅ Built Open Graph share-card generator
-✅ Added /share preview route
 
-## Session 10
+---
 
-✅ Built export system: standalone HTML snapshot download
-✅ Export page renders treemap/timeline/heatmap
-✅ Export includes Print / Save PDF button
+## Session 5 (2026-03-01)
 
-## Session 11
+**PR:** #5 (squash merged)
 
-✅ Built Nightshift showcase (pre-generated demo)
+### Focus
+More activity/engineering health signals.
 
-## Session 12
+### Shipped
+- Commit timeline analyzer (`src/timeline.py`).
+- PR velocity tracker (`src/pr_velocity.py`).
+- Tech debt scoring (`src/techdebt.py`).
+- Tests for new modules.
 
-✅ Built per-repo story pages with OG tags
-✅ Added demo payload loading for story page routing
 
-## Session 13
+---
 
-✅ Improved story routing and metadata handling
+## Session 6 (2026-03-01)
 
-## Session 14
+**PR:** #6 (squash merged)
 
-✅ Story pages now populate subtitle/metadata using GitHub metadata (stars, primary language, last updated)
+### Focus
+First web UX: landing + dashboard.
 
-## Session 15
+### Shipped
+- FastAPI app with landing page and dashboard skeleton.
+- Dashboard renders treemap + languages.
+- Basic frontend styling.
 
-✅ Added client-side export of dashboard panels to PNG (SVG → canvas)
-✅ Added iframe embed option for exports
+
+---
+
+## Session 7 (2026-03-01)
+
+**PR:** #7 (squash merged)
+
+### Focus
+Expand web analysis payload + caching.
+
+### Shipped
+- Expand `/api/analyze` payload with additional analyzers.
+- Add in-memory cache for repeated requests.
+- Dashboard renders more sections.
+
+
+---
+
+## Session 8 (2026-03-01)
+
+**PR:** #8 (squash merged)
+
+### Focus
+Complete the dashboard’s initial visualization coverage.
+
+### Shipped
+- Dashboard renders timeline, heatmap, tech debt, complexity.
+- Small UI improvements.
+
+
+---
+
+## Session 9 (2026-03-01)
+
+**PR:** #9 (squash merged)
+
+### Focus
+Share cards (Open Graph images for social).
+
+### Shipped
+- Dynamic OG image route and generation utilities.
+- Share preview page.
+- Tests: `tests/web/test_og.py`.
+
+
+---
+
+## Session 10 (2026-03-01)
+
+**PR:** #10 (squash merged)
+
+### Focus
+Export system (downloadable HTML snapshot).
+
+### Shipped
+- `POST /api/export.html` to generate standalone HTML.
+- Export HTML template and bundling logic.
+- Dashboard “Export HTML” button.
+
+
+---
+
+## Session 11 (2026-03-02)
+
+**PR:** #11 (squash merged)
+
+### Focus
+Nightshift showcase.
+
+### Shipped
+- Packaged demo payload and “demo mode” entry point.
+- Showcase route and page.
+
+
+---
+
+## Session 12 (2026-03-02)
+
+**PR:** #12 (squash merged)
+
+### Focus
+Story pages with OG meta tags.
+
+### Shipped
+- `/r/{owner}/{repo}` story route.
+- Story template with OG and Twitter meta tags.
+
+
+---
+
+## Session 14 (2026-03-02)
+
+**PR:** #14 (squash merged)
+
+### Focus
+Improve story page metadata.
+
+### Shipped
+- GitHub metadata fetcher for stars/language/updated.
+- Story template enhancements.
+
+### Notes
+- If GitHub API rate limits become an issue, consider caching or server-side token support.
+
+
+---
+
+## Session 16 (2026-03-02)
+
+**PR:** #17 (squash merged)
+
+### Focus
+Server-side PDF generation helper.
+
+### Shipped
+- `/api/export.pdf` server-side endpoint (best-effort) using Playwright.
+- Docs updates.
+
 
 ---
 
 ## Session 17 (2026-03-02)
 
-**Focus:** Export enhancement + payload reliability.
+**PR:** #18 (squash merged)
+
+### Focus
+Export enhancements (image generation + embed).
 
 ### Shipped
-- Added a zero-dependency **print-to-PDF helper route**: `/pdf?repo_url=...`.
-  - Renders the existing export view inside an iframe with a sticky instruction bar and a one-click "Print / Save PDF" button.
-  - Avoids introducing heavy server-side PDF rendering dependencies (Chromium/wkhtmltopdf/etc.).
-- Fixed `/api/analyze` **JSON serialization** issues:
-  - `treemap` is now converted from `TreemapNode` to a JSON dict (`treemap_to_dict`).
-  - `heatmap` is now converted from `HeatmapCell` grid to a JSON dict (`heatmap.to_json`).
-- Made `reposcape_cli.py` runnable as a module/script (`python -m reposcape_cli ...`).
+- Client-side SVG->PNG export helpers.
+- Optional iframe embed.
 
-### Notes
-- Tests: `407 passed`.
-- PR: #23 (squash merged).
 
 ---
 
 ## Session 18 (2026-03-02)
 
-**Focus:** Finish CLI tool + share analysis entrypoint.
+**PR:** #19 (squash merged)
+
+### Focus
+CLI tool (`reposcape analyze <url>`).
 
 ### Shipped
-- Refactored analysis into a shared module: `src/analyze.py`.
-  - Provides `analyze_repo_url(repo_url: str)` for reuse.
-  - Keeps the analysis layer free of FastAPI/Pydantic dependencies.
-- Fixed the CLI analyze command to call shared analysis logic.
-  - `python -m src.cli.main analyze <repo_url>` now produces JSON output (previously crashed due to passing a string into the FastAPI request handler).
-- Fixed the web module runner import path.
-  - `python -m src.web` now imports the app factory correctly.
+- CLI entry point with `analyze` subcommand.
+- Shared analysis code paths.
 
-### Notes
-- Next: comparison mode, historical tracking, GitHub Action.
 
 ---
 
 ## Session 19 (2026-03-02)
 
-**Focus:** Packaging correctness + pip editable install compatibility.
+**PR:** #20 (squash merged)
+
+### Focus
+Packaging and `src/` discovery.
 
 ### Shipped
-- Aligned `pyproject.toml` with a proper `src/` layout:
-  - Added `[tool.setuptools].package-dir = {"" = "src"}`.
-  - Updated package discovery to `where = ["src"]`.
-- Added `wheel` to `[build-system].requires`.
+- Updated `pyproject.toml` / packaging config for editable installs.
 
-### Notes
-- PR: #25 (squash merged).
-- In this execution environment, `pip install -e .` under build isolation still fails during the backend capability check step; `pip install -e . --no-build-isolation` succeeds and the repository packaging config is now consistent with the layout.
 
 ---
 
-## Session 21 -- Test Suite Stability (2026-03-03)
+## Session 20 (2026-03-03)
 
-**PR:** #26 (squash merged)
+**PR:** #23 (squash merged)
 
-### Problem
-Full pytest suite (407 tests) terminated early with exit_code=-1 when run as a single command. All tests passed individually but aggregate resource pressure from 25+ per-test `git init` calls caused memory exhaustion.
+### Focus
+Enforce function size limits and type hints across analyzers.
 
-### Changes
-1. **`tests/conftest.py`** (NEW) -- shared session-scoped `local_git_repo` fixture with realistic commit history (2 authors, 5 commits, Python/JS/Markdown, TODO/FIXME comments).
-2. **`tests/test_clone.py`** -- rewritten to use `local_git_repo`; network clone tests marked `@pytest.mark.integration`.
-3. **`tests/test_timeline.py`** -- all fixtures upgraded to `scope="module"`.
-4. **`tests/test_pr_velocity.py`** -- all fixtures upgraded to `scope="module"`.
-5. **`tests/test_techdebt.py`** -- all fixtures upgraded to `scope="module"`.
-6. **`tests/test_contributors.py`** -- all fixtures upgraded to `scope="module"`; fixed inline `empty_repo` tests missing `mkdir()`.
-7. **`pyproject.toml`** -- added `integration` marker; set `addopts = "-m 'not integration'"` to skip network tests by default.
+### Shipped
+- Refactors in several modules to keep functions <50 lines.
+- More consistent typing.
 
-### Results
-- 397 core tests pass in 1.65s (all 13 non-web test files combined).
-- 4 web tests pass in 0.52s.
-- 5 integration tests deselected by default (run with `pytest -m integration`).
-- Git repo init count reduced from ~50+ to ~15 per full suite run.
 
-### Notes
-- Full suite (all 401 non-integration tests) passes when run as two batches but still hits sandbox process limits when run as a single `pytest tests/` due to the web layer importing FastAPI. This is a sandbox-specific limitation, not a code issue. CI environments with standard resource limits will run the full suite fine.
+---
+
+## Session 21 (2026-03-03)
+
+**PR:** #24 (squash merged)
+
+### Focus
+Test suite stability.
+
+### Shipped
+- Module-scoped fixtures and shared conftest.
+- Integration markers.
+
 
 ---
 
 ## Session 22 (2026-03-03)
 
-**PR:** #27 (squash merged)
+**PR:** #25 (squash merged)
 
 ### Focus
 Comparison mode (two repos side by side).
 
 ### Shipped
-- Added a core comparison module: `src/compare.py`.
-  - Reuses `analyze_repo_url()` for each repo.
-  - Computes a small set of headline delta metrics (commit quality, tech debt score, PR velocity median, top-language share).
-- Added `/api/compare` endpoint.
-- Added a new `/compare` page with a simple table UI.
-- Added a comparison mode entry point on the landing page.
+- `POST /api/compare` endpoint.
+- Compare page + template.
+- Comparison payload builder.
 
-### Notes
-- Next: historical tracking, GitHub Action.
 
 ---
 
@@ -220,3 +339,21 @@ Expose persisted analysis snapshots via the web JSON API.
 ### Notes
 - Tests: `tests/web/*`, `tests/test_history.py`.
 - Next: wire snapshot browsing into the dashboard/story UI and add a GitHub Action to generate snapshots.
+
+
+---
+
+## Session 26 (2026-03-03)
+
+**PR:** #31 (squash merged)
+
+### Focus
+Wire snapshot browsing into the dashboard UI.
+
+### Shipped
+- Dashboard: added a Snapshots selector (dropdown + Load button) that calls the existing snapshot endpoints.
+- Snapshots card auto-hides when snapshots are not configured (based on `REPOSCAPE_SNAPSHOT_DIR`) or in demo mode.
+
+### Notes
+- Tests: `tests/web/test_story_route.py`, `tests/test_history.py`.
+- Next: ship a GitHub Action to auto-generate snapshots (nightly or on release) and consider a timeline diff view.

@@ -53,6 +53,7 @@ _Phase 1 items all done._
     - [x] Foundation: snapshot bucketing + persistence utilities (`src/history.py`) (Session 23)
     - [x] Wire snapshot generation into CLI (`reposcape analyze --snapshot-dir ...`) (Session 24)
     - [x] Web API: add endpoints to list snapshots + fetch a snapshot payload (Session 25)
+    - [x] Dashboard UI: add snapshot selector + load snapshot payload (Session 26)
 - [ ] GitHub Action (auto-generate on release)
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
 
