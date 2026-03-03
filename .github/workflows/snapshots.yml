@@ -1,0 +1,32 @@
+name: Snapshots
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Reposcape
+        run: pip install -e .
+
+      - name: Generate analysis snapshot
+        env:
+          REPO_URL: https://github.com/${{ github.repository }}
+        run: |
+          mkdir -p snapshots
+          python -m src.cli.main analyze "$REPO_URL" --snapshot-dir snapshots
+
+      - name: Upload snapshot artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: reposcape-snapshots
+          path: snapshots/
