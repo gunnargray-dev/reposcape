@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reposcape Compare</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <a href="/">Reposcape</a>
+        <div class="spacer"></div>
+        <a class="button" href="/dashboard">Single repo</a>
+      </header>
+
+      <section>
+        <h2>Compare two repos</h2>
+        <p class="hint">Paste two GitHub repo URLs to compare headline metrics.</p>
+
+        <form id="compareForm" class="repo-form">
+          <label for="repoA">Repo A</label>
+          <input id="repoA" name="repoA" type="url" placeholder="https://github.com/owner/repo" required />
+
+          <label for="repoB">Repo B</label>
+          <input id="repoB" name="repoB" type="url" placeholder="https://github.com/owner/repo" required />
+
+          <button type="submit">Compare</button>
+        </form>
+
+        <div id="status" class="status">Waiting for input…</div>
+      </section>
+
+      <section class="card">
+        <h3>Headline deltas</h3>
+        <table class="table" id="metricsTable">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Repo A</th>
+              <th>Repo B</th>
+              <th>Delta (B − A)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p class="hint">This is a first version; more visual diffs coming.</p>
+      </section>
+
+      <section class="card">
+        <h3>Raw payload (debug)</h3>
+        <pre id="raw" class="mono"></pre>
+      </section>
+    </main>
+
+    <script>
+      function el(id) {
+        return document.getElementById(id);
+      }
+
+      function safeJson(obj) {
+        return JSON.stringify(obj || null, null, 2);
+      }
+
+      function fmt(n) {
+        if (n == null || Number.isNaN(n)) return '—';
+        const abs = Math.abs(n);
+        if (abs >= 100) return n.toFixed(0);
+        if (abs >= 10) return n.toFixed(1);
+        return n.toFixed(2);
+      }
+
+      function setTable(metrics) {
+        const tbody = el('metricsTable').querySelector('tbody');
+        tbody.innerHTML = '';
+
+        for (const m of (metrics || [])) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${m.name || ''}</td>
+            <td class="mono">${fmt(m.a)}</td>
+            <td class="mono">${fmt(m.b)}</td>
+            <td class="mono">${fmt(m.delta)}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+
+      async function run(repoA, repoB) {
+        el('status').textContent = 'Comparing…';
+        el('raw').textContent = '';
+        setTable([]);
+
+        const resp = await fetch('/api/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_a_url: repoA, repo_b_url: repoB })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json();
+          el('status').textContent = 'Error: ' + (err.detail || 'unknown');
+          return;
+        }
+
+        const data = await resp.json();
+        el('status').textContent = 'Done';
+        setTable(data.metrics);
+        el('raw').textContent = safeJson({
+          repo_a: data.repo_a?.repo_url,
+          repo_b: data.repo_b?.repo_url,
+          metrics: data.metrics
+        });
+      }
+
+      function getQuery() {
+        const url = new URL(window.location.href);
+        return {
+          a: url.searchParams.get('a'),
+          b: url.searchParams.get('b')
+        };
+      }
+
+      const form = el('compareForm');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const repoA = el('repoA').value;
+        const repoB = el('repoB').value;
+        run(repoA, repoB);
+      });
+
+      const q = getQuery();
+      if (q.a) el('repoA').value = q.a;
+      if (q.b) el('repoB').value = q.b;
+      if (q.a && q.b) run(q.a, q.b);
+    </script>
+  </body>
+</html>
