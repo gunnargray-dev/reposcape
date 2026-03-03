@@ -26,7 +26,14 @@ def dashboard(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "dashboard.html", {"request": request})
 
 
+@router.get("/compare", response_class=HTMLResponse)
+def compare(request: Request) -> HTMLResponse:
+    """Comparison mode page (two repos side by side)."""
+    return templates.TemplateResponse(request, "compare.html", {"request": request})
+
+
 @router.get("/share", response_class=HTMLResponse)
 def share_preview(request: Request) -> HTMLResponse:
     """Preview the default share card image."""
     return templates.TemplateResponse(request, "share_preview.html", {"request": request})
+

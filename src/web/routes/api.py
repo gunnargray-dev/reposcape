@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, HttpUrl
 
 from src.analyze import analyze_repo_url
+from src.compare import build_comparison_payload
 from src.web.demo import load_demo_payload
 from src.web.export import build_export_html
 
@@ -22,6 +23,13 @@ class AnalyzeRequest(BaseModel):
     """Request payload for analyzing a Git repository."""
 
     repo_url: HttpUrl
+
+
+class CompareRequest(BaseModel):
+    """Request payload for comparing two Git repositories."""
+
+    repo_a_url: HttpUrl
+    repo_b_url: HttpUrl
 
 
 @router.post("/analyze")
@@ -39,6 +47,23 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
 
     try:
         return analyze_repo_url(str(req.repo_url))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.post("/compare")
+def compare_repos(req: CompareRequest) -> dict[str, Any]:
+    """Compare two GitHub repo URLs.
+
+    Args:
+        req: Compare request.
+
+    Returns:
+        JSON-serializable comparison payload.
+    """
+
+    try:
+        return build_comparison_payload(str(req.repo_a_url), str(req.repo_b_url))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
