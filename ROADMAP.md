@@ -50,6 +50,7 @@ _Phase 1 items all done._
 - [x] Test suite stability: module-scoped fixtures, integration markers, shared conftest (Session 21)
 - [x] Comparison mode (two repos side by side) (Session 22)
 - [ ] Historical tracking (repo evolution over time)
+    - [x] Foundation: snapshot bucketing + persistence utilities (`src/history.py`) (Session 23)
 - [ ] GitHub Action (auto-generate on release)
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
 
