@@ -201,22 +201,22 @@ Historical tracking foundation (snapshot storage + index utilities).
 - Tests: history unit tests pass (`5 passed`).
 - Next: wire snapshots into CLI/web and add a GitHub Action to publish/update history artifacts.
 
+
 ---
 
-## Session 24 (2026-03-03)
+## Session 25 (2026-03-03)
 
-**PR:** #29 (squash merged)
+**PR:** #30 (squash merged)
 
 ### Focus
-Wire snapshot generation into the CLI/shared analysis entrypoint.
+Expose persisted analysis snapshots via the web JSON API.
 
 ### Shipped
-- Extended `src.analyze.analyze_repo_url()` with an **optional** `snapshot_base_dir: Path | None`.
-  - When provided, Reposcape writes a point-in-time snapshot JSON to disk using `src.history.write_snapshot()`.
-- Added CLI support:
-  - `reposcape analyze ... --snapshot-dir <dir>`
-  - Or `REPOSCAPE_SNAPSHOT_DIR=<dir>`.
+- Added snapshot endpoints to `src/web/routes/api.py`:
+  - `POST /api/snapshots/index` to list available snapshot files.
+  - `POST /api/snapshots/get` to fetch a single snapshot payload by `as_of` date.
+- Snapshot directory is configured via `REPOSCAPE_SNAPSHOT_DIR` (server-side).
 
 ### Notes
-- Tests: `tests/test_cli.py`, `tests/test_history.py`.
-- Next: add a web endpoint to list/download snapshots and a GitHub Action to generate snapshots on a schedule.
+- Tests: `tests/web/*`, `tests/test_history.py`.
+- Next: wire snapshot browsing into the dashboard/story UI and add a GitHub Action to generate snapshots.
