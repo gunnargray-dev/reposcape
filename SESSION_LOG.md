@@ -179,3 +179,24 @@ Comparison mode (two repos side by side).
 
 ### Notes
 - Next: historical tracking, GitHub Action.
+
+---
+
+## Session 23 (2026-03-03)
+
+**PR:** #28 (squash merged)
+
+### Focus
+Historical tracking foundation (snapshot storage + index utilities).
+
+### Shipped
+- Added stdlib-only historical helpers: `src/history.py`.
+  - Snapshot date bucketing (weekly by default).
+  - Helpers for stable snapshot filenames and per-repo history directories.
+  - JSON persistence helpers (write/load).
+  - Index builder for consumers (web/CLI).
+- Added unit tests: `tests/test_history.py`.
+
+### Notes
+- Tests: history unit tests pass (`5 passed`).
+- Next: wire snapshots into CLI/web and add a GitHub Action to publish/update history artifacts.
