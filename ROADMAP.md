@@ -50,6 +50,7 @@ _Phase 1 items all done._
 - [x] Test suite stability: module-scoped fixtures, integration markers, shared conftest (Session 21)
 - [x] Comparison mode (two repos side by side) (Session 22)
 - [ ] Historical tracking (repo evolution over time)
+    - [ ] Timeline/diff view (UI)
     - [x] Foundation: snapshot bucketing + persistence utilities (`src/history.py`) (Session 23)
     - [x] Wire snapshot generation into CLI (`reposcape analyze --snapshot-dir ...`) (Session 24)
     - [x] Web API: add endpoints to list snapshots + fetch a snapshot payload (Session 25)

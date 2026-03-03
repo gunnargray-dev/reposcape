@@ -119,12 +119,11 @@ Expand web analysis payload + caching.
 **PR:** #8 (squash merged)
 
 ### Focus
-Full dashboard visualization rollout.
+Full dashboard: render all analyzers.
 
 ### Shipped
-- Dashboard renders additional analyzers (timeline, heatmap, tech debt, complexity).
-- Added dashboard UI sections for each analyzer.
-- Improved layout and section styling.
+- Dashboard: added timeline, heatmap, tech debt, complexity.
+- Added minimal charts rendering logic.
 
 
 ---
@@ -134,11 +133,11 @@ Full dashboard visualization rollout.
 **PR:** #9 (squash merged)
 
 ### Focus
-Share cards (Open Graph images) for social sharing.
+Share cards (Open Graph images).
 
 ### Shipped
-- Server-generated OG images for story pages.
-- Share card templates for consistent rendering.
+- Added OG image generator for sharing a repo analysis.
+- Wired into story pages.
 
 
 ---
@@ -148,11 +147,11 @@ Share cards (Open Graph images) for social sharing.
 **PR:** #10 (squash merged)
 
 ### Focus
-Export system: HTML snapshots.
+Export system: standalone HTML snapshot.
 
 ### Shipped
-- Added export endpoint that returns a standalone HTML doc.
-- Dashboard: added Export button that downloads an HTML snapshot.
+- Added `build_export_html()` and an `/api/export.html` endpoint.
+- Added client-side export helpers.
 
 
 ---
@@ -162,39 +161,39 @@ Export system: HTML snapshots.
 **PR:** #11 (squash merged)
 
 ### Focus
-Demo showcase pipeline.
+Nightshift showcase.
 
 ### Shipped
-- Packaged a "nightshift" demo payload.
-- Added showcase route for demo content.
+- Added demo payload packaging.
+- Added `/showcase/nightshift` page.
 
 
 ---
 
-## Session 12 (2026-03-01)
+## Session 12 (2026-03-02)
 
 **PR:** #12 (squash merged)
 
 ### Focus
-Story pages + per-repo share.
+Story pages + OG meta tags.
 
 ### Shipped
-- Added story routes for repos.
-- Wired OG meta tags to share cards.
+- Added per-repo story pages.
+- Wired OG meta tags and share card URLs.
 
 
 ---
 
-## Session 13 (2026-03-01)
+## Session 13 (2026-03-02)
 
 **PR:** #13 (squash merged)
 
 ### Focus
-Story and export UI polish.
+Share cards: improvements.
 
 ### Shipped
-- Polished story page layout.
-- Improved export HTML styles.
+- Improved OG card layout.
+- Fixed share preview template.
 
 
 ---
@@ -204,10 +203,10 @@ Story and export UI polish.
 **PR:** #14 (squash merged)
 
 ### Focus
-Story metadata from GitHub.
+Story metadata enrichment.
 
 ### Shipped
-- Story pages now pull GitHub metadata for subtitle/metadata.
+- Story pages: populate stars/language/last updated.
 
 
 ---
@@ -217,10 +216,11 @@ Story metadata from GitHub.
 **PR:** #15 (squash merged)
 
 ### Focus
-Export assets.
+Export enhancements.
 
 ### Shipped
-- Added client-side SVG->PNG export for shareable assets.
+- Client-side SVG->PNG export.
+- Optional iframe embed.
 
 
 ---
@@ -230,10 +230,10 @@ Export assets.
 **PR:** #16 (squash merged)
 
 ### Focus
-Start Growth & Monetization phase.
+Growth baseline cleanup.
 
 ### Shipped
-- Added more “product” UI and a stable landing page.
+- TODO placeholders for monetization phase.
 
 
 ---
@@ -243,10 +243,10 @@ Start Growth & Monetization phase.
 **PR:** #17 (squash merged)
 
 ### Focus
-Server-side PDF export helper.
+Export system: PDF helper.
 
 ### Shipped
-- Added a PDF render helper for exports.
+- Added server-side PDF helper route.
 
 
 ---
@@ -256,10 +256,10 @@ Server-side PDF export helper.
 **PR:** #18 (squash merged)
 
 ### Focus
-CLI tool (reposcape analyze).
+CLI tooling.
 
 ### Shipped
-- Added `src/cli/main.py` and `reposcape analyze <url>`.
+- Added `reposcape analyze <url>` command.
 
 
 ---
@@ -272,7 +272,7 @@ CLI tool (reposcape analyze).
 Packaging fixes.
 
 ### Shipped
-- Fixed packaging for `src/` layout and `pip install -e .`.
+- Fixed setuptools discovery for `src/` layout.
 
 
 ---
@@ -282,62 +282,64 @@ Packaging fixes.
 **PR:** #20 (squash merged)
 
 ### Focus
-Stabilize tests and CI.
+Prepping for reliable test runs.
 
 ### Shipped
-- Improved fixtures and integration markers.
+- Minor test infra improvements.
 
 
 ---
 
-## Session 21 (2026-03-02)
+## Session 21 (2026-03-03)
 
-**PR:** #21 (squash merged)
+**PR:** #23 (squash merged)
 
 ### Focus
 Test suite stability.
 
 ### Shipped
-- Refactored fixtures for stability and speed.
+- Module-scoped fixtures.
+- Shared conftest.
 
 
 ---
 
-## Session 22 (2026-03-02)
+## Session 22 (2026-03-03)
 
-**PR:** #22 (squash merged)
+**PR:** #24 (squash merged)
 
 ### Focus
 Comparison mode.
 
 ### Shipped
-- Side-by-side comparison for two repos.
+- Added comparison payload builder.
+- Added compare page.
 
 
 ---
 
-## Session 23 (2026-03-02)
+## Session 23 (2026-03-03)
 
-**PR:** #23 (squash merged)
+**PR:** #25 (squash merged)
 
 ### Focus
-Historical tracking: foundation.
+Historical tracking foundation.
 
 ### Shipped
-- Added snapshot bucketing + persistence utilities (`src/history.py`).
+- Snapshot bucketing + persistence utilities (`src/history.py`).
 
 
 ---
 
 ## Session 24 (2026-03-03)
 
-**PR:** #28 (squash merged)
+**PR:** #26 (squash merged)
 
 ### Focus
-Historical tracking: wire snapshots into CLI.
+Wire snapshot generation into CLI.
 
 ### Shipped
-- Added `--snapshot-dir` to CLI; snapshots are written to disk.
+- `reposcape analyze --snapshot-dir ...` writes snapshot JSON.
 
 
 ---
@@ -385,3 +387,19 @@ GitHub Action to auto-generate and publish snapshots.
 
 ### Notes
 - Current implementation uploads snapshots as an artifact; future work could publish to GitHub Pages or attach to the release assets.
+
+---
+
+## Session 28 (2026-03-03)
+
+**PR:** #34 (squash merged)
+
+### Focus
+Make release snapshots easier to discover and download.
+
+### Shipped
+- Updated the release-triggered snapshot workflow to zip the generated `snapshots/` directory and upload it to the GitHub Release assets as `reposcape-snapshots.zip`.
+- Kept the existing Actions artifact upload in place.
+
+### Notes
+- This is a stepping stone toward a “download snapshots” link in the UI and/or a published snapshot timeline view.
