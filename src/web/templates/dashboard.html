@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--
+    ______          __  _           _ __         ______                      __
+   / ____/___  ____/ /_(_)___  ____(_) /___  __/ ____/___  ____ ___  ____  / /____  _____
+  / /   / __ \/ __  / / / __ \/ __/ / / __ \/ / /   / __ \/ __ `__ \/ __ \/ __/ _ \/ ___/
+ / /___/ /_/ / /_/ / / / /_/ / /_/ / / /_/ / / /___/ /_/ / / / / / /_/ / /_/  __/ /
+ \____/\____/\__,_/_/ /\____/\__/_/_/\____/_/\____/\____/_/ /_/ /_/ .__/\__/\___/_/
+                                                                  /_/
+
+  Perplexity Computer — https://www.perplexity.ai/computer
+  -->
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>Reposcape Dashboard</title>
+
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <a class="brand" href="/">
+          <span class="logo" aria-hidden="true">▦</span>
+          <span class="brand-text">Reposcape</span>
+        </a>
+        <div class="header-actions">
+          <label class="checkbox">
+            <input id="demoMode" type="checkbox">
+            Demo
+          </label>
+          <button id="downloadSnapshots" type="button" style="display:none;">Download snapshots</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>Analyze a repo</h2>
+        <div class="row">
+          <input id="repoUrl" type="url" placeholder="https://github.com/owner/repo" value="{{ repo_url | default('') }}" aria-label="Repository URL">
+          <button id="analyzeBtn" type="button">Analyze</button>
+          <button id="compareBtn" type="button">Compare</button>
+          <a id="exportLink" href="#" style="display:none;" class="button-link">Export</a>
+          <span id="exportStatus" class="status"></span>
+        </div>
+        <div id="status" class="status" style="margin-top: 0.75rem;"></div>
+      </section>
+
+      <section class="card" id="releaseSelectWrap" style="display:none;">
+        <div class="row" style="align-items:center;">
+          <label for="releaseSelect" style="font-weight:600;">Snapshots bundle:</label>
+          <select id="releaseSelect" aria-label="Select release"></select>
+          <span class="status" style="margin-left:0.5rem;">(controls the \u201cDownload snapshots\u201d bundle)</span>
+        </div>
+      </section>
+
+      <section class="card" id="snapshotCard">
+        <div class="row" style="align-items:center;">
+          <h3 style="margin: 0;">Snapshots</h3>
+          <select id="snapshotA" aria-label="Select snapshot A"></select>
+          <select id="snapshotB" aria-label="Select snapshot B"></select>
+          <button id="loadSnapshot" type="button">Load B</button>
+          <button id="diffSnapshots" type="button">Diff A\u2192B</button>
+        </div>
+        <div id="snapshotStatus" class="status" style="margin-top: 0.75rem;"></div>
+        <div id="snapshotDiff" style="margin-top: 0.75rem;"></div>
+      </section>
+
+      <div class="grid">
+        <section class="card">
+          <h3>Languages</h3>
+          <pre id="languages" class="pre"></pre>
+        </section>
+
+        <section class="card">
+          <h3>Treemap</h3>
+          <div id="treemap"></div>
+        </section>
+
+        <section class="card">
+          <h3>Contributors</h3>
+          <div id="contributors"></div>
+        </section>
+
+        <section class="card">
+          <h3>Commit Quality</h3>
+          <div id="commitQuality"></div>
+        </section>
+
+        <section class="card">
+          <h3>Commit Timeline</h3>
+          <div id="timeline"></div>
+        </section>
+
+        <section class="card">
+          <h3>Commit Heatmap</h3>
+          <div id="heatmap"></div>
+        </section>
+
+        <section class="card">
+          <h3>Tech Debt</h3>
+          <div id="techdebt"></div>
+        </section>
+
+        <section class="card">
+          <h3>Complexity</h3>
+          <div id="complexity"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">
+        Created with Perplexity Computer
+      </a>
+    </footer>
+
+    <script>
+      const DEMO_REPO = {{ demo_repo | default('') | tojson }};
+      const SNAPSHOTS_ENABLED = {{ snapshots_enabled | default(false) | tojson }};
+
+      function el(id) {
+        return document.getElementById(id);
+      }
+
+      function safeJson(obj) {
+        try {
+          return JSON.stringify(obj, null, 2);
+        } catch (e) {
+          return String(obj);
+        }
+      }
+
+      function formatDuration(ms) {
+        if (ms == null) return null;
+        if (ms < 1000) return `${ms}ms`;
+        if (ms < 60_000) return `${(ms / 1000).toFixed(2)}s`;
+        return `${(ms / 60_000).toFixed(2)}m`;
+      }
+
+      function isLikelyGithubUrl(u) {
+        return typeof u === 'string' && u.includes('github.com/') && u.split('/').filter(Boolean).length >= 2;
+      }
+
+      function setRepoUrl(u) {
+        el('repoUrl').value = u;
+      }
+
+      function getRepoUrl() {
+        return el('repoUrl').value.trim();
+      }
+
+      function setDemoMode(on) {
+        el('demoMode').checked = on;
+      }
+
+      function getDemoMode() {
+        return el('demoMode').checked;
+      }
+
+      function showExportLink(url) {
+        const a = el('exportLink');
+        a.href = url;
+        a.style.display = 'inline-flex';
+      }
+
+      async function loadDemo() {
+        if (DEMO_REPO && isLikelyGithubUrl(DEMO_REPO)) {
+          setRepoUrl(DEMO_REPO);
+          setDemoMode(true);
+          await analyze(getRepoUrl());
+        }
+      }
+
+      async function analyze(repoUrl) {
+        if (!repoUrl) {
+          el('status').textContent = 'Please enter a GitHub repo URL.';
+          return;
+        }
+
+        const btn = el('analyzeBtn');
+        btn.disabled = true;
+        el('status').textContent = 'Analyzing\u2026';
+
+        try {
+          const resp = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ repo_url: repoUrl, demo: getDemoMode() })
+          });
+
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            el('status').textContent = 'Error: ' + (err.detail || resp.status);
+            return;
+          }
+
+          const data = await resp.json();
+
+          if (data.export_url) {
+            showExportLink(data.export_url);
+          }
+
+          renderPayload(data, { cached: data.cached, duration_ms: data.duration_ms });
+
+          await loadReleaseOptions(repoUrl);
+          await wireSnapshotsDownloadLink(repoUrl);
+          await loadSnapshotIndex(repoUrl);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      async function compare(repoUrl) {
+        if (!repoUrl) {
+          el('status').textContent = 'Please enter a GitHub repo URL.';
+          return;
+        }
+
+        const base = '/compare?repo_url=' + encodeURIComponent(repoUrl);
+        window.location.href = base;
+      }
+
+      function renderTreemap(treemap) {
+        const container = el('treemap');
+        container.innerHTML = '';
+
+        if (!treemap || !treemap.nodes) {
+          container.textContent = 'No treemap data available.';
+          return;
+        }
+
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson({ nodes: treemap.nodes.slice(0, 10), total_nodes: treemap.nodes.length });
+        container.appendChild(pre);
+      }
+
+      function renderContributors(contrib) {
+        const container = el('contributors');
+        container.innerHTML = '';
+
+        if (!contrib || !contrib.top_contributors) {
+          container.textContent = 'No contributor data available.';
+          return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'table';
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>User</th><th>Commits</th><th>Lines</th></tr>';
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        for (const c of contrib.top_contributors) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td class="mono">${c.author}</td><td>${c.commit_count}</td><td>${c.lines_changed}</td>`;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        container.appendChild(table);
+      }
+
+      function renderCommitQuality(q) {
+        const container = el('commitQuality');
+        container.innerHTML = '';
+
+        if (!q || !q.summary) {
+          container.textContent = 'No commit quality data available.';
+          return;
+        }
+
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(q.summary);
+        container.appendChild(pre);
+      }
+
+      function renderTimeline(tl) {
+        const container = el('timeline');
+        container.innerHTML = '';
+
+        if (!tl || !tl.monthly) {
+          container.textContent = 'No timeline data available.';
+          return;
+        }
+
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(tl.monthly.slice(0, 12));
+        container.appendChild(pre);
+      }
+
+      function renderHeatmap(hm) {
+        const container = el('heatmap');
+        container.innerHTML = '';
+
+        if (!hm || !hm.weeks) {
+          container.textContent = 'No heatmap data available.';
+          return;
+        }
+
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(hm.weeks.slice(0, 4));
+        container.appendChild(pre);
+      }
+
+      function renderTechDebt(td) {
+        const container = el('techdebt');
+        container.innerHTML = '';
+
+        if (!td) {
+          container.textContent = 'No tech debt data available.';
+          return;
+        }
+
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(td);
+        container.appendChild(pre);
+      }
+
+      function renderComplexity(cx) {
+        const container = el('complexity');
+        container.innerHTML = '';
+
+        if (!cx) {
+          container.textContent = 'No complexity data available.';
+          return;
+        }
+
+        const hotspots = (cx.hotspots || []).slice(0, 10);
+        if (hotspots.length === 0) {
+          container.textContent = 'No hotspots found.';
+          return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'table';
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>Function</th><th>Complexity</th><th>File</th></tr>';
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        for (const h of hotspots) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td class="mono">${h.function_name}</td><td>${h.complexity}</td><td class="mono">${h.file}</td>`;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        container.appendChild(table);
+      }
+
+      async function loadSnapshotIndex(repoUrl) {
+        const card = el('snapshotCard');
+        const selectA = el('snapshotA');
+        const selectB = el('snapshotB');
+        const status = el('snapshotStatus');
+        const diff = el('snapshotDiff');
+
+        if (!SNAPSHOTS_ENABLED || DEMO_MODE) {
+          card.style.display = 'none';
+          return null;
+        }
+
+        status.textContent = 'Loading snapshot index\u2026';
+
+        const resp = await fetch('/api/snapshots/index', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          status.textContent = 'Snapshots unavailable: ' + (err.detail || resp.status);
+          selectA.innerHTML = '';
+          selectB.innerHTML = '';
+          diff.innerHTML = '';
+          return null;
+        }
+
+        const data = await resp.json();
+
+        const snaps = (data.snapshots || []).slice().reverse();
+        selectA.innerHTML = '';
+        selectB.innerHTML = '';
+        diff.innerHTML = '';
+
+        if (snaps.length === 0) {
+          status.textContent = 'No snapshots found yet.';
+          return { repo_url: repoUrl, snapshots: [] };
+        }
+
+        for (const s of snaps) {
+          const optA = document.createElement('option');
+          optA.value = s.as_of;
+          optA.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
+          selectA.appendChild(optA);
+
+          const optB = document.createElement('option');
+          optB.value = s.as_of;
+          optB.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
+          selectB.appendChild(optB);
+        }
+
+        // Default selection: A = second option (older), B = first option (newer)
+        if (snaps.length >= 2) {
+          selectB.selectedIndex = 0;
+          selectA.selectedIndex = 1;
+        }
+
+        status.textContent = `Found ${snaps.length} snapshot(s).`;
+        return { repo_url: repoUrl, snapshots: snaps };
+      }
+
+      async function loadSelectedSnapshot(repoUrl) {
+        const select = el('snapshotB');
+        const status = el('snapshotStatus');
+        const diff = el('snapshotDiff');
+
+        const asOf = select.value;
+        if (!asOf) {
+          status.textContent = 'Pick snapshot B first.';
+          return;
+        }
+
+        status.textContent = `Loading snapshot ${asOf}\u2026`;
+        diff.innerHTML = '';
+
+        const resp = await fetch('/api/snapshots/get', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl, as_of: asOf })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          status.textContent = 'Snapshot load failed: ' + (err.detail || resp.status);
+          return;
+        }
+
+        const data = await resp.json();
+        status.textContent = `Loaded snapshot ${asOf}.`;
+        renderPayload(data, { cached: true, duration_ms: null });
+      }
+
+      function renderSnapshotDiff(metrics) {
+        const container = el('snapshotDiff');
+        container.innerHTML = '';
+
+        if (!metrics || !metrics.delta) {
+          container.textContent = 'No diff metrics available.';
+          return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'table';
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>Metric</th><th>A</th><th>B</th><th>\u0394</th></tr>';
+        table.appendChild(thead);
+
+        function fmt(v) {
+          if (v == null) return 'n/a';
+          if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(2);
+          return String(v);
+        }
+
+        const rows = [
+          { key: 'techdebt_score', label: 'Tech debt score (lower better)' },
+          { key: 'todo_count', label: 'TODO count' },
+          { key: 'total_source_lines', label: 'Total source lines' },
+          { key: 'total_source_files', label: 'Total source files' },
+          { key: 'avg_complexity', label: 'Avg complexity' },
+        ];
+
+        const tbody = document.createElement('tbody');
+        for (const r of rows) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.label}</td>
+            <td>${fmt(metrics.a?.[r.key])}</td>
+            <td>${fmt(metrics.b?.[r.key])}</td>
+            <td>${fmt(metrics.delta?.[r.key])}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        container.appendChild(table);
+      }
+
+      async function diffSelectedSnapshots(repoUrl) {
+        const aAsOf = el('snapshotA').value;
+        const bAsOf = el('snapshotB').value;
+        const status = el('snapshotStatus');
+
+        if (!aAsOf || !bAsOf) {
+          status.textContent = 'Pick snapshots A and B first.';
+          return;
+        }
+        if (aAsOf >= bAsOf) {
+          status.textContent = 'Snapshot A must be older than snapshot B.';
+          return;
+        }
+
+        status.textContent = `Computing diff ${aAsOf} \u2192 ${bAsOf}\u2026`;
+
+        const resp = await fetch('/api/snapshots/diff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl, a_as_of: aAsOf, b_as_of: bAsOf })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          status.textContent = 'Snapshot diff failed: ' + (err.detail || resp.status);
+          return;
+        }
+
+        const data = await resp.json();
+        status.textContent = `Diff ready (${aAsOf} \u2192 ${bAsOf}).`;
+        renderSnapshotDiff(data.metrics);
+      }
+
+      function renderPayload(data, options) {
+        const dur = formatDuration(options?.duration_ms);
+        if (DEMO_MODE) {
+          el('status').textContent = 'Demo loaded';
+        } else if (options?.cached) {
+          el('status').textContent = `Done (cached${dur ? ', ' + dur : ''})`;
+        } else {
+          el('status').textContent = `Done${dur ? ' (' + dur + ')' : ''}`;
+        }
+
+        el('languages').textContent = safeJson(data.languages);
+        renderTreemap(data.treemap);
+        renderContributors(data.contributors);
+        renderCommitQuality(data.commit_quality);
+        renderTimeline(data.timeline);
+        renderHeatmap(data.heatmap);
+        renderTechDebt(data.techdebt);
+        renderComplexity(data.complexity);
+      }
+
+      function parseOwnerRepo(repoUrl) {
+        try {
+          const parts = String(repoUrl).split('/').filter(Boolean);
+          const idx = parts.indexOf('github.com');
+          const tail = idx >= 0 ? parts.slice(idx + 1) : parts;
+          if (tail.length < 2) return null;
+          return { owner: tail[0], repo: tail[1] };
+        } catch (e) {
+          return null;
+        }
+      }
+
+      async function loadReleaseOptions(repoUrl) {
+        const wrap = el('releaseSelectWrap');
+        const select = el('releaseSelect');
+        const info = parseOwnerRepo(repoUrl);
+        if (!wrap || !select || !info) {
+          if (wrap) wrap.style.display = 'none';
+          return;
+        }
+
+        wrap.style.display = 'inline-flex';
+        select.innerHTML = '';
+        const optLatest = document.createElement('option');
+        optLatest.value = 'latest';
+        optLatest.textContent = 'Latest';
+        select.appendChild(optLatest);
+
+        try {
+          const resp = await fetch(`/api/releases?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&limit=10`);
+          if (!resp.ok) return;
+          const data = await resp.json();
+
+          for (const r of (data.releases || [])) {
+            const opt = document.createElement('option');
+            opt.value = r.tag_name;
+            opt.textContent = r.tag_name;
+            select.appendChild(opt);
+          }
+
+          if ((data.releases || []).length === 0) {
+            const optNone = document.createElement('option');
+            optNone.value = 'none';
+            optNone.textContent = '(no releases found)';
+            select.appendChild(optNone);
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        select.addEventListener('change', async () => {
+          await refreshSnapshotsDownloadLink(repoUrl);
+        });
+      }
+
+      async function getSnapshotsDownloadUrl(repoUrl) {
+        const info = parseOwnerRepo(repoUrl);
+        if (!info) return null;
+
+        const select = el('releaseSelect');
+        const releaseTag = select && select.value ? select.value : 'latest';
+
+        const qs = `owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&release_tag=${encodeURIComponent(releaseTag)}&asset_name=${encodeURIComponent('reposcape-snapshots.zip')}`;
+        const resp = await fetch(`/api/releases/asset?${qs}`);
+        if (!resp.ok) return null;
+        const data = await resp.json().catch(() => ({}));
+        if (!data || !data.url) return null;
+        return data.url;
+      }
+
+      async function wireSnapshotsDownloadLink(repoUrl) {
+        await refreshSnapshotsDownloadLink(repoUrl);
+
+        const select = el('releaseSelect');
+        if (select && !select.dataset.bound) {
+          select.dataset.bound = '1';
+          select.addEventListener('change', async () => {
+            await refreshSnapshotsDownloadLink(repoUrl);
+          });
+        }
+      }
+
+async function refreshSnapshotsDownloadLink(repoUrl) {
+        const btn = el('downloadSnapshots');
+        if (!btn) return;
+
+        const url = await getSnapshotsDownloadUrl(repoUrl);
+        if (!url) {
+          btn.style.display = 'none';
+          return;
+        }
+
+        btn.style.display = 'inline-flex';
+        btn.onclick = () => {
+          window.open(url, '_blank', 'noopener');
+        };
+      }
+
+      el('analyzeBtn').addEventListener('click', () => analyze(getRepoUrl()));
+      el('compareBtn').addEventListener('click', () => compare(getRepoUrl()));
+
+      el('demoMode').addEventListener('change', async () => {
+        if (getDemoMode()) {
+          await loadDemo();
+        }
+      });
+
+      const DEMO_MODE = {{ demo_mode | default(false) | tojson }};
+      if (DEMO_MODE) {
+        setDemoMode(true);
+      }
+
+      if (getRepoUrl()) {
+        analyze(getRepoUrl());
+      } else {
+        loadDemo();
+      }
+
+      el('loadSnapshot').addEventListener('click', () => loadSelectedSnapshot(getRepoUrl()));
+      el('diffSnapshots').addEventListener('click', () => diffSelectedSnapshots(getRepoUrl()));
+    </script>
+  </body>
+</html>
