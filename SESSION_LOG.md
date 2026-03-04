@@ -224,10 +224,10 @@ Export enhancements: client-side SVG→PNG + embed.
 **PR:** #16 (squash merged)
 
 ### Focus
-Begin growth/monetization phase with infra improvements.
+Better share cards.
 
 ### Shipped
-- Roadmap + docs updates.
+- Per-repo share previews.
 
 
 ---
@@ -237,10 +237,10 @@ Begin growth/monetization phase with infra improvements.
 **PR:** #17 (squash merged)
 
 ### Focus
-Export system: add a more guided PDF flow.
+Export system: server-side PDF generation or print-to-PDF helper.
 
 ### Shipped
-- `/pdf` helper route for print-to-PDF.
+- Export PDF generation.
 
 
 ---
@@ -250,10 +250,10 @@ Export system: add a more guided PDF flow.
 **PR:** #18 (squash merged)
 
 ### Focus
-Add CLI tool for analyzing repos.
+Add CLI.
 
 ### Shipped
-- `reposcape analyze <url>` CLI command.
+- CLI tool: `reposcape analyze <url>`.
 
 
 ---
@@ -263,23 +263,23 @@ Add CLI tool for analyzing repos.
 **PR:** #19 (squash merged)
 
 ### Focus
-Packaging fixes for `src/` layout.
+Fix packaging.
 
 ### Shipped
-- setuptools discovery fixes; `pip install -e .` works.
+- Setuptools discovery fix for `src/` layout.
 
 
 ---
 
-## Session 20 (2026-03-03)
+## Session 20 (2026-03-02)
 
 **PR:** #20 (squash merged)
 
 ### Focus
-Expand test suite stability and speed.
+Minor improvements.
 
 ### Shipped
-- fixture improvements and test markers.
+- Minor fixes.
 
 
 ---
@@ -289,10 +289,10 @@ Expand test suite stability and speed.
 **PR:** #21 (squash merged)
 
 ### Focus
-Stabilize integration tests.
+Stabilize test suite.
 
 ### Shipped
-- module-scoped fixtures and shared conftest.
+- Fixture and conftest improvements.
 
 
 ---
@@ -305,7 +305,7 @@ Stabilize integration tests.
 Add comparison mode.
 
 ### Shipped
-- Side-by-side comparison payload + UI.
+- Compare two repos side-by-side.
 
 
 ---
@@ -315,7 +315,7 @@ Add comparison mode.
 **PR:** #23 (squash merged)
 
 ### Focus
-Historical tracking foundation.
+Snapshot persistence foundation.
 
 ### Shipped
 - Snapshot bucketing + persistence utilities (`src/history.py`).
@@ -328,10 +328,10 @@ Historical tracking foundation.
 **PR:** #24 (squash merged)
 
 ### Focus
-Wire snapshot generation into CLI.
+Wire snapshots into CLI.
 
 ### Shipped
-- CLI now supports `--snapshot-dir`.
+- `reposcape analyze --snapshot-dir ...`.
 
 
 ---
@@ -341,10 +341,10 @@ Wire snapshot generation into CLI.
 **PR:** #25 (squash merged)
 
 ### Focus
-Web API endpoints for snapshots.
+Web endpoints to list snapshots and fetch payload.
 
 ### Shipped
-- `/api/snapshots/index` + `/api/snapshots/get`.
+- Snapshots API endpoints.
 
 
 ---
@@ -354,10 +354,10 @@ Web API endpoints for snapshots.
 **PR:** #26 (squash merged)
 
 ### Focus
-Dashboard snapshot selector UI.
+Dashboard snapshot selector.
 
 ### Shipped
-- Snapshot A/B selectors and load snapshot wiring.
+- Snapshot selector + load snapshot payload.
 
 
 ---
@@ -367,10 +367,10 @@ Dashboard snapshot selector UI.
 **PR:** #27 (squash merged)
 
 ### Focus
-Automate snapshot bundles on release.
+Auto-generate snapshots on release.
 
 ### Shipped
-- GitHub Action to generate `reposcape-snapshots.zip`.
+- GitHub Action.
 
 
 ---
@@ -460,3 +460,19 @@ Make historical tracking visible at a glance.
 
 ### Tests
 - `python -m pytest tests/test_history.py -q --tb=short`
+
+
+---
+
+## Session 34 (2026-03-04)
+
+**PR:** #41 (squash merged)
+
+### Focus
+Improve snapshot selection ergonomics.
+
+### Shipped
+- Dashboard: when loading snapshot B, show key snapshot metrics as compact chips (as_of, LOC, files, TODOs, tech debt score, avg complexity).
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
