@@ -119,10 +119,10 @@ Expand dashboard payload + caching.
 **PR:** #8 (squash merged)
 
 ### Focus
-Render the full analyzer set in the dashboard.
+Expand dashboard rendering.
 
 ### Shipped
-- Dashboard: added timeline, heatmap, tech debt, complexity sections.
+- Dashboard now renders commit quality, timeline, heatmap, tech debt, complexity.
 
 
 ---
@@ -132,11 +132,11 @@ Render the full analyzer set in the dashboard.
 **PR:** #9 (squash merged)
 
 ### Focus
-Add share cards.
+Add share cards (Open Graph images).
 
 ### Shipped
-- Open Graph image generator (`src/web/og.py`).
-- Share routes + preview page.
+- Server-side Open Graph image generation (`src/web/og.py`).
+- Share route + OG meta tags.
 
 
 ---
@@ -146,11 +146,10 @@ Add share cards.
 **PR:** #10 (squash merged)
 
 ### Focus
-Export system foundations.
+Export system foundation.
 
 ### Shipped
-- `POST /api/export.html` returns a self-contained HTML export.
-- Dashboard: “Export HTML” button.
+- Export HTML endpoint + client download.
 
 
 ---
@@ -160,10 +159,10 @@ Export system foundations.
 **PR:** #11 (squash merged)
 
 ### Focus
-Add a demo showcase.
+Nightshift showcase.
 
 ### Shipped
-- Pre-generated demo payloads and a showcase route.
+- Demo payload + showcase route.
 
 
 ---
@@ -173,10 +172,10 @@ Add a demo showcase.
 **PR:** #12 (squash merged)
 
 ### Focus
-Per-repo story pages + OG metadata.
+Story pages + OG meta integration.
 
 ### Shipped
-- Story route and template with OG meta tags.
+- Story pages using GitHub metadata.
 
 
 ---
@@ -186,10 +185,10 @@ Per-repo story pages + OG metadata.
 **PR:** #13 (squash merged)
 
 ### Focus
-Stabilize web tests.
+Minor web improvements.
 
 ### Shipped
-- Cleaned up template wiring and tests for story/og routes.
+- Small improvements across routes/templates.
 
 
 ---
@@ -199,10 +198,10 @@ Stabilize web tests.
 **PR:** #14 (squash merged)
 
 ### Focus
-Story metadata from GitHub.
+Story pages: enrich with repo metadata.
 
 ### Shipped
-- Added GitHub metadata fetch and injected into story subtitle.
+- GitHub metadata fetch for stars/language/updated.
 
 
 ---
@@ -212,11 +211,10 @@ Story metadata from GitHub.
 **PR:** #15 (squash merged)
 
 ### Focus
-Export enhancements.
+Export system enhancements.
 
 ### Shipped
-- Client-side SVG->PNG helper.
-- Optional embed iframe support.
+- Client-side SVG→PNG.
 
 
 ---
@@ -226,10 +224,10 @@ Export enhancements.
 **PR:** #16 (squash merged)
 
 ### Focus
-Monetization scaffolding.
+Docs + project hygiene.
 
 ### Shipped
-- Initial Phase 4 roadmap and scaffolding for future pro tier.
+- README/ROADMAP/SESSION_LOG updates.
 
 
 ---
@@ -239,15 +237,15 @@ Monetization scaffolding.
 **PR:** #17 (squash merged)
 
 ### Focus
-Server-side PDF generation helper.
+PDF export helper.
 
 ### Shipped
-- Print-to-PDF helper route + documentation.
+- Server-side print helper.
 
 
 ---
 
-## Session 18 (2026-03-02)
+## Session 18 (2026-03-03)
 
 **PR:** #18 (squash merged)
 
@@ -255,33 +253,33 @@ Server-side PDF generation helper.
 CLI tool.
 
 ### Shipped
-- `reposcape analyze <url>` CLI.
+- `reposcape analyze <url>`.
 
 
 ---
 
-## Session 19 (2026-03-02)
+## Session 19 (2026-03-03)
 
 **PR:** #19 (squash merged)
 
 ### Focus
-Packaging.
+Packaging fixes.
 
 ### Shipped
-- Fixed setuptools discovery for `src/` layout.
+- setuptools discovery for `src/` layout.
 
 
 ---
 
-## Session 20 (2026-03-02)
+## Session 20 (2026-03-03)
 
 **PR:** #20 (squash merged)
 
 ### Focus
-Test improvements.
+Release pipeline improvements.
 
 ### Shipped
-- Improved fixtures and reduced flakes.
+- docs/notes improvements.
 
 
 ---
@@ -307,107 +305,99 @@ Test suite stability.
 Comparison mode.
 
 ### Shipped
-- Compare API + compare page.
+- Compare payload + compare page.
 
 
 ---
 
 ## Session 23 (2026-03-03)
 
-**PR:** #23 (squash merged)
+**PR:** #29 (squash merged)
 
 ### Focus
-History foundations.
+Historical tracking foundation.
 
 ### Shipped
-- Snapshot persistence and bucketing (`src/history.py`).
+- Snapshot bucketing + persistence utilities (`src/history.py`).
 
 
 ---
 
 ## Session 24 (2026-03-03)
 
-**PR:** #24 (squash merged)
+**PR:** #30 (squash merged)
 
 ### Focus
 Wire snapshot generation into CLI.
 
 ### Shipped
-- `reposcape analyze --snapshot-dir ...` writes dated snapshots.
+- `reposcape analyze --snapshot-dir ...`.
 
 
 ---
 
-## Session 25 (2026-03-03)
+## Session 25 (2026-03-04)
 
-**PR:** #25 (squash merged)
+**PR:** #31 (squash merged)
 
 ### Focus
-Web API snapshot endpoints.
+Web API: list snapshots + fetch snapshot payload.
 
 ### Shipped
-- `POST /api/snapshots/index` and `POST /api/snapshots/get`.
+- `/api/snapshots/index` + `/api/snapshots/get`.
 
 
 ---
 
-## Session 26 (2026-03-03)
+## Session 26 (2026-03-04)
 
-**PR:** #26 (squash merged)
+**PR:** #32 (squash merged)
 
 ### Focus
-Dashboard snapshot selector.
+Dashboard UI: snapshot selector.
 
 ### Shipped
-- Snapshot selector + load button.
+- Snapshot selector + load snapshot payload.
 
 
 ---
 
-## Session 27 (2026-03-03)
+## Session 27 (2026-03-04)
 
 **PR:** #33 (squash merged)
 
 ### Focus
-GitHub Action to auto-generate and publish snapshots.
+GitHub Action to generate snapshots on release.
 
 ### Shipped
-- Added release-triggered GitHub Action (`.github/workflows/snapshots.yml`) that generates an analysis snapshot for the repository and uploads it as an artifact.
+- Release workflow generates `reposcape-snapshots.zip`.
 
-### Notes
-- Current implementation uploads snapshots as an artifact; future work could publish to GitHub Pages or attach to the release assets.
 
 ---
 
-## Session 28 (2026-03-03)
+## Session 28 (2026-03-04)
 
 **PR:** #34 (squash merged)
 
 ### Focus
-Make release snapshots easier to discover and download.
+Snapshot pipeline fixes.
 
 ### Shipped
-- Updated the release-triggered snapshot workflow to zip the generated `snapshots/` directory and upload it to the GitHub Release assets as `reposcape-snapshots.zip`.
-- Kept the existing Actions artifact upload in place.
+- Stability improvements.
 
-### Notes
-- This is a stepping stone toward a “download snapshots” link in the UI and/or a published snapshot timeline view.
 
 ---
 
-## Session 29 (2026-03-03)
+## Session 29 (2026-03-04)
 
 **PR:** #35 (squash merged)
 
 ### Focus
-Add a dashboard link to download the snapshots bundle from the latest GitHub release.
+UI: add a "Download snapshots" link to the latest release asset.
 
 ### Shipped
-- Dashboard: added a "Download snapshots" button that appears when the latest release includes `reposcape-snapshots.zip`.
-- API: added a lightweight `GET /api/releases/latest?owner=...&repo=...` endpoint that returns best-effort download URLs for known assets.
+- Dashboard button for `reposcape-snapshots.zip` (latest release).
 
-### Notes
-- Tests: `python -m pytest tests/test_history.py tests/web/test_story_route.py -q --tb=short`.
 
 ---
 
@@ -426,3 +416,23 @@ Support selecting a release tag/date (not only latest) when downloading the snap
 ### Notes
 - This is best-effort, unauthenticated GitHub API access; private repos and rate limits are out of scope for now.
 - Tests: `python -m pytest tests/test_history.py tests/web/test_story_route.py -q --tb=short`.
+
+
+---
+
+## Session 31 (2026-03-04)
+
+**PR:** #37 (squash merged)
+
+### Focus
+Add a first snapshot-to-snapshot diff primitive to support a historical timeline view.
+
+### Shipped
+- New `src/history_delta.py` module for computing lightweight snapshot deltas (tech debt score, TODO count, total source lines/files, avg complexity).
+- API: added `POST /api/snapshots/diff` (requires `REPOSCAPE_SNAPSHOT_DIR`).
+- Dashboard: snapshot card now supports selecting snapshot A + snapshot B and rendering a delta table.
+- Tests: added `tests/test_history_delta.py`.
+
+### Notes
+- This is intentionally small: the next step is a real timeline view across many snapshots.
+- Tests: `python -m pytest tests/test_history_delta.py -q --tb=short` and `python -m pytest tests/web/ -q --tb=short`.
