@@ -480,6 +480,23 @@ History: interactive chart.
 
 ---
 
+## Session 39 (2026-03-04)
+
+**PR:** #46 (squash merged)
+
+### Focus
+History chart: multi-metric toggles/overlays (dashboard).
+
+### Shipped
+- Dashboard History: add checkbox toggles to overlay multiple metrics at once (each series normalized for overlay).
+- Chart: adds a legend with per-metric colors; retains baseline and optional trendline controls.
+- Single-series view: improves y-axis tick formatting (signed deltas and percent handling).
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
 ## Session 38 (2026-03-04)
 
 **PR:** #45 (squash merged)
