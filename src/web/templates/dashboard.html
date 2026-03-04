@@ -200,28 +200,19 @@
 
     .kv .v {
       font-family: var(--mono);
-      font-size: 12px;
-      color: var(--text);
-      overflow-wrap: anywhere;
-    }
-
-    pre {
-      margin: 0;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      font-family: var(--mono);
-      font-size: 12px;
+      font-size: 13px;
       color: rgba(255,255,255,0.88);
+      word-break: break-word;
     }
 
     .pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 6px 10px;
+      padding: 8px 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
       font-family: var(--mono);
       font-size: 12px;
       color: rgba(255,255,255,0.86);
@@ -230,27 +221,9 @@
     .pill .dot {
       width: 8px;
       height: 8px;
-      border-radius: 50%;
+      border-radius: 999px;
       background: var(--accent);
-      box-shadow: 0 0 0 2px rgba(102,170,255,0.18);
-    }
-
-    .pill.good .dot { background: var(--good); box-shadow: 0 0 0 2px rgba(125,255,178,0.18); }
-    .pill.warn .dot { background: var(--warning); box-shadow: 0 0 0 2px rgba(255,196,107,0.18); }
-    .pill.bad .dot { background: var(--danger); box-shadow: 0 0 0 2px rgba(255,91,121,0.18); }
-
-    .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 12px;
+      display: inline-block;
     }
 
     table {
@@ -261,41 +234,29 @@
     }
 
     th, td {
-      text-align: left;
       border-bottom: 1px solid rgba(255,255,255,0.08);
       padding: 8px 6px;
-      vertical-align: top;
+      text-align: left;
     }
 
-    th {
-      color: rgba(255,255,255,0.70);
-      font-weight: 700;
-      letter-spacing: 0.3px;
-    }
+    th { color: rgba(255,255,255,0.85); font-weight: 700; }
+    td { color: rgba(255,255,255,0.78); }
 
-    .footer {
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .small {
-      font-size: 12px;
-      color: rgba(255,255,255,0.70);
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
       font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
     }
 
     select {
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 10px;
-      padding: 9px 10px;
-      color: var(--text);
+      padding: 8px 10px;
+      color: rgba(255,255,255,0.92);
       font-family: var(--mono);
       font-size: 12px;
       outline: none;
@@ -308,7 +269,9 @@
 
     @media (max-width: 900px) {
       .grid2 { grid-template-columns: 1fr; }
-      .kv { grid-template-columns: 120px 1fr; }
+      input[type="text"] { width: 100%; }
+      .top-inner { flex-direction: column; align-items: stretch; }
+      .controls { justify-content: flex-start; }
     }
   </style>
 </head>
@@ -317,163 +280,189 @@
     <div class="top-inner">
       <div class="brand">
         <h1>Reposcape</h1>
-        <span class="tag">dashboard</span>
+        <span class="tag">repo intelligence</span>
       </div>
+
       <div class="controls">
-        <input id="repoUrl" type="text" placeholder="https://github.com/owner/repo" />
+        <input id="repoUrl" type="text" value="https://github.com/gunnargray-dev/reposcape" />
         <button id="analyzeBtn">Analyze</button>
-        <button id="shareBtn" class="secondary" disabled>Share</button>
+        <button class="secondary" id="shareBtn" disabled>Open Story</button>
       </div>
     </div>
   </div>
 
   <div class="main">
-    <div class="grid2">
-      <div class="card">
-        <div class="card-header">
-          <h2>Repo</h2>
-          <span id="repoStatus" class="status">Idle</span>
-        </div>
-        <div class="card-body" id="repoMeta"></div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Repository</h2>
+        <div id="repoStatus" class="status">Ready</div>
       </div>
+      <div class="card-body">
+        <div id="repoMeta"></div>
+      </div>
+    </div>
 
+    <div class="grid2">
       <div class="card">
         <div class="card-header">
           <h2>Summary</h2>
-          <span id="summaryStatus" class="status">Waiting</span>
+          <div id="summaryStatus" class="status">Waiting</div>
         </div>
-        <div class="card-body" id="summary"></div>
+        <div class="card-body">
+          <div id="summary"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h2>Language Breakdown</h2>
-        <span id="langStatus" class="status">Waiting</span>
+      <div class="card">
+        <div class="card-header">
+          <h2>Languages</h2>
+          <div id="langStatus" class="status">Waiting</div>
+        </div>
+        <div class="card-body">
+          <div id="languages"></div>
+        </div>
       </div>
-      <div class="card-body" id="languages"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h2>File Tree</h2>
-        <span id="treeStatus" class="status">Waiting</span>
-      </div>
-      <div class="card-body" id="tree"></div>
     </div>
 
     <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <h2>File Tree</h2>
+          <div id="treeStatus" class="status">Waiting</div>
+        </div>
+        <div class="card-body">
+          <div id="tree"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <h2>Commit Heatmap</h2>
-          <span id="heatmapStatus" class="status">Waiting</span>
+          <div id="heatmapStatus" class="status">Waiting</div>
         </div>
-        <div class="card-body" id="heatmap"></div>
+        <div class="card-body">
+          <div id="heatmap"></div>
+        </div>
       </div>
+    </div>
 
+    <div class="grid2">
       <div class="card">
         <div class="card-header">
           <h2>Tech Debt</h2>
-          <span id="debtStatus" class="status">Waiting</span>
+          <div id="debtStatus" class="status">Waiting</div>
         </div>
-        <div class="card-body" id="debt"></div>
+        <div class="card-body">
+          <div id="debt"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Complexity</h2>
+          <div id="cxStatus" class="status">Waiting</div>
+        </div>
+        <div class="card-body">
+          <div id="complexity"></div>
+        </div>
       </div>
     </div>
 
     <div class="grid2">
-      <div class="card">
-        <div class="card-header">
-          <h2>Complexity</h2>
-          <span id="cxStatus" class="status">Waiting</span>
-        </div>
-        <div class="card-body" id="complexity"></div>
-      </div>
-
       <div class="card">
         <div class="card-header">
           <h2>Timeline</h2>
-          <span id="timelineStatus" class="status">Waiting</span>
+          <div id="timelineStatus" class="status">Waiting</div>
         </div>
-        <div class="card-body" id="timeline"></div>
+        <div class="card-body">
+          <div id="timeline"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>PR Velocity</h2>
+          <div id="prStatus" class="status">Waiting</div>
+        </div>
+        <div class="card-body">
+          <div id="pr"></div>
+        </div>
       </div>
     </div>
 
     <div class="grid2">
       <div class="card">
         <div class="card-header">
-          <h2>PR Velocity</h2>
-          <span id="prStatus" class="status">Waiting</span>
+          <h2>Commit Messages</h2>
+          <div id="msgStatus" class="status">Waiting</div>
         </div>
-        <div class="card-body" id="pr"></div>
+        <div class="card-body">
+          <div id="messages"></div>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <h2>Commit Message Quality</h2>
-          <span id="msgStatus" class="status">Waiting</span>
+          <h2>Compare</h2>
+          <div id="compareStatus" class="status">Waiting</div>
         </div>
-        <div class="card-body" id="messages"></div>
+        <div class="card-body">
+          <div class="status" style="margin-bottom: 10px;">Compare mode is a separate page: <a href="/compare">/compare</a></div>
+          <div id="compare"></div>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h2>Comparison</h2>
-        <span id="compareStatus" class="status">Waiting</span>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <h2>Snapshots</h2>
+          <div id="snapStatus" class="status">Waiting</div>
+        </div>
+        <div class="card-body">
+          <div id="snapshots"></div>
+        </div>
       </div>
-      <div class="card-body" id="compare"></div>
-    </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h2>Snapshots</h2>
-        <span id="snapStatus" class="status">Waiting</span>
+      <div class="card">
+        <div class="card-header">
+          <h2>History</h2>
+          <div id="seriesStatus" class="status">Waiting</div>
+        </div>
+        <div class="card-body">
+          <div id="snapshotSeries"></div>
+        </div>
       </div>
-      <div class="card-body" id="snapshots"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h2>History</h2>
-        <span id="seriesStatus" class="status">Waiting</span>
-      </div>
-      <div class="card-body" id="snapshotSeries"></div>
-    </div>
-
-    <div class="footer">
-      <span class="small">Built by Reposcape</span>
-      <span class="small">Tip: run <code>reposcape analyze</code> with snapshots to unlock history.</span>
     </div>
   </div>
 
   <script>
-    function el(id) {
-      return document.getElementById(id);
-    }
+    function el(id) { return document.getElementById(id); }
 
-    function setStatus(id, text) {
-      const node = el(id);
-      if (node) node.textContent = text;
+    function setStatus(id, txt) {
+      const e = el(id);
+      if (!e) return;
+      e.textContent = txt;
     }
 
     function parseRepo(url) {
-      try {
-        const u = new URL(url.trim());
-        const parts = u.pathname.split('/').filter(Boolean);
-        if (u.hostname !== 'github.com' || parts.length < 2) return null;
-        return { owner: parts[0], repo: parts[1] };
-      } catch (e) {
-        return null;
+      if (!url) return null;
+      const parts = url.split('/').filter(Boolean);
+      const idx = parts.indexOf('github.com');
+      if (idx >= 0 && parts.length >= idx + 3) {
+        return { owner: parts[idx + 1], repo: parts[idx + 2] };
       }
+      if (parts.length >= 2) {
+        return { owner: parts[parts.length - 2], repo: parts[parts.length - 1] };
+      }
+      return null;
     }
 
     function numberOrNull(v) {
-      if (typeof v === 'number' && isFinite(v)) return v;
-      if (typeof v === 'string' && v.trim() !== '') {
-        const n = Number(v);
-        if (isFinite(n)) return n;
-      }
-      return null;
+      if (v == null) return null;
+      const n = Number(v);
+      if (!isFinite(n)) return null;
+      return n;
     }
 
     function fmtNum(n) {
@@ -747,6 +736,37 @@
       return { lo, hi };
     }
 
+    function niceStep(range, targetTicks) {
+      if (range <= 0 || !isFinite(range)) return 1;
+      const raw = range / Math.max(1, targetTicks || 5);
+      const power = Math.pow(10, Math.floor(Math.log10(raw)));
+      const scaled = raw / power;
+      let step = 1;
+      if (scaled <= 1) step = 1;
+      else if (scaled <= 2) step = 2;
+      else if (scaled <= 5) step = 5;
+      else step = 10;
+      return step * power;
+    }
+
+    function formatAxisValue(metricKey, v, baselineEnabled) {
+      if (v == null || !isFinite(v)) return '';
+      if (baselineEnabled) {
+        if (metricKey === 'debt' || metricKey === 'techdebt_score') {
+          const pct = Math.round(v * 10) / 10;
+          const sign = pct > 0 ? '+' : '';
+          return sign + pct + '%';
+        }
+        const rounded = Math.round(v);
+        const sign = rounded > 0 ? '+' : '';
+        return sign + fmtNum(rounded);
+      }
+      if (metricKey === 'debt' || metricKey === 'techdebt_score') {
+        return String(Math.round(v * 10) / 10) + '%';
+      }
+      return fmtNum(Math.round(v));
+    }
+
     function svgEl(name) {
       return document.createElementNS('http://www.w3.org/2000/svg', name);
     }
@@ -872,22 +892,28 @@
           svg.appendChild(t);
         }
 
-        const fmt = (val) => {
-          if (!baselinePoint) return fmtSeriesValue(val);
+        const baselineEnabled = Boolean(baselinePoint);
 
-          if (metricKey === 'debt') {
-            const pct = Math.round(val * 10) / 10;
-            const sign = pct > 0 ? '+' : '';
-            return `${sign}${pct}%`;
-          }
+        // y labels (min/max)
+        addText(pad.l - 8, y(ext.hi) + 4, formatAxisValue(metricKey, ext.hi, baselineEnabled), 'end');
+        addText(pad.l - 8, y(ext.lo) + 4, formatAxisValue(metricKey, ext.lo, baselineEnabled), 'end');
 
-          const rounded = Math.round(val);
-          const sign = rounded > 0 ? '+' : '';
-          return `${sign}${rounded}`;
-        };
-
-        addText(pad.l - 8, y(ext.hi) + 4, fmt(ext.hi), 'end');
-        addText(pad.l - 8, y(ext.lo) + 4, fmt(ext.lo), 'end');
+        // y ticks for readability
+        const ticks = 4;
+        const step = niceStep(ext.hi - ext.lo, ticks);
+        const start = Math.floor(ext.lo / step) * step;
+        for (let tv = start; tv <= ext.hi + 1e-9; tv += step) {
+          const ty = y(tv);
+          if (ty < pad.t - 1 || ty > H - pad.b + 1) continue;
+          const line = svgEl('line');
+          line.setAttribute('x1', String(pad.l));
+          line.setAttribute('x2', String(W - pad.r));
+          line.setAttribute('y1', String(ty));
+          line.setAttribute('y2', String(ty));
+          line.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+          svg.appendChild(line);
+          addText(pad.l - 8, ty + 4, formatAxisValue(metricKey, tv, baselineEnabled), 'end');
+        }
 
         // zero line when baseline is set
         if (baselinePoint) {
@@ -984,6 +1010,203 @@
         return wrap;
       }
 
+      function renderMultiSeriesChart(points, metricKeys, baselineAsOf, opts) {
+        opts = opts || {};
+        const W = 780;
+        const H = 240;
+        const pad = { l: 56, r: 18, t: 18, b: 42 };
+
+        const keys = (metricKeys || []).filter(k => typeof k === 'string' && k);
+        if (keys.length === 0) {
+          const msg = document.createElement('div');
+          msg.className = 'status';
+          msg.textContent = 'Select at least one metric.';
+          return msg;
+        }
+
+        const view = (points || []).filter(p => {
+          for (const k of keys) {
+            if (numberOrNull(p?.[k]) != null) return true;
+          }
+          return false;
+        });
+        if (view.length < 2) {
+          const msg = document.createElement('div');
+          msg.className = 'status';
+          msg.textContent = 'Not enough data points for chart.';
+          return msg;
+        }
+
+        const baselinePoint = baselineAsOf
+          ? view.find(p => (p.as_of || '') === baselineAsOf) || null
+          : null;
+
+        const yAccessorFor = (metricKey) => {
+          return (p) => {
+            const v = numberOrNull(p?.[metricKey]);
+            if (v == null) return null;
+            if (!baselinePoint) return v;
+            const b = numberOrNull(baselinePoint?.[metricKey]);
+            if (b == null) return v;
+            return v - b;
+          };
+        };
+
+        const series = keys.map((k) => {
+          const yAcc = yAccessorFor(k);
+          const vals = view.map(p => yAcc(p)).filter(v => v != null);
+          const ext = extent(vals);
+          return { key: k, yAcc, ext };
+        }).filter(s => s.ext != null);
+
+        if (series.length === 0) {
+          const msg = document.createElement('div');
+          msg.className = 'status';
+          msg.textContent = 'No numeric values found for selected metrics.';
+          return msg;
+        }
+
+        const x = (i) => {
+          const span = Math.max(1, view.length - 1);
+          return pad.l + (i / span) * (W - pad.l - pad.r);
+        };
+        const yNorm = (t) => {
+          return pad.t + (1 - t) * (H - pad.t - pad.b);
+        };
+
+        const svg = svgEl('svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', String(H));
+        svg.style.display = 'block';
+        svg.style.background = 'rgba(255,255,255,0.03)';
+        svg.style.border = '1px solid rgba(255,255,255,0.10)';
+        svg.style.borderRadius = '8px';
+
+        function addText(tx, ty, labelText, anchor) {
+          const t = svgEl('text');
+          t.setAttribute('x', String(tx));
+          t.setAttribute('y', String(ty));
+          t.setAttribute('fill', 'rgba(255,255,255,0.75)');
+          t.setAttribute('font-size', '12');
+          t.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
+          t.setAttribute('text-anchor', anchor || 'start');
+          t.textContent = labelText;
+          svg.appendChild(t);
+        }
+
+        // axes
+        const axis = svgEl('path');
+        axis.setAttribute('d', `M ${pad.l} ${pad.t} L ${pad.l} ${H - pad.b} L ${W - pad.r} ${H - pad.b}`);
+        axis.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+        axis.setAttribute('fill', 'none');
+        axis.setAttribute('stroke-width', '1');
+        svg.appendChild(axis);
+
+        addText(pad.l - 8, yNorm(1) + 4, 'max', 'end');
+        addText(pad.l - 8, yNorm(0) + 4, 'min', 'end');
+
+        // baseline marker line
+        if (baselineAsOf) {
+          const bIdx = view.findIndex(p => (p.as_of || '') === baselineAsOf);
+          if (bIdx >= 0) {
+            const bx = x(bIdx);
+            const line = svgEl('line');
+            line.setAttribute('x1', String(bx));
+            line.setAttribute('x2', String(bx));
+            line.setAttribute('y1', String(pad.t));
+            line.setAttribute('y2', String(H - pad.b));
+            line.setAttribute('stroke', 'rgba(255,255,255,0.18)');
+            line.setAttribute('stroke-dasharray', '4 4');
+            svg.appendChild(line);
+            addText(bx, H - 10, 'baseline', 'middle');
+          }
+        }
+
+        // lines
+        for (let si = 0; si < series.length; si++) {
+          const s = series[si];
+          const color = opts.colorFor ? opts.colorFor(s.key) : '#66aaff';
+          const ext = s.ext;
+          const denom = (ext.hi - ext.lo) || 1;
+
+          const d = view.map((p, i) => {
+            const px = x(i);
+            const vv = s.yAcc(p);
+            const t = vv == null ? null : (vv - ext.lo) / denom;
+            const py = yNorm(t == null ? 0 : t);
+            return `${i === 0 ? 'M' : 'L'} ${px} ${py}`;
+          }).join(' ');
+
+          const path = svgEl('path');
+          path.setAttribute('d', d);
+          path.setAttribute('stroke', color);
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke-width', '2');
+          path.setAttribute('opacity', '0.95');
+          svg.appendChild(path);
+
+          if (opts.showTrendline) {
+            const vals = view.map(p => s.yAcc(p));
+            const tr = linearTrend(vals);
+            if (tr && tr.fitted) {
+              const td = tr.fitted.map((v, i) => {
+                const px = x(i);
+                const t = (v - ext.lo) / denom;
+                const py = yNorm(t);
+                return `${i === 0 ? 'M' : 'L'} ${px} ${py}`;
+              }).join(' ');
+              const tpath = svgEl('path');
+              tpath.setAttribute('d', td);
+              tpath.setAttribute('stroke', color);
+              tpath.setAttribute('fill', 'none');
+              tpath.setAttribute('stroke-width', '2');
+              tpath.setAttribute('stroke-dasharray', '6 4');
+              tpath.setAttribute('opacity', '0.45');
+              svg.appendChild(tpath);
+            }
+          }
+
+          // legend (wrap every ~4 items)
+          const col = si % 4;
+          const row = Math.floor(si / 4);
+          const lx = pad.l + 10 + (col * 170);
+          const ly = pad.t + 14 + (row * 16);
+          const sw = svgEl('rect');
+          sw.setAttribute('x', String(lx));
+          sw.setAttribute('y', String(ly - 10));
+          sw.setAttribute('width', '10');
+          sw.setAttribute('height', '10');
+          sw.setAttribute('rx', '2');
+          sw.setAttribute('fill', color);
+          sw.setAttribute('opacity', '0.9');
+          svg.appendChild(sw);
+
+          const label = svgEl('text');
+          label.setAttribute('x', String(lx + 14));
+          label.setAttribute('y', String(ly));
+          label.setAttribute('fill', 'rgba(255,255,255,0.75)');
+          label.setAttribute('font-size', '12');
+          label.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
+          label.textContent = s.key;
+          svg.appendChild(label);
+        }
+
+        const note = svgEl('text');
+        note.setAttribute('x', String(W - pad.r));
+        note.setAttribute('y', String(H - 12));
+        note.setAttribute('fill', 'rgba(255,255,255,0.55)');
+        note.setAttribute('font-size', '11');
+        note.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
+        note.setAttribute('text-anchor', 'end');
+        note.textContent = 'overlay: each series normalized (min..max)';
+        svg.appendChild(note);
+
+        const wrap = document.createElement('div');
+        wrap.appendChild(svg);
+        return wrap;
+      }
+
     function makeSeriesMetricSelector(keys, onSelect) {
       const wrap = document.createElement('div');
       wrap.style.display = 'flex';
@@ -1031,12 +1254,99 @@
 
       const header = document.createElement('div');
       header.className = 'status';
-      header.textContent = `History (${Math.min(12, view.length)}/${points.length} points shown; chart uses ${view.length})`;
+      header.textContent = `History (${Math.min(12, view.length)}/${points.length} points shown; chart uses ${view.length}; overlay supports multiple metrics)`;
 
-      const controls = makeSeriesMetricSelector(keys, (k) => {
-        container.dataset.metric = k;
-        rerender();
-      });
+      const controls = document.createElement('div');
+      controls.style.display = 'flex';
+      controls.style.gap = '10px';
+      controls.style.flexWrap = 'wrap';
+      controls.style.alignItems = 'center';
+
+      const label = document.createElement('span');
+      label.className = 'muted';
+      label.textContent = 'Metrics:';
+      controls.appendChild(label);
+
+      function metricColor(i) {
+        const palette = ['#66aaff', '#a8ffb0', '#ffc46b', '#ff5b79', '#c9a3ff', '#7de2ff', '#ffd1a3'];
+        return palette[i % palette.length];
+      }
+
+      function defaultSelectedMetrics() {
+        // Pick a sane default set, but don't error if keys are missing.
+        const preferred = ['total_source_lines', 'total_source_files', 'todo_count', 'techdebt_score', 'avg_complexity'];
+        const out = [];
+        for (const k of preferred) {
+          if (keys.includes(k)) out.push(k);
+        }
+        if (out.length > 0) return out.slice(0, 3);
+        return keys.slice(0, Math.min(3, keys.length));
+      }
+
+      const selected = new Set(defaultSelectedMetrics());
+
+      function renderMetricToggles() {
+        // Clear existing toggles (keep label only)
+        while (controls.childNodes.length > 1) controls.removeChild(controls.lastChild);
+
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.gap = '8px';
+        wrap.style.flexWrap = 'wrap';
+        wrap.style.alignItems = 'center';
+
+        for (let i = 0; i < keys.length; i++) {
+          const k = keys[i];
+          const item = document.createElement('label');
+          item.style.display = 'inline-flex';
+          item.style.alignItems = 'center';
+          item.style.gap = '6px';
+          item.style.padding = '6px 10px';
+          item.style.borderRadius = '999px';
+          item.style.border = '1px solid rgba(255,255,255,0.12)';
+          item.style.background = selected.has(k) ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)';
+          item.style.cursor = 'pointer';
+
+          const swatch = document.createElement('span');
+          swatch.style.display = 'inline-block';
+          swatch.style.width = '10px';
+          swatch.style.height = '10px';
+          swatch.style.borderRadius = '999px';
+          swatch.style.background = metricColor(i);
+          swatch.style.opacity = selected.has(k) ? '1' : '0.55';
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = selected.has(k);
+          cb.style.margin = '0';
+          cb.addEventListener('change', () => {
+            if (cb.checked) {
+              selected.add(k);
+            } else {
+              selected.delete(k);
+            }
+            // Prevent empty selection: keep at least one.
+            if (selected.size === 0) selected.add(k);
+            renderMetricToggles();
+            rerender();
+          });
+
+          const txt = document.createElement('span');
+          txt.className = 'muted';
+          txt.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+          txt.style.fontSize = '12px';
+          txt.textContent = k;
+
+          item.appendChild(swatch);
+          item.appendChild(cb);
+          item.appendChild(txt);
+          wrap.appendChild(item);
+        }
+
+        controls.appendChild(wrap);
+      }
+
+      renderMetricToggles();
 
       const trendToggle = document.createElement('label');
       trendToggle.style.display = 'inline-flex';
@@ -1081,15 +1391,16 @@
       container.appendChild(controls.wrap);
       container.appendChild(chartWrap);
 
-      container.dataset.metric = keys[0];
-
       function rerender() {
-
-        const metric = container.dataset.metric || keys[0];
         const baseline = container.dataset.baseline || '';
         const showTrend = (container.dataset.trend || '') === '1';
+
+        const metrics = Array.from(selected.values());
         chartWrap.innerHTML = '';
-        chartWrap.appendChild(renderSeriesChart(view, metric, baseline || null, { showTrendline: showTrend }));
+        chartWrap.appendChild(renderMultiSeriesChart(view, metrics, baseline || null, {
+          showTrendline: showTrend,
+          colorFor: (k) => metricColor(keys.indexOf(k) >= 0 ? keys.indexOf(k) : 0),
+        }));
       }
 
       rerender();
