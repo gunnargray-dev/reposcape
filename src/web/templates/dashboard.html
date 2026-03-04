@@ -14,6 +14,10 @@
         <div class="spacer"></div>
         <button id="rerun" type="button">Re-run</button>
         <button id="exportHtml" type="button">Export HTML</button>
+        <label class="select" style="display:none;" id="releaseSelectWrap">
+          <span class="label">Release</span>
+          <select id="releaseSelect" aria-label="Select release"></select>
+        </label>
         <button id="downloadSnapshots" type="button" style="display:none;">Download snapshots</button>
       </header>
 
@@ -404,15 +408,63 @@
         renderComplexity(data.complexity);
       }
 
-      async function getLatestSnapshotsDownloadUrl(repoUrl) {
+      function parseOwnerRepo(repoUrl) {
         try {
-          const u = new URL(repoUrl);
-          const parts = u.pathname.split('/').filter(Boolean);
-          if (parts.length < 2) return null;
-          const owner = parts[0];
-          const repo = parts[1];
+          const parts = String(repoUrl).split('/').filter(Boolean);
+          const idx = parts.indexOf('github.com');
+          const tail = idx >= 0 ? parts.slice(idx + 1) : parts;
+          if (tail.length < 2) return null;
+          return { owner: tail[0], repo: tail[1] };
+        } catch (e) {
+          return null;
+        }
+      }
 
-          const resp = await fetch(`/api/releases/latest?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`);
+      async function loadReleaseOptions(repoUrl) {
+        const wrap = el('releaseSelectWrap');
+        const select = el('releaseSelect');
+        const info = parseOwnerRepo(repoUrl);
+        if (!wrap || !select || !info) {
+          if (wrap) wrap.style.display = 'none';
+          return;
+        }
+
+        wrap.style.display = 'inline-flex';
+        select.innerHTML = '';
+        const optLatest = document.createElement('option');
+        optLatest.value = 'latest';
+        optLatest.textContent = 'Latest';
+        select.appendChild(optLatest);
+
+        try {
+          const resp = await fetch(`/api/releases?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&limit=10`);
+          if (!resp.ok) return;
+          const data = await resp.json();
+          const releases = (data.releases || []).filter(r => r && r.tag_name);
+          for (const r of releases) {
+            const o = document.createElement('option');
+            o.value = r.tag_name;
+            const label = r.name ? `${r.tag_name} — ${r.name}` : r.tag_name;
+            o.textContent = label;
+            select.appendChild(o);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      async function getSnapshotsDownloadUrl(repoUrl) {
+        const info = parseOwnerRepo(repoUrl);
+        if (!info) return null;
+        const select = el('releaseSelect');
+        const selected = select ? select.value : 'latest';
+
+        try {
+          let url = `/api/releases/latest?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}`;
+          if (selected && selected !== 'latest') {
+            url = `/api/releases/by_tag?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&tag=${encodeURIComponent(selected)}`;
+          }
+          const resp = await fetch(url);
           if (!resp.ok) return null;
           const data = await resp.json();
           return data?.assets?.['reposcape-snapshots.zip'] || null;
@@ -421,27 +473,40 @@
         }
       }
 
+      
+
       async function wireSnapshotsDownloadLink(repoUrl) {
+        await loadReleaseOptions(repoUrl);
+        await refreshSnapshotsDownloadLink(repoUrl);
+
+        const sel = el('releaseSelect');
+        if (sel) {
+          sel.addEventListener('change', async () => {
+            await refreshSnapshotsDownloadLink(repoUrl);
+          });
+        }
+      }
+async function refreshSnapshotsDownloadLink(repoUrl) {
         const btn = el('downloadSnapshots');
         if (!btn || DEMO_MODE) return;
 
-        const url = await getLatestSnapshotsDownloadUrl(repoUrl);
+        const url = await getSnapshotsDownloadUrl(repoUrl);
         if (!url) {
           btn.style.display = 'none';
           return;
         }
 
         btn.style.display = 'inline-block';
-        btn.addEventListener('click', () => {
+        btn.onclick = () => {
           window.location.href = url;
-        }, { once: true });
+        };
       }
 
-async function run() {
+      async function run() {
         const repoUrl = getRepoUrl();
         el('repoTitle').textContent = repoUrl;
 
-        wireSnapshotsDownloadLink(repoUrl);
+        await wireSnapshotsDownloadLink(repoUrl);
         el('status').textContent = 'Analyzing…';
 
         await loadSnapshotIndex(repoUrl);
