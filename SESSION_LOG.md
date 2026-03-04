@@ -42,44 +42,43 @@ Add core “structure + activity” analyzers.
 **PR:** #3 (squash merged)
 
 ### Focus
-Contributor and commit quality metrics.
+Add author-level activity analyzers.
 
 ### Shipped
 - Contributor stats engine (`src/contributors.py`).
 - Author velocity tracking (`src/velocity.py`).
-- Commit message quality analyzer (`src/commit_quality.py`).
-- Tests for new modules.
+- Tests: `tests/test_contributors.py`, `tests/test_velocity.py`.
 
 
 ---
 
-## Session 4 (2026-03-01)
+## Session 4 (2026-02-28)
 
 **PR:** #4 (squash merged)
 
 ### Focus
-Advanced code graph/complexity signals.
+Add dependency + complexity analyzers.
 
 ### Shipped
-- Dependency graph analyzer (Python/JS/TS import parsing) (`src/dependencies.py`).
-- Cyclomatic complexity hotspots (`src/complexity.py`).
-- Tests for new modules.
+- Dependency graph analyzer (`src/dependencies.py`).
+- Code complexity heatmap (`src/complexity.py`).
+- Tests: `tests/test_dependencies.py`, `tests/test_complexity.py`.
 
 
 ---
 
-## Session 5 (2026-03-01)
+## Session 5 (2026-02-28)
 
 **PR:** #5 (squash merged)
 
 ### Focus
-More activity/engineering health signals.
+Add repo health + velocity analyzers.
 
 ### Shipped
 - Commit timeline analyzer (`src/timeline.py`).
 - PR velocity tracker (`src/pr_velocity.py`).
-- Tech debt scoring (`src/techdebt.py`).
-- Tests for new modules.
+- Tech debt scorer (`src/techdebt.py`).
+- Tests: `tests/test_timeline.py`, `tests/test_pr_velocity.py`, `tests/test_techdebt.py`.
 
 
 ---
@@ -89,12 +88,14 @@ More activity/engineering health signals.
 **PR:** #6 (squash merged)
 
 ### Focus
-First web UX: landing + dashboard.
+Introduce the web frontend.
 
 ### Shipped
-- FastAPI app with landing page and dashboard skeleton.
-- Dashboard renders treemap + languages.
-- Basic frontend styling.
+- FastAPI app + landing page with repo URL input (`src/web/app.py`, templates).
+- Initial dashboard rendering treemap (`src/web/templates/dashboard.html`).
+
+### Notes
+- Early UI intentionally kept minimal; data binding is all client-side for now.
 
 
 ---
@@ -104,12 +105,11 @@ First web UX: landing + dashboard.
 **PR:** #7 (squash merged)
 
 ### Focus
-Expand web analysis payload + caching.
+Expand dashboard payload + caching.
 
 ### Shipped
-- Expand `/api/analyze` payload with additional analyzers.
-- Add in-memory cache for repeated requests.
-- Dashboard renders more sections.
+- Added basic caching to avoid re-running analysis for identical URLs.
+- Dashboard now renders more analyzers (languages, contributors).
 
 
 ---
@@ -119,11 +119,10 @@ Expand web analysis payload + caching.
 **PR:** #8 (squash merged)
 
 ### Focus
-Full dashboard: render all analyzers.
+Render the full analyzer set in the dashboard.
 
 ### Shipped
-- Dashboard: added timeline, heatmap, tech debt, complexity.
-- Added minimal charts rendering logic.
+- Dashboard: added timeline, heatmap, tech debt, complexity sections.
 
 
 ---
@@ -133,11 +132,11 @@ Full dashboard: render all analyzers.
 **PR:** #9 (squash merged)
 
 ### Focus
-Share cards (Open Graph images).
+Add share cards.
 
 ### Shipped
-- Added OG image generator for sharing a repo analysis.
-- Wired into story pages.
+- Open Graph image generator (`src/web/og.py`).
+- Share routes + preview page.
 
 
 ---
@@ -147,25 +146,24 @@ Share cards (Open Graph images).
 **PR:** #10 (squash merged)
 
 ### Focus
-Export system: standalone HTML snapshot.
+Export system foundations.
 
 ### Shipped
-- Added `build_export_html()` and an `/api/export.html` endpoint.
-- Added client-side export helpers.
+- `POST /api/export.html` returns a self-contained HTML export.
+- Dashboard: “Export HTML” button.
 
 
 ---
 
-## Session 11 (2026-03-01)
+## Session 11 (2026-03-02)
 
 **PR:** #11 (squash merged)
 
 ### Focus
-Nightshift showcase.
+Add a demo showcase.
 
 ### Shipped
-- Added demo payload packaging.
-- Added `/showcase/nightshift` page.
+- Pre-generated demo payloads and a showcase route.
 
 
 ---
@@ -175,11 +173,10 @@ Nightshift showcase.
 **PR:** #12 (squash merged)
 
 ### Focus
-Story pages + OG meta tags.
+Per-repo story pages + OG metadata.
 
 ### Shipped
-- Added per-repo story pages.
-- Wired OG meta tags and share card URLs.
+- Story route and template with OG meta tags.
 
 
 ---
@@ -189,11 +186,10 @@ Story pages + OG meta tags.
 **PR:** #13 (squash merged)
 
 ### Focus
-Share cards: improvements.
+Stabilize web tests.
 
 ### Shipped
-- Improved OG card layout.
-- Fixed share preview template.
+- Cleaned up template wiring and tests for story/og routes.
 
 
 ---
@@ -203,10 +199,10 @@ Share cards: improvements.
 **PR:** #14 (squash merged)
 
 ### Focus
-Story metadata enrichment.
+Story metadata from GitHub.
 
 ### Shipped
-- Story pages: populate stars/language/last updated.
+- Added GitHub metadata fetch and injected into story subtitle.
 
 
 ---
@@ -219,8 +215,8 @@ Story metadata enrichment.
 Export enhancements.
 
 ### Shipped
-- Client-side SVG->PNG export.
-- Optional iframe embed.
+- Client-side SVG->PNG helper.
+- Optional embed iframe support.
 
 
 ---
@@ -230,10 +226,10 @@ Export enhancements.
 **PR:** #16 (squash merged)
 
 ### Focus
-Growth baseline cleanup.
+Monetization scaffolding.
 
 ### Shipped
-- TODO placeholders for monetization phase.
+- Initial Phase 4 roadmap and scaffolding for future pro tier.
 
 
 ---
@@ -243,10 +239,10 @@ Growth baseline cleanup.
 **PR:** #17 (squash merged)
 
 ### Focus
-Export system: PDF helper.
+Server-side PDF generation helper.
 
 ### Shipped
-- Added server-side PDF helper route.
+- Print-to-PDF helper route + documentation.
 
 
 ---
@@ -256,10 +252,10 @@ Export system: PDF helper.
 **PR:** #18 (squash merged)
 
 ### Focus
-CLI tooling.
+CLI tool.
 
 ### Shipped
-- Added `reposcape analyze <url>` command.
+- `reposcape analyze <url>` CLI.
 
 
 ---
@@ -269,7 +265,7 @@ CLI tooling.
 **PR:** #19 (squash merged)
 
 ### Focus
-Packaging fixes.
+Packaging.
 
 ### Shipped
 - Fixed setuptools discovery for `src/` layout.
@@ -282,102 +278,95 @@ Packaging fixes.
 **PR:** #20 (squash merged)
 
 ### Focus
-Prepping for reliable test runs.
+Test improvements.
 
 ### Shipped
-- Minor test infra improvements.
+- Improved fixtures and reduced flakes.
 
 
 ---
 
 ## Session 21 (2026-03-03)
 
-**PR:** #23 (squash merged)
+**PR:** #21 (squash merged)
 
 ### Focus
 Test suite stability.
 
 ### Shipped
-- Module-scoped fixtures.
-- Shared conftest.
+- Module-scoped fixtures, integration markers, shared conftest.
 
 
 ---
 
 ## Session 22 (2026-03-03)
 
-**PR:** #24 (squash merged)
+**PR:** #22 (squash merged)
 
 ### Focus
 Comparison mode.
 
 ### Shipped
-- Added comparison payload builder.
-- Added compare page.
+- Compare API + compare page.
 
 
 ---
 
 ## Session 23 (2026-03-03)
 
-**PR:** #25 (squash merged)
+**PR:** #23 (squash merged)
 
 ### Focus
-Historical tracking foundation.
+History foundations.
 
 ### Shipped
-- Snapshot bucketing + persistence utilities (`src/history.py`).
+- Snapshot persistence and bucketing (`src/history.py`).
 
 
 ---
 
 ## Session 24 (2026-03-03)
 
-**PR:** #26 (squash merged)
+**PR:** #24 (squash merged)
 
 ### Focus
 Wire snapshot generation into CLI.
 
 ### Shipped
-- `reposcape analyze --snapshot-dir ...` writes snapshot JSON.
+- `reposcape analyze --snapshot-dir ...` writes dated snapshots.
 
 
 ---
 
 ## Session 25 (2026-03-03)
 
-**PR:** #30 (squash merged)
+**PR:** #25 (squash merged)
 
 ### Focus
-Historical tracking: web API endpoints.
+Web API snapshot endpoints.
 
 ### Shipped
-- Added endpoints to list snapshots and retrieve a snapshot payload.
+- `POST /api/snapshots/index` and `POST /api/snapshots/get`.
 
 
 ---
 
 ## Session 26 (2026-03-03)
 
-**PR:** #31 (squash merged)
+**PR:** #26 (squash merged)
 
 ### Focus
-Wire snapshot browsing into the dashboard UI.
+Dashboard snapshot selector.
 
 ### Shipped
-- Dashboard: added a Snapshots selector (dropdown + Load button) that calls the existing snapshot endpoints.
-- Snapshots card auto-hides when snapshots are not configured (based on `REPOSCAPE_SNAPSHOT_DIR`) or in demo mode.
-
-### Notes
-- Tests: `tests/web/test_story_route.py`, `tests/test_history.py`.
-- Next: ship a GitHub Action to auto-generate snapshots (nightly or on release) and consider a timeline diff view.
+- Snapshot selector + load button.
 
 
 ---
 
 ## Session 27 (2026-03-03)
 
-**PR:** #32 (squash merged)
+**PR:** #33 (squash merged)
 
 ### Focus
 GitHub Action to auto-generate and publish snapshots.
@@ -418,4 +407,22 @@ Add a dashboard link to download the snapshots bundle from the latest GitHub rel
 - API: added a lightweight `GET /api/releases/latest?owner=...&repo=...` endpoint that returns best-effort download URLs for known assets.
 
 ### Notes
+- Tests: `python -m pytest tests/test_history.py tests/web/test_story_route.py -q --tb=short`.
+
+---
+
+## Session 30 (2026-03-04)
+
+**PR:** #36 (squash merged)
+
+### Focus
+Support selecting a release tag/date (not only latest) when downloading the snapshots bundle.
+
+### Shipped
+- API: added `GET /api/releases?owner=...&repo=...&limit=...` to list recent releases (tag, name, published date).
+- API: added `GET /api/releases/by_tag?owner=...&repo=...&tag=...` to discover `reposcape-snapshots.zip` on a specific release tag.
+- Dashboard: added a Release selector (default: Latest) that refreshes the snapshots download URL when changed.
+
+### Notes
+- This is best-effort, unauthenticated GitHub API access; private repos and rate limits are out of scope for now.
 - Tests: `python -m pytest tests/test_history.py tests/web/test_story_route.py -q --tb=short`.
