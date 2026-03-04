@@ -59,6 +59,7 @@ _Phase 1 items all done._
     - [x] UI: add a "Download snapshots" link to the latest release asset (`reposcape-snapshots.zip`) (Session 29)
     - [x] UI: support selecting a release tag/date for the snapshots bundle (Session 30)
     - [x] UI: add snapshot timeline sparkline (Session 33)
+    - [x] UI: show snapshot metric chips (as_of, LOC, files, TODOs, debt, avg cx) when loading snapshot B (Session 34)
 - [x] GitHub Action (auto-generate on release) (Session 27)
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
 
