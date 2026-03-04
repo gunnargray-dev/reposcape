@@ -60,6 +60,60 @@ class SnapshotDiffRequest(BaseModel):
     b_as_of: date
 
 
+class SnapshotSeriesRequest(BaseModel):
+    """Request payload for returning a multi-snapshot metric series.
+
+    This endpoint is intentionally minimal: it reads snapshot JSON payloads from
+    the configured REPOSCAPE_SNAPSHOT_DIR and extracts the small metric summary
+    already embedded in each snapshot.
+    """
+
+    repo_url: HttpUrl
+    max_points: int = 200
+    metrics: list[str] | None = None
+
+
+def _extract_history_metrics(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """Return history.metrics dict from a snapshot payload, if present."""
+
+    try:
+        history = payload.get("history")
+        if not isinstance(history, dict):
+            return None
+        metrics = history.get("metrics")
+        if not isinstance(metrics, dict):
+            return None
+        return metrics
+    except Exception:
+        return None
+
+
+def _sanitize_metric_keys(keys: list[str] | None) -> list[str] | None:
+    """Return a sanitized list of metric keys, or None for "all"."""
+
+    if keys is None:
+        return None
+    cleaned: list[str] = []
+    for k in keys:
+        if not isinstance(k, str):
+            continue
+        k = k.strip()
+        if not k:
+            continue
+        if len(k) > 64:
+            continue
+        cleaned.append(k)
+
+    seen: set[str] = set()
+    out: list[str] = []
+    for k in cleaned:
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(k)
+    return out
+
+
 def _parse_github_owner_repo(repo_url: str) -> tuple[str, str]:
     """Parse a GitHub repo URL into (owner, name)."""
 
@@ -80,6 +134,7 @@ def _get_snapshot_base_dir() -> Path | None:
     if not raw:
         return None
     return Path(raw)
+
 
 def _best_effort_get_latest_release_asset_url(
     owner: str, repo: str, asset_name: str
@@ -162,8 +217,6 @@ def _best_effort_list_releases(owner: str, repo: str, limit: int = 10) -> list[d
         return releases
     except Exception:
         return []
-
-
 
 
 @router.post("/analyze")
@@ -296,6 +349,75 @@ def snapshots_get(req: SnapshotGetRequest) -> dict[str, Any]:
                 detail=f"Snapshot not found: {req.as_of.isoformat()}",
             )
         return load_snapshot(path)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.post("/snapshots/series")
+def snapshots_series(req: SnapshotSeriesRequest) -> dict[str, Any]:
+    """Return a time-ordered metric series across snapshots.
+
+    Requires REPOSCAPE_SNAPSHOT_DIR to be configured.
+
+    Args:
+        req: Snapshot series request.
+
+    Returns:
+        Dict containing repo_url, points (ascending by as_of), and a metrics list.
+    """
+
+    base = _get_snapshot_base_dir()
+    if base is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Snapshots not configured (set REPOSCAPE_SNAPSHOT_DIR)",
+        )
+
+    max_points = int(req.max_points or 0)
+    if max_points < 1 or max_points > 1000:
+        raise HTTPException(status_code=422, detail="max_points must be between 1 and 1000")
+
+    keys = _sanitize_metric_keys(req.metrics)
+
+    try:
+        owner, name = _parse_github_owner_repo(str(req.repo_url))
+        history_dir = get_repo_history_dir(owner, name, base)
+        paths = sorted(list(history_dir.glob("*.json"))) if history_dir.exists() else []
+        if not paths:
+            return {"repo_url": str(req.repo_url), "points": [], "metrics": keys}
+
+        # Keep most recent N, but return them oldest->newest for charting.
+        paths = paths[-max_points:]
+
+        points: list[dict[str, Any]] = []
+        for p in paths:
+            payload = load_snapshot(p)
+            m = _extract_history_metrics(payload) or {}
+            as_of = m.get("as_of")
+            if not as_of:
+                as_of = p.stem
+
+            if keys is None:
+                row = {"as_of": as_of}
+                for k, v in m.items():
+                    if k == "as_of":
+                        continue
+                    row[k] = v
+            else:
+                row = {"as_of": as_of}
+                for k in keys:
+                    if k == "as_of":
+                        continue
+                    row[k] = m.get(k)
+
+            points.append(row)
+
+        # Ensure ascending by as_of (ISO dates sort lexicographically).
+        points.sort(key=lambda d: str(d.get("as_of", "")))
+
+        return {"repo_url": str(req.repo_url), "points": points, "metrics": keys}
     except HTTPException:
         raise
     except Exception as e:
