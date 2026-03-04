@@ -556,6 +556,173 @@
         return String(v);
       }
 
+      function makeSeriesMetricSelector(keys, onChange) {
+        const wrap = document.createElement('div');
+        wrap.className = 'row';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '0.5rem';
+        wrap.style.flexWrap = 'wrap';
+
+        const label = document.createElement('span');
+        label.className = 'status';
+        label.textContent = 'Metric:';
+        wrap.appendChild(label);
+
+        const select = document.createElement('select');
+        select.setAttribute('aria-label', 'Select metric');
+        for (const k of keys) {
+          const opt = document.createElement('option');
+          opt.value = k;
+          opt.textContent = k;
+          select.appendChild(opt);
+        }
+        select.addEventListener('change', () => onChange(select.value));
+        wrap.appendChild(select);
+
+        return { wrap, select };
+      }
+
+      function numberOrNull(v) {
+        if (v == null) return null;
+        if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function seriesExtent(points, key) {
+        let lo = null;
+        let hi = null;
+        for (const p of points) {
+          const v = numberOrNull(p?.[key]);
+          if (v == null) continue;
+          lo = lo == null ? v : Math.min(lo, v);
+          hi = hi == null ? v : Math.max(hi, v);
+        }
+        if (lo == null || hi == null) return null;
+        if (lo === hi) return { lo: lo - 1, hi: hi + 1 };
+        return { lo, hi };
+      }
+
+      function svgEl(name) {
+        return document.createElementNS('http://www.w3.org/2000/svg', name);
+      }
+
+      function renderSeriesChart(points, metricKey, baselineAsOf) {
+        const W = 780;
+        const H = 240;
+        const pad = { l: 56, r: 18, t: 18, b: 42 };
+
+        const filtered = points.filter(p => numberOrNull(p?.[metricKey]) != null);
+        if (filtered.length < 2) {
+          const msg = document.createElement('div');
+          msg.className = 'status';
+          msg.textContent = 'Not enough data points for chart.';
+          return msg;
+        }
+
+        const ext = seriesExtent(filtered, metricKey);
+        if (!ext) {
+          const msg = document.createElement('div');
+          msg.className = 'status';
+          msg.textContent = 'No numeric values found for metric.';
+          return msg;
+        }
+
+        const idx0 = 0;
+        const idx1 = filtered.length - 1;
+
+        const x = (i) => {
+          const span = Math.max(1, idx1 - idx0);
+          return pad.l + ((i - idx0) / span) * (W - pad.l - pad.r);
+        };
+        const y = (v) => {
+          return pad.t + (1 - (v - ext.lo) / (ext.hi - ext.lo)) * (H - pad.t - pad.b);
+        };
+
+        const svg = svgEl('svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', String(H));
+        svg.style.display = 'block';
+        svg.style.background = 'rgba(255,255,255,0.03)';
+        svg.style.border = '1px solid rgba(255,255,255,0.10)';
+        svg.style.borderRadius = '8px';
+
+        // axes
+        const axis = svgEl('path');
+        axis.setAttribute('d', `M ${pad.l} ${pad.t} L ${pad.l} ${H - pad.b} L ${W - pad.r} ${H - pad.b}`);
+        axis.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+        axis.setAttribute('fill', 'none');
+        axis.setAttribute('stroke-width', '1');
+        svg.appendChild(axis);
+
+        // y labels (min/max)
+        function addText(tx, ty, text, anchor) {
+          const t = svgEl('text');
+          t.setAttribute('x', String(tx));
+          t.setAttribute('y', String(ty));
+          t.setAttribute('fill', 'rgba(255,255,255,0.75)');
+          t.setAttribute('font-size', '12');
+          t.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
+          t.setAttribute('text-anchor', anchor || 'start');
+          t.textContent = text;
+          svg.appendChild(t);
+        }
+        addText(pad.l - 8, y(ext.hi) + 4, fmtSeriesValue(ext.hi), 'end');
+        addText(pad.l - 8, y(ext.lo) + 4, fmtSeriesValue(ext.lo), 'end');
+
+        // baseline line
+        if (baselineAsOf) {
+          const bIdx = filtered.findIndex(p => (p.as_of || '') === baselineAsOf);
+          if (bIdx >= 0) {
+            const bx = x(bIdx);
+            const line = svgEl('line');
+            line.setAttribute('x1', String(bx));
+            line.setAttribute('x2', String(bx));
+            line.setAttribute('y1', String(pad.t));
+            line.setAttribute('y2', String(H - pad.b));
+            line.setAttribute('stroke', 'rgba(255,255,255,0.18)');
+            line.setAttribute('stroke-dasharray', '4 4');
+            svg.appendChild(line);
+            addText(bx, H - 10, 'baseline', 'middle');
+          }
+        }
+
+        // polyline
+        const d = filtered.map((p, i) => {
+          const px = x(i);
+          const pv = numberOrNull(p[metricKey]);
+          const py = y(pv);
+          return `${i === 0 ? 'M' : 'L'} ${px} ${py}`;
+        }).join(' ');
+
+        const path = svgEl('path');
+        path.setAttribute('d', d);
+        path.setAttribute('stroke', '#66aaff');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke-width', '2');
+        svg.appendChild(path);
+
+        // points
+        for (let i = 0; i < filtered.length; i++) {
+          const p = filtered[i];
+          const pv = numberOrNull(p[metricKey]);
+          const cx = x(i);
+          const cy = y(pv);
+          const c = svgEl('circle');
+          c.setAttribute('cx', String(cx));
+          c.setAttribute('cy', String(cy));
+          c.setAttribute('r', '3');
+          c.setAttribute('fill', '#66aaff');
+          c.setAttribute('opacity', '0.9');
+          svg.appendChild(c);
+        }
+
+        const wrap = document.createElement('div');
+        wrap.appendChild(svg);
+        return wrap;
+      }
+
       function renderSnapshotSeries(series) {
         const container = el('snapshotSeries');
         if (!container) return;
@@ -571,6 +738,38 @@
         const defaultMetrics = ['techdebt_score', 'todo_count', 'total_source_lines', 'total_source_files', 'avg_complexity'];
         const keys = Array.isArray(metrics) && metrics.length > 0 ? metrics : defaultMetrics;
 
+        const view = points.slice(-120);
+
+        const header = document.createElement('div');
+        header.className = 'status';
+        header.textContent = `History (${Math.min(12, view.length)}/${points.length} points shown; chart uses ${view.length})`;
+
+        const controls = makeSeriesMetricSelector(keys, (k) => {
+          container.dataset.metric = k;
+          rerender();
+        });
+
+        const baselineSelect = document.createElement('select');
+        baselineSelect.setAttribute('aria-label', 'Select baseline snapshot');
+        const optNone = document.createElement('option');
+        optNone.value = '';
+        optNone.textContent = 'Baseline: (none)';
+        baselineSelect.appendChild(optNone);
+        for (const p of view) {
+          const opt = document.createElement('option');
+          opt.value = p.as_of || '';
+          opt.textContent = p.as_of || '';
+          baselineSelect.appendChild(opt);
+        }
+        baselineSelect.addEventListener('change', () => {
+          container.dataset.baseline = baselineSelect.value;
+          rerender();
+        });
+        controls.wrap.appendChild(baselineSelect);
+
+        const chartWrap = document.createElement('div');
+        chartWrap.style.marginTop = '0.5rem';
+
         const table = document.createElement('table');
         table.className = 'table';
 
@@ -580,8 +779,8 @@
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        const view = points.slice(-12);
-        for (const p of view) {
+        const tableView = view.slice(-12);
+        for (const p of tableView) {
           const tds = ['<td class="mono">' + (p.as_of || '') + '</td>']
             .concat(keys.map(k => `<td>${fmtSeriesValue(p[k])}</td>`));
           const tr = document.createElement('tr');
@@ -590,12 +789,20 @@
         }
         table.appendChild(tbody);
 
-        const header = document.createElement('div');
-        header.className = 'status';
-        header.textContent = `History (${view.length}/${points.length} points)`;
+        function rerender() {
+          const metric = container.dataset.metric || keys[0];
+          const baseline = container.dataset.baseline || '';
+          chartWrap.innerHTML = '';
+          chartWrap.appendChild(renderSeriesChart(view, metric, baseline || null));
+        }
 
         container.appendChild(header);
+        container.appendChild(controls.wrap);
+        container.appendChild(chartWrap);
         container.appendChild(table);
+
+        container.dataset.metric = container.dataset.metric || keys[0];
+        rerender();
       }
 
       async function loadSnapshotSeries(repoUrl) {
