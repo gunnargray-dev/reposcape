@@ -108,6 +108,54 @@ def _best_effort_get_latest_release_asset_url(
         return None
 
 
+def _best_effort_list_releases(owner: str, repo: str, limit: int = 10) -> list[dict[str, Any]]:
+    """Return basic release metadata for a repo.
+
+    This is intentionally best-effort and avoids adding new dependencies.
+
+    Args:
+        owner: GitHub repo owner.
+        repo: GitHub repo name.
+        limit: Max number of releases to return.
+
+    Returns:
+        List of dicts containing tag_name, name, published_at.
+    """
+
+    if limit <= 0:
+        return []
+
+    try:
+        import json
+        import urllib.parse
+        import urllib.request
+
+        qs = urllib.parse.urlencode({"per_page": str(min(limit, 100))})
+        req = urllib.request.Request(
+            f"{_GITHUB_API}/repos/{owner}/{repo}/releases?{qs}",
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "reposcape"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+        if not isinstance(payload, list):
+            return []
+        releases: list[dict[str, Any]] = []
+        for item in payload:
+            if not isinstance(item, dict):
+                continue
+            releases.append(
+                {
+                    "tag_name": item.get("tag_name"),
+                    "name": item.get("name"),
+                    "published_at": item.get("published_at"),
+                }
+            )
+        return releases
+    except Exception:
+        return []
+
+
+
 
 @router.post("/analyze")
 def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
@@ -273,3 +321,80 @@ def latest_release_info(owner: str, repo: str) -> dict[str, Any]:
         "repo": repo,
         "assets": {"reposcape-snapshots.zip": snapshots_url},
     }
+
+
+@router.get("/releases")
+def list_releases(owner: str, repo: str, limit: int = 10) -> dict[str, Any]:
+    """Return best-effort list of releases (for release selectors).
+
+    Args:
+        owner: GitHub owner.
+        repo: GitHub repo name.
+        limit: Max number of releases.
+
+    Returns:
+        Dict containing owner/repo and a list of releases.
+    """
+
+    if not owner or not repo:
+        raise HTTPException(status_code=422, detail="owner and repo are required")
+    if limit < 1 or limit > 50:
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 50")
+
+    return {
+        "owner": owner,
+        "repo": repo,
+        "releases": _best_effort_list_releases(owner, repo, limit=limit),
+    }
+
+
+@router.get("/releases/by_tag")
+def release_by_tag(owner: str, repo: str, tag: str) -> dict[str, Any]:
+    """Return best-effort info for a specific release tag.
+
+    This is a companion to /releases/latest for UIs that let users select a tag.
+
+    Args:
+        owner: GitHub owner.
+        repo: GitHub repo name.
+        tag: Release tag.
+
+    Returns:
+        Dict containing owner/repo, tag, and known asset download URLs.
+    """
+
+    if not owner or not repo or not tag:
+        raise HTTPException(status_code=422, detail="owner, repo, and tag are required")
+
+    try:
+        import json
+        import urllib.parse
+        import urllib.request
+
+        safe_tag = urllib.parse.quote(tag)
+        req = urllib.request.Request(
+            f"{_GITHUB_API}/repos/{owner}/{repo}/releases/tags/{safe_tag}",
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "reposcape"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+        assets = payload.get("assets", []) if isinstance(payload, dict) else []
+        snapshots_url = None
+        for asset in assets:
+            if asset.get("name") == "reposcape-snapshots.zip":
+                snapshots_url = asset.get("browser_download_url")
+                break
+
+        return {
+            "owner": owner,
+            "repo": repo,
+            "tag": tag,
+            "assets": {"reposcape-snapshots.zip": snapshots_url},
+        }
+    except Exception:
+        return {
+            "owner": owner,
+            "repo": repo,
+            "tag": tag,
+            "assets": {"reposcape-snapshots.zip": None},
+        }
