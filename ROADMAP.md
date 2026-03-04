@@ -52,6 +52,7 @@ _Phase 1 items all done._
 - [ ] Historical tracking (repo evolution over time)
     - [x] Interactive chart (SVG) using /api/snapshots/series (Session 36)
     - [x] Baseline-relative deltas on chart (Session 37)
+    - [x] Optional trendline overlay (baseline-relative delta series) (Session 38)
     - [x] Timeline/diff view (UI) (Session 35)
     - [x] Snapshot diff: API endpoint + dashboard delta table (Session 31)
     - [x] Foundation: snapshot bucketing + persistence utilities (`src/history.py`) (Session 23)
