@@ -1,35 +1,65 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+    ______          __  _           _ __         ______                      __
+   / ____/___  ____/ /_(_)___  ____(_) /___  __/ ____/___  ____ ___  ____  / /____  _____
+  / /   / __ \/ __  / / / __ \/ __/ / / __ \/ / /   / __ \/ __ `__ \/ __ \/ __/ _ \/ ___/
+ / /___/ /_/ / /_/ / / / /_/ / /_/ / / /_/ / / /___/ /_/ / / / / / /_/ / /_/  __/ /
+ \____/\____/\__,_/_/ /\____/\__/_/_/\____/_/\____/\____/_/ /_/ /_/ .__/\__/\___/_/
+                                                                  /_/
+
+  Perplexity Computer — https://www.perplexity.ai/computer
+  -->
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
     <title>Reposcape Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css" />
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <link rel="stylesheet" href="/static/styles.css">
   </head>
   <body>
-    <main class="container">
-      <header class="header">
-        <a href="/">Reposcape</a>
-        <div class="spacer"></div>
-        <button id="rerun" type="button">Re-run</button>
-        <button id="exportHtml" type="button">Export HTML</button>
-        <label class="select" style="display:none;" id="releaseSelectWrap">
-          <span class="label">Release</span>
-          <select id="releaseSelect" aria-label="Select release"></select>
-        </label>
-        <button id="downloadSnapshots" type="button" style="display:none;">Download snapshots</button>
-      </header>
+    <header class="header">
+      <div class="header-inner">
+        <a class="brand" href="/">
+          <span class="logo" aria-hidden="true">▦</span>
+          <span class="brand-text">Reposcape</span>
+        </a>
+        <div class="header-actions">
+          <label class="checkbox">
+            <input id="demoMode" type="checkbox">
+            Demo
+          </label>
+          <button id="downloadSnapshots" type="button" style="display:none;">Download snapshots</button>
+        </div>
+      </div>
+    </header>
 
-      <section>
-        <h2 id="repoTitle">Loading…</h2>
-        <div id="status" class="status">Starting analysis…</div>
+    <main class="container">
+      <section class="card">
+        <h2>Analyze a repo</h2>
+        <div class="row">
+          <input id="repoUrl" type="url" placeholder="https://github.com/owner/repo" value="{{ repo_url | default('') }}" aria-label="Repository URL">
+          <button id="analyzeBtn" type="button">Analyze</button>
+          <button id="compareBtn" type="button">Compare</button>
+          <a id="exportLink" href="#" style="display:none;" class="button-link">Export</a>
+          <span id="exportStatus" class="status"></span>
+        </div>
+        <div id="status" class="status" style="margin-top: 0.75rem;"></div>
+      </section>
+
+      <section class="card" id="releaseSelectWrap" style="display:none;">
+        <div class="row" style="align-items:center;">
+          <label for="releaseSelect" style="font-weight:600;">Snapshots bundle:</label>
+          <select id="releaseSelect" aria-label="Select release"></select>
+          <span class="status" style="margin-left:0.5rem;">(controls the “Download snapshots” bundle)</span>
+        </div>
       </section>
 
       <section class="card" id="snapshotCard">
-        <div class="row">
+        <div class="row" style="align-items:center;">
           <h3 style="margin: 0;">Snapshots</h3>
-          <div class="spacer"></div>
           <select id="snapshotA" aria-label="Select snapshot A"></select>
           <select id="snapshotB" aria-label="Select snapshot B"></select>
           <button id="loadSnapshot" type="button">Load B</button>
@@ -39,93 +69,195 @@
         <div id="snapshotDiff" style="margin-top: 0.75rem;"></div>
       </section>
 
-      <section class="card">
-        <h3>Treemap (LOC by file)</h3>
-        <div id="treemap"></div>
-      </section>
+      <div class="grid">
+        <section class="card">
+          <h3>Languages</h3>
+          <pre id="languages" class="pre"></pre>
+        </section>
 
-      <section class="card">
-        <h3>Languages</h3>
-        <pre id="languages" class="mono"></pre>
-      </section>
+        <section class="card">
+          <h3>Treemap</h3>
+          <div id="treemap"></div>
+        </section>
 
-      <section class="card">
-        <h3>Top Contributors</h3>
-        <div id="contributors"></div>
-      </section>
+        <section class="card">
+          <h3>Contributors</h3>
+          <div id="contributors"></div>
+        </section>
 
-      <section class="card">
-        <h3>Commit Quality</h3>
-        <div id="commitQuality"></div>
-      </section>
+        <section class="card">
+          <h3>Commit Quality</h3>
+          <div id="commitQuality"></div>
+        </section>
 
-      <section class="card">
-        <h3>Commit Timeline</h3>
-        <div id="timeline"></div>
-      </section>
+        <section class="card">
+          <h3>Commit Timeline</h3>
+          <div id="timeline"></div>
+        </section>
 
-      <section class="card">
-        <h3>Commit Heatmap</h3>
-        <div id="heatmap"></div>
-      </section>
+        <section class="card">
+          <h3>Commit Heatmap</h3>
+          <div id="heatmap"></div>
+        </section>
 
-      <section class="card">
-        <h3>Tech Debt</h3>
-        <div id="techdebt"></div>
-      </section>
+        <section class="card">
+          <h3>Tech Debt</h3>
+          <div id="techdebt"></div>
+        </section>
 
-      <section class="card">
-        <h3>Complexity Hotspots</h3>
-        <div id="complexity"></div>
-      </section>
+        <section class="card">
+          <h3>Complexity</h3>
+          <div id="complexity"></div>
+        </section>
+      </div>
     </main>
 
-    <script>
-      const DEMO_MODE = {{ demo_mode | default(false) | tojson }};
-      const DEMO_REPO_URL = {{ repo_url | default('') | tojson }};
-      const SNAPSHOTS_ENABLED = {{ snapshots_enabled | default(false) | tojson }};
+    <footer class="footer">
+      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">
+        Created with Perplexity Computer
+      </a>
+    </footer>
 
-      function getRepoUrl() {
-        const url = new URL(window.location.href);
-        const repo = url.searchParams.get('repo');
-        return repo || (DEMO_REPO_URL || 'https://github.com/gunnargray-dev/reposcape');
-      }
+    <script>
+      const DEMO_REPO = {{ demo_repo | default('') | tojson }};
+      const SNAPSHOTS_ENABLED = {{ snapshots_enabled | default(false) | tojson }};
 
       function el(id) {
         return document.getElementById(id);
       }
 
       function safeJson(obj) {
-        return JSON.stringify(obj || null, null, 2);
+        try {
+          return JSON.stringify(obj, null, 2);
+        } catch (e) {
+          return String(obj);
+        }
       }
 
       function formatDuration(ms) {
-        if (ms == null) return '';
+        if (ms == null) return null;
         if (ms < 1000) return `${ms}ms`;
-        return `${(ms / 1000).toFixed(1)}s`;
+        if (ms < 60_000) return `${(ms / 1000).toFixed(2)}s`;
+        return `${(ms / 60_000).toFixed(2)}m`;
+      }
+
+      function isLikelyGithubUrl(u) {
+        return typeof u === 'string' && u.includes('github.com/') && u.split('/').filter(Boolean).length >= 2;
+      }
+
+      function setRepoUrl(u) {
+        el('repoUrl').value = u;
+      }
+
+      function getRepoUrl() {
+        return el('repoUrl').value.trim();
+      }
+
+      function setDemoMode(on) {
+        el('demoMode').checked = on;
+      }
+
+      function getDemoMode() {
+        return el('demoMode').checked;
+      }
+
+      function showExportLink(url) {
+        const a = el('exportLink');
+        a.href = url;
+        a.style.display = 'inline-flex';
+      }
+
+      async function loadDemo() {
+        if (DEMO_REPO && isLikelyGithubUrl(DEMO_REPO)) {
+          setRepoUrl(DEMO_REPO);
+          setDemoMode(true);
+          await analyze(getRepoUrl());
+        }
+      }
+
+      async function analyze(repoUrl) {
+        if (!repoUrl) {
+          el('status').textContent = 'Please enter a GitHub repo URL.';
+          return;
+        }
+
+        const btn = el('analyzeBtn');
+        btn.disabled = true;
+        el('status').textContent = 'Analyzing…';
+
+        try {
+          const resp = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ repo_url: repoUrl, demo: getDemoMode() })
+          });
+
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            el('status').textContent = 'Error: ' + (err.detail || resp.status);
+            return;
+          }
+
+          const data = await resp.json();
+
+          if (data.export_url) {
+            showExportLink(data.export_url);
+          }
+
+          renderPayload(data, { cached: data.cached, duration_ms: data.duration_ms });
+
+          await loadReleaseOptions(repoUrl);
+          await wireSnapshotsDownloadLink(repoUrl);
+          await loadSnapshotIndex(repoUrl);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      async function compare(repoUrl) {
+        if (!repoUrl) {
+          el('status').textContent = 'Please enter a GitHub repo URL.';
+          return;
+        }
+
+        const base = '/compare?repo_url=' + encodeURIComponent(repoUrl);
+        window.location.href = base;
+      }
+
+      function renderTreemap(treemap) {
+        const container = el('treemap');
+        container.innerHTML = '';
+
+        if (!treemap || !treemap.nodes) {
+          container.textContent = 'No treemap data available.';
+          return;
+        }
+
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson({ nodes: treemap.nodes.slice(0, 10), total_nodes: treemap.nodes.length });
+        container.appendChild(pre);
       }
 
       function renderContributors(contrib) {
         const container = el('contributors');
         container.innerHTML = '';
 
-        if (!contrib || !Array.isArray(contrib.authors)) {
+        if (!contrib || !contrib.top_contributors) {
           container.textContent = 'No contributor data available.';
           return;
         }
 
-        const top = contrib.authors.slice(0, 10);
         const table = document.createElement('table');
         table.className = 'table';
-
         const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>Author</th><th>Commits</th><th>Insertions</th><th>Deletions</th></tr>';
+        thead.innerHTML = '<tr><th>User</th><th>Commits</th><th>Lines</th></tr>';
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        for (const a of top) {
+        for (const c of contrib.top_contributors) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="mono">${a.author}</td><td>${a.commits}</td><td>${a.insertions}</td><td>${a.deletions}</td>`;
+          tr.innerHTML = `<td class="mono">${c.author}</td><td>${c.commit_count}</td><td>${c.lines_changed}</td>`;
           tbody.appendChild(tr);
         }
         table.appendChild(tbody);
@@ -136,124 +268,45 @@
         const container = el('commitQuality');
         container.innerHTML = '';
 
-        if (!q) {
+        if (!q || !q.summary) {
           container.textContent = 'No commit quality data available.';
           return;
         }
 
-        const summary = document.createElement('div');
-        summary.className = 'grid';
-
-        const avg = q.average_score != null ? q.average_score.toFixed(1) : 'n/a';
-        const grade = q.average_grade || 'n/a';
-
-        summary.innerHTML = `
-          <div class="kpi"><div class="kpiLabel">Avg score</div><div class="kpiValue">${avg}</div></div>
-          <div class="kpi"><div class="kpiLabel">Avg grade</div><div class="kpiValue">${grade}</div></div>
-        `;
-        container.appendChild(summary);
-
-        const dist = document.createElement('pre');
-        dist.className = 'mono';
-        dist.textContent = safeJson(q.grade_distribution);
-        container.appendChild(dist);
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(q.summary);
+        container.appendChild(pre);
       }
 
       function renderTimeline(tl) {
         const container = el('timeline');
         container.innerHTML = '';
 
-        if (!tl || !Array.isArray(tl.buckets)) {
+        if (!tl || !tl.monthly) {
           container.textContent = 'No timeline data available.';
           return;
         }
 
-        const width = Math.min(960, container.clientWidth || 960);
-        const height = 240;
-        const margin = { top: 10, right: 20, bottom: 30, left: 40 };
-
-        const buckets = tl.buckets.map(b => ({
-          date: new Date(b.start),
-          commits: b.count || 0
-        }));
-
-        const x = d3.scaleTime()
-          .domain(d3.extent(buckets, d => d.date))
-          .range([margin.left, width - margin.right]);
-
-        const y = d3.scaleLinear()
-          .domain([0, d3.max(buckets, d => d.commits) || 1]).nice()
-          .range([height - margin.bottom, margin.top]);
-
-        const svg = d3.select(container).append('svg')
-          .attr('width', width)
-          .attr('height', height)
-          .attr('viewBox', `0 0 ${width} ${height}`);
-
-        svg.append('path')
-          .datum(buckets)
-          .attr('fill', 'none')
-          .attr('stroke', '#2E90FA')
-          .attr('stroke-width', 2)
-          .attr('d', d3.line()
-            .x(d => x(d.date))
-            .y(d => y(d.commits))
-          );
-
-        svg.append('g')
-          .attr('transform', `translate(0,${height - margin.bottom})`)
-          .call(d3.axisBottom(x).ticks(6));
-
-        svg.append('g')
-          .attr('transform', `translate(${margin.left},0)`)
-          .call(d3.axisLeft(y).ticks(4));
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(tl.monthly.slice(0, 12));
+        container.appendChild(pre);
       }
 
       function renderHeatmap(hm) {
         const container = el('heatmap');
         container.innerHTML = '';
 
-        if (!hm || !Array.isArray(hm.weeks)) {
+        if (!hm || !hm.weeks) {
           container.textContent = 'No heatmap data available.';
           return;
         }
 
-        const cell = 14;
-        const gap = 2;
-        const weeks = hm.weeks;
-        const width = (weeks.length * (cell + gap)) + 60;
-        const height = (7 * (cell + gap)) + 40;
-
-        const maxVal = d3.max(weeks.flatMap(w => w.days.map(d => d.count || 0))) || 1;
-        const color = d3.scaleLinear()
-          .domain([0, maxVal])
-          .range(['#EEF2FF', '#2E90FA']);
-
-        const svg = d3.select(container).append('svg')
-          .attr('width', width)
-          .attr('height', height)
-          .attr('viewBox', `0 0 ${width} ${height}`);
-
-        svg.append('text')
-          .attr('x', 0)
-          .attr('y', 12)
-          .attr('class', 'mono')
-          .text(`${hm.start || ''} → ${hm.end || ''}`);
-
-        const g = svg.append('g').attr('transform', 'translate(40,20)');
-
-        weeks.forEach((w, wi) => {
-          w.days.forEach((d, di) => {
-            g.append('rect')
-              .attr('x', wi * (cell + gap))
-              .attr('y', di * (cell + gap))
-              .attr('width', cell)
-              .attr('height', cell)
-              .attr('fill', color(d.count || 0))
-              .append('title')
-              .text(`${d.date}: ${d.count} commits`);
-          });
-        });
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(hm.weeks.slice(0, 4));
+        container.appendChild(pre);
       }
 
       function renderTechDebt(td) {
@@ -265,25 +318,10 @@
           return;
         }
 
-        const summary = document.createElement('div');
-        summary.className = 'grid';
-        const score = td.score != null ? td.score : 'n/a';
-        const grade = td.grade || 'n/a';
-
-        summary.innerHTML = `
-          <div class="kpi"><div class="kpiLabel">Score</div><div class="kpiValue">${score}</div></div>
-          <div class="kpi"><div class="kpiLabel">Grade</div><div class="kpiValue">${grade}</div></div>
-        `;
-        container.appendChild(summary);
-
-        const details = document.createElement('pre');
-        details.className = 'mono';
-        details.textContent = safeJson({
-          todo_count: td.todo_count,
-          large_files: (td.large_files || []).slice(0, 5),
-          deep_nesting: (td.deep_nesting || []).slice(0, 5)
-        });
-        container.appendChild(details);
+        const pre = document.createElement('pre');
+        pre.className = 'pre';
+        pre.textContent = safeJson(td);
+        container.appendChild(pre);
       }
 
       function renderComplexity(cx) {
@@ -345,6 +383,8 @@
           diff.innerHTML = '';
           return null;
         }
+
+        const data = await resp.json();
 
         const snaps = (data.snapshots || []).slice().reverse();
         selectA.innerHTML = '';
@@ -538,55 +578,59 @@
           const resp = await fetch(`/api/releases?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&limit=10`);
           if (!resp.ok) return;
           const data = await resp.json();
-          const releases = (data.releases || []).filter(r => r && r.tag_name);
-          for (const r of releases) {
-            const o = document.createElement('option');
-            o.value = r.tag_name;
-            const label = r.name ? `${r.tag_name} — ${r.name}` : r.tag_name;
-            o.textContent = label;
-            select.appendChild(o);
+
+          for (const r of (data.releases || [])) {
+            const opt = document.createElement('option');
+            opt.value = r.tag_name;
+            opt.textContent = r.tag_name;
+            select.appendChild(opt);
+          }
+
+          if ((data.releases || []).length === 0) {
+            const optNone = document.createElement('option');
+            optNone.value = 'none';
+            optNone.textContent = '(no releases found)';
+            select.appendChild(optNone);
           }
         } catch (e) {
           // ignore
         }
+
+        select.addEventListener('change', async () => {
+          await refreshSnapshotsDownloadLink(repoUrl);
+        });
       }
 
       async function getSnapshotsDownloadUrl(repoUrl) {
         const info = parseOwnerRepo(repoUrl);
         if (!info) return null;
-        const select = el('releaseSelect');
-        const selected = select ? select.value : 'latest';
 
-        try {
-          let url = `/api/releases/latest?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}`;
-          if (selected && selected !== 'latest') {
-            url = `/api/releases/by_tag?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&tag=${encodeURIComponent(selected)}`;
-          }
-          const resp = await fetch(url);
-          if (!resp.ok) return null;
-          const data = await resp.json();
-          return data?.assets?.['reposcape-snapshots.zip'] || null;
-        } catch (e) {
-          return null;
-        }
+        const select = el('releaseSelect');
+        const releaseTag = select && select.value ? select.value : 'latest';
+
+        const qs = `owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&release_tag=${encodeURIComponent(releaseTag)}&asset_name=${encodeURIComponent('reposcape-snapshots.zip')}`;
+        const resp = await fetch(`/api/releases/asset?${qs}`);
+        if (!resp.ok) return null;
+        const data = await resp.json().catch(() => ({}));
+        if (!data || !data.url) return null;
+        return data.url;
       }
 
-      
-
       async function wireSnapshotsDownloadLink(repoUrl) {
-        await loadReleaseOptions(repoUrl);
         await refreshSnapshotsDownloadLink(repoUrl);
 
-        const sel = el('releaseSelect');
-        if (sel) {
-          sel.addEventListener('change', async () => {
+        const select = el('releaseSelect');
+        if (select && !select.dataset.bound) {
+          select.dataset.bound = '1';
+          select.addEventListener('change', async () => {
             await refreshSnapshotsDownloadLink(repoUrl);
           });
         }
       }
+
 async function refreshSnapshotsDownloadLink(repoUrl) {
         const btn = el('downloadSnapshots');
-        if (!btn || DEMO_MODE) return;
+        if (!btn) return;
 
         const url = await getSnapshotsDownloadUrl(repoUrl);
         if (!url) {
@@ -594,138 +638,34 @@ async function refreshSnapshotsDownloadLink(repoUrl) {
           return;
         }
 
-        btn.style.display = 'inline-block';
+        btn.style.display = 'inline-flex';
         btn.onclick = () => {
-          window.location.href = url;
+          window.open(url, '_blank', 'noopener');
         };
       }
 
-      async function run() {
-        const repoUrl = getRepoUrl();
-        el('repoTitle').textContent = repoUrl;
+      el('analyzeBtn').addEventListener('click', () => analyze(getRepoUrl()));
+      el('compareBtn').addEventListener('click', () => compare(getRepoUrl()));
 
-        await wireSnapshotsDownloadLink(repoUrl);
-        el('status').textContent = 'Analyzing…';
-
-        await loadSnapshotIndex(repoUrl);
-
-        let data;
-
-        if (DEMO_MODE) {
-          const resp = await fetch('/api/demo/nightshift');
-          if (!resp.ok) {
-            const err = await resp.json();
-            el('status').textContent = 'Demo error: ' + (err.detail || 'unknown');
-            return;
-          }
-          data = await resp.json();
-        } else {
-          const resp = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ repo_url: repoUrl })
-          });
-
-          if (!resp.ok) {
-            const err = await resp.json();
-            el('status').textContent = 'Error: ' + (err.detail || 'unknown');
-            return;
-          }
-
-          data = await resp.json();
+      el('demoMode').addEventListener('change', async () => {
+        if (getDemoMode()) {
+          await loadDemo();
         }
+      });
 
-        renderPayload(data, { cached: data.cached, duration_ms: data.duration_ms });
+      const DEMO_MODE = {{ demo_mode | default(false) | tojson }};
+      if (DEMO_MODE) {
+        setDemoMode(true);
       }
 
-      function renderTreemap(treeData) {
-        const container = el('treemap');
-        container.innerHTML = '';
-
-        if (!treeData) {
-          container.textContent = 'No treemap data available.';
-          return;
-        }
-
-        const width = Math.min(960, container.clientWidth || 960);
-        const height = 520;
-
-        const root = d3.hierarchy(treeData)
-          .sum(d => d.value || 0)
-          .sort((a,b) => (b.value||0) - (a.value||0));
-
-        d3.treemap()
-          .size([width, height])
-          .padding(2)(root);
-
-        const svg = d3.select(container).append('svg')
-          .attr('width', width)
-          .attr('height', height)
-          .attr('viewBox', `0 0 ${width} ${height}`);
-
-        const nodes = svg.selectAll('g')
-          .data(root.leaves())
-          .enter().append('g')
-          .attr('transform', d => `translate(${d.x0},${d.y0})`);
-
-        nodes.append('rect')
-          .attr('width', d => d.x1 - d.x0)
-          .attr('height', d => d.y1 - d.y0)
-          .attr('fill', '#2E90FA')
-          .attr('fill-opacity', 0.25)
-          .attr('stroke', '#2E90FA');
-
-        nodes.append('title')
-          .text(d => `${d.data.name}\n${d.value} LOC`);
-
-        nodes.append('text')
-          .attr('x', 4)
-          .attr('y', 14)
-          .attr('font-size', '12px')
-          .attr('fill', '#0B1220')
-          .text(d => d.data.name)
-          .each(function(d) {
-            const rectWidth = d.x1 - d.x0;
-            const self = d3.select(this);
-            if (self.node().getComputedTextLength() > rectWidth - 6) {
-              const name = d.data.name;
-              self.text(name.length > 16 ? name.slice(0, 15) + '…' : name);
-            }
-          });
-      }
-
-      async function exportHtml() {
-        const repoUrl = getRepoUrl();
-        const resp = await fetch('/api/export.html', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repo_url: repoUrl })
-        });
-
-        if (!resp.ok) {
-          const err = await resp.json();
-          alert('Export failed: ' + (err.detail || 'unknown'));
-          return;
-        }
-
-        const data = await resp.json();
-        const blob = new Blob([data.html], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'reposcape-export.html';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+      if (getRepoUrl()) {
+        analyze(getRepoUrl());
+      } else {
+        loadDemo();
       }
 
       el('loadSnapshot').addEventListener('click', () => loadSelectedSnapshot(getRepoUrl()));
       el('diffSnapshots').addEventListener('click', () => diffSelectedSnapshots(getRepoUrl()));
-      el('exportHtml').addEventListener('click', exportHtml);
-      el('rerun').addEventListener('click', run);
-      run();
     </script>
   </body>
 </html>
-
