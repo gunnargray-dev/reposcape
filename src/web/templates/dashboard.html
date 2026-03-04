@@ -751,7 +751,51 @@
       return document.createElementNS('http://www.w3.org/2000/svg', name);
     }
 
-      function renderSeriesChart(points, metricKey, baselineAsOf) {
+      function mean(vals) {
+        const v = (vals || []).filter(x => x != null && isFinite(x));
+        if (v.length === 0) return null;
+        let s = 0;
+        for (const x of v) s += x;
+        return s / v.length;
+      }
+
+      function linearTrend(vals) {
+        const y = (vals || []).map((v) => (v == null || !isFinite(v) ? null : v));
+        const n = y.filter(v => v != null).length;
+        if (n < 2) return null;
+
+        const xs = [];
+        const ys = [];
+        for (let i = 0; i < y.length; i++) {
+          if (y[i] == null) continue;
+          xs.push(i);
+          ys.push(y[i]);
+        }
+        const mx = mean(xs);
+        const my = mean(ys);
+        if (mx == null || my == null) return null;
+
+        let num = 0;
+        let den = 0;
+        for (let i = 0; i < xs.length; i++) {
+          const dx = xs[i] - mx;
+          num += dx * (ys[i] - my);
+          den += dx * dx;
+        }
+        if (den === 0) return null;
+        const m = num / den;
+        const b = my - m * mx;
+
+        const fitted = new Array(y.length).fill(null);
+        for (let i = 0; i < y.length; i++) {
+          fitted[i] = m * i + b;
+        }
+        return { m, b, fitted };
+      }
+
+
+      function renderSeriesChart(points, metricKey, baselineAsOf, opts) {
+        opts = opts || {};
         const W = 780;
         const H = 240;
         const pad = { l: 56, r: 18, t: 18, b: 42 };
@@ -906,6 +950,35 @@
           svg.appendChild(c);
         }
 
+        // trendline overlay
+        if (opts.showTrendline) {
+          const tr = linearTrend(filtered.map(p => yAccessor(p)));
+          if (tr && tr.fitted) {
+            const td = tr.fitted.map((v, i) => {
+              const px = x(i);
+              const py = y(v);
+              return `${i === 0 ? 'M' : 'L'} ${px} ${py}`;
+            }).join(' ');
+            const tpath = svgEl('path');
+            tpath.setAttribute('d', td);
+            tpath.setAttribute('stroke', 'rgba(255,255,255,0.55)');
+            tpath.setAttribute('fill', 'none');
+            tpath.setAttribute('stroke-width', '2');
+            tpath.setAttribute('stroke-dasharray', '6 4');
+            svg.appendChild(tpath);
+
+            const label = svgEl('text');
+            label.setAttribute('x', String(W - pad.r));
+            label.setAttribute('y', String(pad.t + 12));
+            label.setAttribute('fill', 'rgba(255,255,255,0.65)');
+            label.setAttribute('font-size', '12');
+            label.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
+            label.setAttribute('text-anchor', 'end');
+            label.textContent = 'trend';
+            svg.appendChild(label);
+          }
+        }
+
         const wrap = document.createElement('div');
         wrap.appendChild(svg);
         return wrap;
@@ -965,6 +1038,24 @@
         rerender();
       });
 
+      const trendToggle = document.createElement('label');
+      trendToggle.style.display = 'inline-flex';
+      trendToggle.style.alignItems = 'center';
+      trendToggle.style.gap = '8px';
+      const trendCb = document.createElement('input');
+      trendCb.type = 'checkbox';
+      trendCb.checked = false;
+      trendCb.addEventListener('change', () => {
+        container.dataset.trend = trendCb.checked ? '1' : '';
+        rerender();
+      });
+      const trendTxt = document.createElement('span');
+      trendTxt.className = 'muted';
+      trendTxt.textContent = 'Trendline';
+      trendToggle.appendChild(trendCb);
+      trendToggle.appendChild(trendTxt);
+      controls.wrap.appendChild(trendToggle);
+
       const baselineSelect = document.createElement('select');
       baselineSelect.setAttribute('aria-label', 'Select baseline snapshot');
       const optNone = document.createElement('option');
@@ -993,10 +1084,12 @@
       container.dataset.metric = keys[0];
 
       function rerender() {
+
         const metric = container.dataset.metric || keys[0];
         const baseline = container.dataset.baseline || '';
+        const showTrend = (container.dataset.trend || '') === '1';
         chartWrap.innerHTML = '';
-        chartWrap.appendChild(renderSeriesChart(view, metric, baseline || null));
+        chartWrap.appendChild(renderSeriesChart(view, metric, baseline || null, { showTrendline: showTrend }));
       }
 
       rerender();
