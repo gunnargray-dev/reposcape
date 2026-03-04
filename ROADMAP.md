@@ -55,6 +55,7 @@ _Phase 1 items all done._
     - [x] Wire snapshot generation into CLI (`reposcape analyze --snapshot-dir ...`) (Session 24)
     - [x] Web API: add endpoints to list snapshots + fetch a snapshot payload (Session 25)
     - [x] Dashboard UI: add snapshot selector + load snapshot payload (Session 26)
+    - [x] UI: add a "Download snapshots" link to the latest release asset (`reposcape-snapshots.zip`) (Session 29)
 - [x] GitHub Action (auto-generate on release) (Session 27)
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
 

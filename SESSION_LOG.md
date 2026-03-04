@@ -403,3 +403,19 @@ Make release snapshots easier to discover and download.
 
 ### Notes
 - This is a stepping stone toward a “download snapshots” link in the UI and/or a published snapshot timeline view.
+
+---
+
+## Session 29 (2026-03-03)
+
+**PR:** #35 (squash merged)
+
+### Focus
+Add a dashboard link to download the snapshots bundle from the latest GitHub release.
+
+### Shipped
+- Dashboard: added a "Download snapshots" button that appears when the latest release includes `reposcape-snapshots.zip`.
+- API: added a lightweight `GET /api/releases/latest?owner=...&repo=...` endpoint that returns best-effort download URLs for known assets.
+
+### Notes
+- Tests: `python -m pytest tests/test_history.py tests/web/test_story_route.py -q --tb=short`.
