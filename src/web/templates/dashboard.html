@@ -58,7 +58,7 @@
       </section>
 
       <section class="card" id="snapshotCard">
-        <div class="row" style="align-items:center;">
+        <div class="row" style="align-items:center; flex-wrap: wrap;">
           <h3 style="margin: 0;">Snapshots</h3>
           <select id="snapshotA" aria-label="Select snapshot A"></select>
           <select id="snapshotB" aria-label="Select snapshot B"></select>
@@ -66,6 +66,7 @@
           <button id="diffSnapshots" type="button">Diff A\u2192B</button>
         </div>
         <div id="snapshotStatus" class="status" style="margin-top: 0.75rem;"></div>
+        <div id="snapshotMetrics" style="margin-top: 0.75rem;"></div>
         <div id="snapshotDiff" style="margin-top: 0.75rem;"></div>
       </section>
 
@@ -257,25 +258,25 @@
         const tbody = document.createElement('tbody');
         for (const c of contrib.top_contributors) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="mono">${c.author}</td><td>${c.commit_count}</td><td>${c.lines_changed}</td>`;
+          tr.innerHTML = `<td class="mono">${c.login}</td><td>${c.commits}</td><td>${c.lines_changed}</td>`;
           tbody.appendChild(tr);
         }
         table.appendChild(tbody);
         container.appendChild(table);
       }
 
-      function renderCommitQuality(q) {
+      function renderCommitQuality(cq) {
         const container = el('commitQuality');
         container.innerHTML = '';
 
-        if (!q || !q.summary) {
+        if (!cq || !cq.summary) {
           container.textContent = 'No commit quality data available.';
           return;
         }
 
         const pre = document.createElement('pre');
         pre.className = 'pre';
-        pre.textContent = safeJson(q.summary);
+        pre.textContent = safeJson(cq.summary);
         container.appendChild(pre);
       }
 
@@ -283,14 +284,14 @@
         const container = el('timeline');
         container.innerHTML = '';
 
-        if (!tl || !tl.monthly) {
+        if (!tl || !tl.commits) {
           container.textContent = 'No timeline data available.';
           return;
         }
 
         const pre = document.createElement('pre');
         pre.className = 'pre';
-        pre.textContent = safeJson(tl.monthly.slice(0, 12));
+        pre.textContent = safeJson({ commits: tl.commits.slice(0, 20), total_commits: tl.commits.length });
         container.appendChild(pre);
       }
 
@@ -305,7 +306,7 @@
 
         const pre = document.createElement('pre');
         pre.className = 'pre';
-        pre.textContent = safeJson(hm.weeks.slice(0, 4));
+        pre.textContent = safeJson({ weeks: hm.weeks.slice(0, 3), total_weeks: hm.weeks.length });
         container.appendChild(pre);
       }
 
@@ -313,14 +314,14 @@
         const container = el('techdebt');
         container.innerHTML = '';
 
-        if (!td) {
+        if (!td || !td.summary) {
           container.textContent = 'No tech debt data available.';
           return;
         }
 
         const pre = document.createElement('pre');
         pre.className = 'pre';
-        pre.textContent = safeJson(td);
+        pre.textContent = safeJson(td.summary);
         container.appendChild(pre);
       }
 
@@ -381,6 +382,8 @@
           selectA.innerHTML = '';
           selectB.innerHTML = '';
           diff.innerHTML = '';
+          const metrics = el('snapshotMetrics');
+          if (metrics) metrics.innerHTML = '';
           return null;
         }
 
@@ -390,6 +393,8 @@
         selectA.innerHTML = '';
         selectB.innerHTML = '';
         diff.innerHTML = '';
+        const metrics = el('snapshotMetrics');
+        if (metrics) metrics.innerHTML = '';
 
         if (snaps.length === 0) {
           status.textContent = 'No snapshots found yet.';
@@ -446,7 +451,31 @@
 
         const data = await resp.json();
         status.textContent = `Loaded snapshot ${asOf}.`;
+        renderSnapshotMetrics(data);
         renderPayload(data, { cached: true, duration_ms: null });
+      }
+
+      function renderSnapshotMetrics(payload) {
+        const container = el('snapshotMetrics');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const m = payload?.history?.metrics || null;
+        if (!m) return;
+
+        function addChip(key, value) {
+          const chip = document.createElement('span');
+          chip.className = 'badge';
+          chip.innerHTML = `<span class="k">${key}</span><span class="v">${value}</span>`;
+          container.appendChild(chip);
+        }
+
+        addChip('as_of', m.as_of || 'n/a');
+        addChip('LOC', m.total_source_lines ?? 'n/a');
+        addChip('files', m.total_source_files ?? 'n/a');
+        addChip('TODOs', m.todo_count ?? 'n/a');
+        addChip('debt', m.techdebt_score ?? 'n/a');
+        addChip('avg cx', m.avg_complexity ?? 'n/a');
       }
 
       function renderSnapshotDiff(metrics) {
