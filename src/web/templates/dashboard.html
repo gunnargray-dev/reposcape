@@ -1,38 +1,20 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!--
-    ______          __  _           _ __         ______                      __
-   / ____/___  ____/ /_(_)___  ____(_) /___  __/ ____/___  ____ ___  ____  / /____  _____
-  / /   / __ \/ __  / / / __ \/ __/ / / __ \/ / /   / __ \/ __ `__ \/ __ \/ __/ _ \/ ___/
- / /___/ /_/ / /_/ / / / /_/ / /_/ / / /_/ / / /___/ /_/ / / / / / /_/ / /_/  __/ /
- \____/\____/\__,_/_/ /\____/\__/_/_/\____/_/\____/\____/_/ /_/ /_/ .__/\__/\___/_/
-                                                                  /_/
-
-  Perplexity Computer — https://www.perplexity.ai/computer
-  -->
-
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Reposcape Dashboard</title>
-
     <link rel="stylesheet" href="/static/styles.css">
   </head>
   <body>
     <header class="header">
-      <div class="header-inner">
-        <a class="brand" href="/">
-          <span class="logo" aria-hidden="true">▦</span>
-          <span class="brand-text">Reposcape</span>
-        </a>
-        <div class="header-actions">
-          <label class="checkbox">
-            <input id="demoMode" type="checkbox">
-            Demo
-          </label>
-          <button id="downloadSnapshots" type="button" style="display:none;">Download snapshots</button>
-        </div>
+      <h1>Reposcape</h1>
+      <div class="row">
+        <label class="status" style="display:flex; gap: 0.25rem; align-items:center;">
+          <input id="demoMode" type="checkbox" {% if demo_mode %}checked{% endif %}>
+          Demo mode
+        </label>
+        <a href="/" class="button-link">Home</a>
       </div>
     </header>
 
@@ -68,6 +50,7 @@
         <div id="snapshotStatus" class="status" style="margin-top: 0.75rem;"></div>
         <div id="snapshotMetrics" style="margin-top: 0.75rem;"></div>
         <div id="snapshotDiff" style="margin-top: 0.75rem;"></div>
+        <div id="snapshotSeries" style="margin-top: 0.75rem;"></div>
       </section>
 
       <div class="grid">
@@ -156,88 +139,131 @@
 
       function setDemoMode(on) {
         el('demoMode').checked = on;
+        if (on) {
+          el('repoUrl').value = DEMO_REPO;
+          el('repoUrl').setAttribute('disabled', 'disabled');
+          el('analyzeBtn').setAttribute('disabled', 'disabled');
+          el('compareBtn').setAttribute('disabled', 'disabled');
+          el('exportLink').style.display = 'none';
+          el('exportStatus').textContent = '';
+        } else {
+          el('repoUrl').removeAttribute('disabled');
+          el('analyzeBtn').removeAttribute('disabled');
+          el('compareBtn').removeAttribute('disabled');
+        }
       }
 
       function getDemoMode() {
         return el('demoMode').checked;
       }
 
-      function showExportLink(url) {
-        const a = el('exportLink');
-        a.href = url;
-        a.style.display = 'inline-flex';
-      }
-
       async function loadDemo() {
-        if (DEMO_REPO && isLikelyGithubUrl(DEMO_REPO)) {
-          setRepoUrl(DEMO_REPO);
-          setDemoMode(true);
-          await analyze(getRepoUrl());
+        el('status').textContent = 'Loading demo\u2026';
+        const resp = await fetch('/api/demo/nightshift');
+        if (!resp.ok) {
+          el('status').textContent = 'Failed to load demo';
+          return;
         }
+        const data = await resp.json();
+        renderPayload(data, { cached: true, duration_ms: null });
       }
 
       async function analyze(repoUrl) {
-        if (!repoUrl) {
-          el('status').textContent = 'Please enter a GitHub repo URL.';
+        if (!isLikelyGithubUrl(repoUrl)) {
+          el('status').textContent = 'Please enter a valid GitHub repo URL.';
           return;
         }
 
-        const btn = el('analyzeBtn');
-        btn.disabled = true;
         el('status').textContent = 'Analyzing\u2026';
+        el('exportLink').style.display = 'none';
+        el('exportStatus').textContent = '';
 
+        // snapshot UI: best-effort load of snapshot index
+        await loadReleaseOptions(repoUrl);
+        const snapIndex = await loadSnapshotIndex(repoUrl);
+        if (snapIndex && snapIndex.snapshots.length > 0) {
+          await wireSnapshotsDownloadLink(repoUrl);
+        }
+
+        const resp = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          el('status').textContent = 'Analysis failed: ' + (err.detail || resp.status);
+          return;
+        }
+
+        const data = await resp.json();
+        // Remove wrapper fields to keep renderPayload stable.
+        const cached = data.cached || false;
+        const duration = data.duration_ms || null;
+        const payload = { ...data };
+        delete payload.cached;
+        delete payload.duration_ms;
+
+        // Wire export link
         try {
-          const resp = await fetch('/api/analyze', {
+          const exp = await fetch('/api/export.html', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ repo_url: repoUrl, demo: getDemoMode() })
+            body: JSON.stringify({ repo_url: repoUrl })
           });
-
-          if (!resp.ok) {
-            const err = await resp.json().catch(() => ({}));
-            el('status').textContent = 'Error: ' + (err.detail || resp.status);
-            return;
+          if (exp.ok) {
+            const expData = await exp.json();
+            const html = expData.html;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            el('exportLink').href = url;
+            el('exportLink').download = 'reposcape-export.html';
+            el('exportLink').style.display = 'inline-flex';
+            el('exportStatus').textContent = 'Ready';
           }
-
-          const data = await resp.json();
-
-          if (data.export_url) {
-            showExportLink(data.export_url);
-          }
-
-          renderPayload(data, { cached: data.cached, duration_ms: data.duration_ms });
-
-          await loadReleaseOptions(repoUrl);
-          await wireSnapshotsDownloadLink(repoUrl);
-          await loadSnapshotIndex(repoUrl);
-        } finally {
-          btn.disabled = false;
+        } catch (e) {
+          // ignore
         }
+
+        renderPayload(payload, { cached, duration_ms: duration });
       }
 
       async function compare(repoUrl) {
-        if (!repoUrl) {
-          el('status').textContent = 'Please enter a GitHub repo URL.';
+        if (!isLikelyGithubUrl(repoUrl)) {
+          el('status').textContent = 'Please enter a valid GitHub repo URL.';
           return;
         }
-
-        const base = '/compare?repo_url=' + encodeURIComponent(repoUrl);
-        window.location.href = base;
+        window.location.href = `/compare?repo_url=${encodeURIComponent(repoUrl)}`;
       }
 
-      function renderTreemap(treemap) {
+      function renderTreemap(tree) {
         const container = el('treemap');
         container.innerHTML = '';
 
-        if (!treemap || !treemap.nodes) {
+        if (!tree || !tree.nodes) {
           container.textContent = 'No treemap data available.';
           return;
         }
 
-        const pre = document.createElement('pre');
-        pre.className = 'pre';
-        pre.textContent = safeJson({ nodes: treemap.nodes.slice(0, 10), total_nodes: treemap.nodes.length });
-        container.appendChild(pre);
+        // naive render: list top 10 files by size
+        const nodes = (tree.nodes || []).filter(n => n && n.type === 'file');
+        nodes.sort((a, b) => (b.size_bytes || 0) - (a.size_bytes || 0));
+
+        const table = document.createElement('table');
+        table.className = 'table';
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>File</th><th>Size</th></tr>';
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        for (const n of nodes.slice(0, 10)) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td class="mono">${n.path}</td><td>${n.size_bytes}</td>`;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        container.appendChild(table);
       }
 
       function renderContributors(contrib) {
@@ -249,34 +275,35 @@
           return;
         }
 
+        const top = (contrib.top_contributors || []).slice(0, 10);
         const table = document.createElement('table');
         table.className = 'table';
         const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>User</th><th>Commits</th><th>Lines</th></tr>';
+        thead.innerHTML = '<tr><th>Author</th><th>Commits</th></tr>';
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        for (const c of contrib.top_contributors) {
+        for (const c of top) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="mono">${c.login}</td><td>${c.commits}</td><td>${c.lines_changed}</td>`;
+          tr.innerHTML = `<td class="mono">${c.author}</td><td>${c.commits}</td>`;
           tbody.appendChild(tr);
         }
         table.appendChild(tbody);
         container.appendChild(table);
       }
 
-      function renderCommitQuality(cq) {
+      function renderCommitQuality(q) {
         const container = el('commitQuality');
         container.innerHTML = '';
 
-        if (!cq || !cq.summary) {
+        if (!q || !q.summary) {
           container.textContent = 'No commit quality data available.';
           return;
         }
 
         const pre = document.createElement('pre');
         pre.className = 'pre';
-        pre.textContent = safeJson(cq.summary);
+        pre.textContent = safeJson(q.summary);
         container.appendChild(pre);
       }
 
@@ -284,14 +311,14 @@
         const container = el('timeline');
         container.innerHTML = '';
 
-        if (!tl || !tl.commits) {
+        if (!tl || !tl.events) {
           container.textContent = 'No timeline data available.';
           return;
         }
 
         const pre = document.createElement('pre');
         pre.className = 'pre';
-        pre.textContent = safeJson({ commits: tl.commits.slice(0, 20), total_commits: tl.commits.length });
+        pre.textContent = safeJson({ events: tl.events.slice(0, 5), total_events: tl.events.length });
         container.appendChild(pre);
       }
 
@@ -453,6 +480,7 @@
         status.textContent = `Loaded snapshot ${asOf}.`;
         renderSnapshotMetrics(data);
         renderPayload(data, { cached: true, duration_ms: null });
+        await loadSnapshotSeries(repoUrl);
       }
 
       function renderSnapshotMetrics(payload) {
@@ -520,6 +548,77 @@
         }
         table.appendChild(tbody);
         container.appendChild(table);
+      }
+
+      function fmtSeriesValue(v) {
+        if (v == null) return 'n/a';
+        if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(2);
+        return String(v);
+      }
+
+      function renderSnapshotSeries(series) {
+        const container = el('snapshotSeries');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const points = series?.points || [];
+        if (!Array.isArray(points) || points.length === 0) {
+          container.textContent = '';
+          return;
+        }
+
+        const metrics = series?.metrics || null;
+        const defaultMetrics = ['techdebt_score', 'todo_count', 'total_source_lines', 'total_source_files', 'avg_complexity'];
+        const keys = Array.isArray(metrics) && metrics.length > 0 ? metrics : defaultMetrics;
+
+        const table = document.createElement('table');
+        table.className = 'table';
+
+        const thead = document.createElement('thead');
+        const ths = ['<th>as_of</th>'].concat(keys.map(k => `<th>${k}</th>`)).join('');
+        thead.innerHTML = `<tr>${ths}</tr>`;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        const view = points.slice(-12);
+        for (const p of view) {
+          const tds = ['<td class="mono">' + (p.as_of || '') + '</td>']
+            .concat(keys.map(k => `<td>${fmtSeriesValue(p[k])}</td>`));
+          const tr = document.createElement('tr');
+          tr.innerHTML = tds.join('');
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+
+        const header = document.createElement('div');
+        header.className = 'status';
+        header.textContent = `History (${view.length}/${points.length} points)`;
+
+        container.appendChild(header);
+        container.appendChild(table);
+      }
+
+      async function loadSnapshotSeries(repoUrl) {
+        const container = el('snapshotSeries');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const resp = await fetch('/api/snapshots/series', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            repo_url: repoUrl,
+            max_points: 200,
+            metrics: ['techdebt_score', 'todo_count', 'total_source_lines', 'total_source_files', 'avg_complexity']
+          })
+        });
+
+        if (!resp.ok) {
+          return;
+        }
+
+        const data = await resp.json().catch(() => ({}));
+        renderSnapshotSeries(data);
       }
 
       async function diffSelectedSnapshots(repoUrl) {
