@@ -30,10 +30,13 @@
         <div class="row">
           <h3 style="margin: 0;">Snapshots</h3>
           <div class="spacer"></div>
-          <select id="snapshotSelect" aria-label="Select snapshot"></select>
-          <button id="loadSnapshot" type="button">Load</button>
+          <select id="snapshotA" aria-label="Select snapshot A"></select>
+          <select id="snapshotB" aria-label="Select snapshot B"></select>
+          <button id="loadSnapshot" type="button">Load B</button>
+          <button id="diffSnapshots" type="button">Diff A→B</button>
         </div>
         <div id="snapshotStatus" class="status" style="margin-top: 0.75rem;"></div>
+        <div id="snapshotDiff" style="margin-top: 0.75rem;"></div>
       </section>
 
       <section class="card">
@@ -316,8 +319,10 @@
 
       async function loadSnapshotIndex(repoUrl) {
         const card = el('snapshotCard');
-        const select = el('snapshotSelect');
+        const selectA = el('snapshotA');
+        const selectB = el('snapshotB');
         const status = el('snapshotStatus');
+        const diff = el('snapshotDiff');
 
         if (!SNAPSHOTS_ENABLED || DEMO_MODE) {
           card.style.display = 'none';
@@ -335,13 +340,16 @@
         if (!resp.ok) {
           const err = await resp.json().catch(() => ({}));
           status.textContent = 'Snapshots unavailable: ' + (err.detail || resp.status);
-          select.innerHTML = '';
+          selectA.innerHTML = '';
+          selectB.innerHTML = '';
+          diff.innerHTML = '';
           return null;
         }
 
-        const data = await resp.json();
         const snaps = (data.snapshots || []).slice().reverse();
-        select.innerHTML = '';
+        selectA.innerHTML = '';
+        selectB.innerHTML = '';
+        diff.innerHTML = '';
 
         if (snaps.length === 0) {
           status.textContent = 'No snapshots found yet.';
@@ -349,10 +357,21 @@
         }
 
         for (const s of snaps) {
-          const opt = document.createElement('option');
-          opt.value = s.as_of;
-          opt.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
-          select.appendChild(opt);
+          const optA = document.createElement('option');
+          optA.value = s.as_of;
+          optA.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
+          selectA.appendChild(optA);
+
+          const optB = document.createElement('option');
+          optB.value = s.as_of;
+          optB.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
+          selectB.appendChild(optB);
+        }
+
+        // Default selection: A = second option (older), B = first option (newer)
+        if (snaps.length >= 2) {
+          selectB.selectedIndex = 0;
+          selectA.selectedIndex = 1;
         }
 
         status.textContent = `Found ${snaps.length} snapshot(s).`;
@@ -360,16 +379,18 @@
       }
 
       async function loadSelectedSnapshot(repoUrl) {
-        const select = el('snapshotSelect');
+        const select = el('snapshotB');
         const status = el('snapshotStatus');
+        const diff = el('snapshotDiff');
 
         const asOf = select.value;
         if (!asOf) {
-          status.textContent = 'Pick a snapshot first.';
+          status.textContent = 'Pick snapshot B first.';
           return;
         }
 
         status.textContent = `Loading snapshot ${asOf}…`;
+        diff.innerHTML = '';
 
         const resp = await fetch('/api/snapshots/get', {
           method: 'POST',
@@ -386,6 +407,83 @@
         const data = await resp.json();
         status.textContent = `Loaded snapshot ${asOf}.`;
         renderPayload(data, { cached: true, duration_ms: null });
+      }
+
+      function renderSnapshotDiff(metrics) {
+        const container = el('snapshotDiff');
+        container.innerHTML = '';
+
+        if (!metrics || !metrics.delta) {
+          container.textContent = 'No diff metrics available.';
+          return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'table';
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>Metric</th><th>A</th><th>B</th><th>Δ</th></tr>';
+        table.appendChild(thead);
+
+        function fmt(v) {
+          if (v == null) return 'n/a';
+          if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(2);
+          return String(v);
+        }
+
+        const rows = [
+          { key: 'techdebt_score', label: 'Tech debt score (lower better)' },
+          { key: 'todo_count', label: 'TODO count' },
+          { key: 'total_source_lines', label: 'Total source lines' },
+          { key: 'total_source_files', label: 'Total source files' },
+          { key: 'avg_complexity', label: 'Avg complexity' },
+        ];
+
+        const tbody = document.createElement('tbody');
+        for (const r of rows) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.label}</td>
+            <td>${fmt(metrics.a?.[r.key])}</td>
+            <td>${fmt(metrics.b?.[r.key])}</td>
+            <td>${fmt(metrics.delta?.[r.key])}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        container.appendChild(table);
+      }
+
+      async function diffSelectedSnapshots(repoUrl) {
+        const aAsOf = el('snapshotA').value;
+        const bAsOf = el('snapshotB').value;
+        const status = el('snapshotStatus');
+
+        if (!aAsOf || !bAsOf) {
+          status.textContent = 'Pick snapshots A and B first.';
+          return;
+        }
+        if (aAsOf >= bAsOf) {
+          status.textContent = 'Snapshot A must be older than snapshot B.';
+          return;
+        }
+
+        status.textContent = `Computing diff ${aAsOf} → ${bAsOf}…`;
+
+        const resp = await fetch('/api/snapshots/diff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_url: repoUrl, a_as_of: aAsOf, b_as_of: bAsOf })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          status.textContent = 'Snapshot diff failed: ' + (err.detail || resp.status);
+          return;
+        }
+
+        const data = await resp.json();
+        status.textContent = `Diff ready (${aAsOf} → ${bAsOf}).`;
+        renderSnapshotDiff(data.metrics);
       }
 
       function renderPayload(data, options) {
@@ -623,9 +721,11 @@ async function refreshSnapshotsDownloadLink(repoUrl) {
       }
 
       el('loadSnapshot').addEventListener('click', () => loadSelectedSnapshot(getRepoUrl()));
+      el('diffSnapshots').addEventListener('click', () => diffSelectedSnapshots(getRepoUrl()));
       el('exportHtml').addEventListener('click', exportHtml);
       el('rerun').addEventListener('click', run);
       run();
     </script>
   </body>
 </html>
+
