@@ -17,6 +17,7 @@ from pydantic import BaseModel, HttpUrl
 from src.analyze import analyze_repo_url
 from src.compare import build_comparison_payload
 from src.history import build_snapshot_index, get_repo_history_dir, load_snapshot
+from src.history_delta import compute_snapshot_delta
 from src.web.demo import load_demo_payload
 from src.web.export import build_export_html
 
@@ -49,6 +50,14 @@ class SnapshotGetRequest(BaseModel):
 
     repo_url: HttpUrl
     as_of: date
+
+
+class SnapshotDiffRequest(BaseModel):
+    """Request payload for computing a snapshot-to-snapshot diff."""
+
+    repo_url: HttpUrl
+    a_as_of: date
+    b_as_of: date
 
 
 def _parse_github_owner_repo(repo_url: str) -> tuple[str, str]:
@@ -287,6 +296,57 @@ def snapshots_get(req: SnapshotGetRequest) -> dict[str, Any]:
                 detail=f"Snapshot not found: {req.as_of.isoformat()}",
             )
         return load_snapshot(path)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.post("/snapshots/diff")
+def snapshots_diff(req: SnapshotDiffRequest) -> dict[str, Any]:
+    """Compute a lightweight delta between two snapshots.
+
+    Requires REPOSCAPE_SNAPSHOT_DIR to be configured.
+
+    Args:
+        req: Snapshot diff request.
+
+    Returns:
+        Dict containing repo_url, a_as_of, b_as_of, and computed metrics.
+    """
+
+    base = _get_snapshot_base_dir()
+    if base is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Snapshots not configured (set REPOSCAPE_SNAPSHOT_DIR)",
+        )
+
+    if req.a_as_of >= req.b_as_of:
+        raise HTTPException(status_code=422, detail="a_as_of must be < b_as_of")
+
+    try:
+        owner, name = _parse_github_owner_repo(str(req.repo_url))
+        history_dir = get_repo_history_dir(owner, name, base)
+        a_path = history_dir / f"{req.a_as_of.isoformat()}.json"
+        b_path = history_dir / f"{req.b_as_of.isoformat()}.json"
+        if not a_path.exists():
+            raise HTTPException(status_code=404, detail=f"Snapshot not found: {req.a_as_of.isoformat()}")
+        if not b_path.exists():
+            raise HTTPException(status_code=404, detail=f"Snapshot not found: {req.b_as_of.isoformat()}")
+
+        delta = compute_snapshot_delta(
+            load_snapshot(a_path),
+            load_snapshot(b_path),
+            req.a_as_of,
+            req.b_as_of,
+        )
+        return {
+            "repo_url": str(req.repo_url),
+            "a_as_of": req.a_as_of.isoformat(),
+            "b_as_of": req.b_as_of.isoformat(),
+            "metrics": delta.metrics,
+        }
     except HTTPException:
         raise
     except Exception as e:
