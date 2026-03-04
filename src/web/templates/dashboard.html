@@ -14,6 +14,7 @@
         <div class="spacer"></div>
         <button id="rerun" type="button">Re-run</button>
         <button id="exportHtml" type="button">Export HTML</button>
+        <button id="downloadSnapshots" type="button" style="display:none;">Download snapshots</button>
       </header>
 
       <section>
@@ -403,9 +404,44 @@
         renderComplexity(data.complexity);
       }
 
-      async function run() {
+      async function getLatestSnapshotsDownloadUrl(repoUrl) {
+        try {
+          const u = new URL(repoUrl);
+          const parts = u.pathname.split('/').filter(Boolean);
+          if (parts.length < 2) return null;
+          const owner = parts[0];
+          const repo = parts[1];
+
+          const resp = await fetch(`/api/releases/latest?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`);
+          if (!resp.ok) return null;
+          const data = await resp.json();
+          return data?.assets?.['reposcape-snapshots.zip'] || null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      async function wireSnapshotsDownloadLink(repoUrl) {
+        const btn = el('downloadSnapshots');
+        if (!btn || DEMO_MODE) return;
+
+        const url = await getLatestSnapshotsDownloadUrl(repoUrl);
+        if (!url) {
+          btn.style.display = 'none';
+          return;
+        }
+
+        btn.style.display = 'inline-block';
+        btn.addEventListener('click', () => {
+          window.location.href = url;
+        }, { once: true });
+      }
+
+async function run() {
         const repoUrl = getRepoUrl();
         el('repoTitle').textContent = repoUrl;
+
+        wireSnapshotsDownloadLink(repoUrl);
         el('status').textContent = 'Analyzing…';
 
         await loadSnapshotIndex(repoUrl);

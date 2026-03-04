@@ -20,6 +20,8 @@ from src.history import build_snapshot_index, get_repo_history_dir, load_snapsho
 from src.web.demo import load_demo_payload
 from src.web.export import build_export_html
 
+_GITHUB_API = "https://api.github.com"
+
 router = APIRouter(prefix="/api", tags=["api"])
 
 
@@ -69,6 +71,42 @@ def _get_snapshot_base_dir() -> Path | None:
     if not raw:
         return None
     return Path(raw)
+
+def _best_effort_get_latest_release_asset_url(
+    owner: str, repo: str, asset_name: str
+) -> str | None:
+    """Return a browser_download_url for an asset on the latest GitHub release.
+
+    This is a best-effort helper for wiring the UI to release-produced assets.
+    It intentionally avoids adding new dependencies.
+
+    Args:
+        owner: GitHub repo owner.
+        repo: GitHub repo name.
+        asset_name: Exact asset filename to search for.
+
+    Returns:
+        Direct browser download URL, if found.
+    """
+
+    try:
+        import json
+        import urllib.request
+
+        req = urllib.request.Request(
+            f"{_GITHUB_API}/repos/{owner}/{repo}/releases/latest",
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "reposcape"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+
+        for asset in payload.get("assets", []):
+            if asset.get("name") == asset_name:
+                return asset.get("browser_download_url")
+        return None
+    except Exception:
+        return None
+
 
 
 @router.post("/analyze")
@@ -205,3 +243,33 @@ def snapshots_get(req: SnapshotGetRequest) -> dict[str, Any]:
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.get("/releases/latest")
+def latest_release_info(owner: str, repo: str) -> dict[str, Any]:
+    """Return best-effort info about the latest GitHub release assets.
+
+    This endpoint exists to support UI features like "Download snapshots".
+
+    Args:
+        owner: GitHub owner.
+        repo: GitHub repo name.
+
+    Returns:
+        Dict containing owner/repo and known asset download URLs.
+    """
+
+    if not owner or not repo:
+        raise HTTPException(status_code=422, detail="owner and repo are required")
+
+    snapshots_url = _best_effort_get_latest_release_asset_url(
+        owner,
+        repo,
+        "reposcape-snapshots.zip",
+    )
+
+    return {
+        "owner": owner,
+        "repo": repo,
+        "assets": {"reposcape-snapshots.zip": snapshots_url},
+    }
