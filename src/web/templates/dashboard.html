@@ -1,626 +1,785 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reposcape Dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css">
-  </head>
-  <body>
-    <header class="header">
-      <h1>Reposcape</h1>
-      <div class="row">
-        <label class="status" style="display:flex; gap: 0.25rem; align-items:center;">
-          <input id="demoMode" type="checkbox" {% if demo_mode %}checked{% endif %}>
-          Demo mode
-        </label>
-        <a href="/" class="button-link">Home</a>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reposcape</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.12);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --muted2: rgba(255,255,255,0.55);
+      --accent: #66aaff;
+      --accent2: #a8ffb0;
+      --danger: #ff5b79;
+      --warning: #ffc46b;
+      --good: #7dffb2;
+      --shadow: 0 20px 50px rgba(0,0,0,0.45);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    html, body {
+      height: 100%;
+      background: radial-gradient(1200px 600px at 30% 0%, rgba(102,170,255,0.14), transparent 60%),
+                  radial-gradient(1000px 600px at 90% 15%, rgba(168,255,176,0.10), transparent 55%),
+                  linear-gradient(180deg, #070a14, #0b1020 40%, #070a14);
+      color: var(--text);
+      font-family: var(--sans);
+      margin: 0;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(14px);
+      background: rgba(11,16,32,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .top-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.4px;
+    }
+
+    .brand .tag {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    input[type="text"] {
+      width: min(520px, 70vw);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: rgba(102,170,255,0.55);
+      box-shadow: 0 0 0 3px rgba(102,170,255,0.16);
+    }
+
+    button {
+      background: linear-gradient(180deg, rgba(102,170,255,0.95), rgba(102,170,255,0.74));
+      color: #07101f;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-weight: 600;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    .status {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: inline-block;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 10px;
+      align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .kv:last-child { border-bottom: 0; }
+
+    .kv .k {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted2);
+    }
+
+    .kv .v {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255,255,255,0.88);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255,255,255,0.86);
+    }
+
+    .pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 2px rgba(102,170,255,0.18);
+    }
+
+    .pill.good .dot { background: var(--good); box-shadow: 0 0 0 2px rgba(125,255,178,0.18); }
+    .pill.warn .dot { background: var(--warning); box-shadow: 0 0 0 2px rgba(255,196,107,0.18); }
+    .pill.bad .dot { background: var(--danger); box-shadow: 0 0 0 2px rgba(255,91,121,0.18); }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+
+    th {
+      color: rgba(255,255,255,0.70);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .footer {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .small {
+      font-size: 12px;
+      color: rgba(255,255,255,0.70);
+      font-family: var(--mono);
+    }
+
+    select {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 9px 10px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: rgba(102,170,255,0.55);
+      box-shadow: 0 0 0 3px rgba(102,170,255,0.16);
+    }
+
+    @media (max-width: 900px) {
+      .grid2 { grid-template-columns: 1fr; }
+      .kv { grid-template-columns: 120px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="top-inner">
+      <div class="brand">
+        <h1>Reposcape</h1>
+        <span class="tag">dashboard</span>
       </div>
-    </header>
-
-    <main class="container">
-      <section class="card">
-        <h2>Analyze a repo</h2>
-        <div class="row">
-          <input id="repoUrl" type="url" placeholder="https://github.com/owner/repo" value="{{ repo_url | default('') }}" aria-label="Repository URL">
-          <button id="analyzeBtn" type="button">Analyze</button>
-          <button id="compareBtn" type="button">Compare</button>
-          <a id="exportLink" href="#" style="display:none;" class="button-link">Export</a>
-          <span id="exportStatus" class="status"></span>
-        </div>
-        <div id="status" class="status" style="margin-top: 0.75rem;"></div>
-      </section>
-
-      <section class="card" id="releaseSelectWrap" style="display:none;">
-        <div class="row" style="align-items:center;">
-          <label for="releaseSelect" style="font-weight:600;">Snapshots bundle:</label>
-          <select id="releaseSelect" aria-label="Select release"></select>
-          <span class="status" style="margin-left:0.5rem;">(controls the \u201cDownload snapshots\u201d bundle)</span>
-        </div>
-      </section>
-
-      <section class="card" id="snapshotCard">
-        <div class="row" style="align-items:center; flex-wrap: wrap;">
-          <h3 style="margin: 0;">Snapshots</h3>
-          <select id="snapshotA" aria-label="Select snapshot A"></select>
-          <select id="snapshotB" aria-label="Select snapshot B"></select>
-          <button id="loadSnapshot" type="button">Load B</button>
-          <button id="diffSnapshots" type="button">Diff A\u2192B</button>
-        </div>
-        <div id="snapshotStatus" class="status" style="margin-top: 0.75rem;"></div>
-        <div id="snapshotMetrics" style="margin-top: 0.75rem;"></div>
-        <div id="snapshotDiff" style="margin-top: 0.75rem;"></div>
-        <div id="snapshotSeries" style="margin-top: 0.75rem;"></div>
-      </section>
-
-      <div class="grid">
-        <section class="card">
-          <h3>Languages</h3>
-          <pre id="languages" class="pre"></pre>
-        </section>
-
-        <section class="card">
-          <h3>Treemap</h3>
-          <div id="treemap"></div>
-        </section>
-
-        <section class="card">
-          <h3>Contributors</h3>
-          <div id="contributors"></div>
-        </section>
-
-        <section class="card">
-          <h3>Commit Quality</h3>
-          <div id="commitQuality"></div>
-        </section>
-
-        <section class="card">
-          <h3>Commit Timeline</h3>
-          <div id="timeline"></div>
-        </section>
-
-        <section class="card">
-          <h3>Commit Heatmap</h3>
-          <div id="heatmap"></div>
-        </section>
-
-        <section class="card">
-          <h3>Tech Debt</h3>
-          <div id="techdebt"></div>
-        </section>
-
-        <section class="card">
-          <h3>Complexity</h3>
-          <div id="complexity"></div>
-        </section>
+      <div class="controls">
+        <input id="repoUrl" type="text" placeholder="https://github.com/owner/repo" />
+        <button id="analyzeBtn">Analyze</button>
+        <button id="shareBtn" class="secondary" disabled>Share</button>
       </div>
-    </main>
+    </div>
+  </div>
 
-    <footer class="footer">
-      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">
-        Created with Perplexity Computer
-      </a>
-    </footer>
+  <div class="main">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <h2>Repo</h2>
+          <span id="repoStatus" class="status">Idle</span>
+        </div>
+        <div class="card-body" id="repoMeta"></div>
+      </div>
 
-    <script>
-      const DEMO_REPO = {{ demo_repo | default('') | tojson }};
-      const SNAPSHOTS_ENABLED = {{ snapshots_enabled | default(false) | tojson }};
+      <div class="card">
+        <div class="card-header">
+          <h2>Summary</h2>
+          <span id="summaryStatus" class="status">Waiting</span>
+        </div>
+        <div class="card-body" id="summary"></div>
+      </div>
+    </div>
 
-      function el(id) {
-        return document.getElementById(id);
+    <div class="card">
+      <div class="card-header">
+        <h2>Language Breakdown</h2>
+        <span id="langStatus" class="status">Waiting</span>
+      </div>
+      <div class="card-body" id="languages"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>File Tree</h2>
+        <span id="treeStatus" class="status">Waiting</span>
+      </div>
+      <div class="card-body" id="tree"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <h2>Commit Heatmap</h2>
+          <span id="heatmapStatus" class="status">Waiting</span>
+        </div>
+        <div class="card-body" id="heatmap"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Tech Debt</h2>
+          <span id="debtStatus" class="status">Waiting</span>
+        </div>
+        <div class="card-body" id="debt"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <h2>Complexity</h2>
+          <span id="cxStatus" class="status">Waiting</span>
+        </div>
+        <div class="card-body" id="complexity"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Timeline</h2>
+          <span id="timelineStatus" class="status">Waiting</span>
+        </div>
+        <div class="card-body" id="timeline"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <h2>PR Velocity</h2>
+          <span id="prStatus" class="status">Waiting</span>
+        </div>
+        <div class="card-body" id="pr"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Commit Message Quality</h2>
+          <span id="msgStatus" class="status">Waiting</span>
+        </div>
+        <div class="card-body" id="messages"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Comparison</h2>
+        <span id="compareStatus" class="status">Waiting</span>
+      </div>
+      <div class="card-body" id="compare"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Snapshots</h2>
+        <span id="snapStatus" class="status">Waiting</span>
+      </div>
+      <div class="card-body" id="snapshots"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>History</h2>
+        <span id="seriesStatus" class="status">Waiting</span>
+      </div>
+      <div class="card-body" id="snapshotSeries"></div>
+    </div>
+
+    <div class="footer">
+      <span class="small">Built by Reposcape</span>
+      <span class="small">Tip: run <code>reposcape analyze</code> with snapshots to unlock history.</span>
+    </div>
+  </div>
+
+  <script>
+    function el(id) {
+      return document.getElementById(id);
+    }
+
+    function setStatus(id, text) {
+      const node = el(id);
+      if (node) node.textContent = text;
+    }
+
+    function parseRepo(url) {
+      try {
+        const u = new URL(url.trim());
+        const parts = u.pathname.split('/').filter(Boolean);
+        if (u.hostname !== 'github.com' || parts.length < 2) return null;
+        return { owner: parts[0], repo: parts[1] };
+      } catch (e) {
+        return null;
       }
-
-      function safeJson(obj) {
-        try {
-          return JSON.stringify(obj, null, 2);
-        } catch (e) {
-          return String(obj);
-        }
-      }
-
-      function formatDuration(ms) {
-        if (ms == null) return null;
-        if (ms < 1000) return `${ms}ms`;
-        if (ms < 60_000) return `${(ms / 1000).toFixed(2)}s`;
-        return `${(ms / 60_000).toFixed(2)}m`;
-      }
-
-      function isLikelyGithubUrl(u) {
-        return typeof u === 'string' && u.includes('github.com/') && u.split('/').filter(Boolean).length >= 2;
-      }
-
-      function setRepoUrl(u) {
-        el('repoUrl').value = u;
-      }
-
-      function getRepoUrl() {
-        return el('repoUrl').value.trim();
-      }
-
-      function setDemoMode(on) {
-        el('demoMode').checked = on;
-        if (on) {
-          el('repoUrl').value = DEMO_REPO;
-          el('repoUrl').setAttribute('disabled', 'disabled');
-          el('analyzeBtn').setAttribute('disabled', 'disabled');
-          el('compareBtn').setAttribute('disabled', 'disabled');
-          el('exportLink').style.display = 'none';
-          el('exportStatus').textContent = '';
-        } else {
-          el('repoUrl').removeAttribute('disabled');
-          el('analyzeBtn').removeAttribute('disabled');
-          el('compareBtn').removeAttribute('disabled');
-        }
-      }
-
-      function getDemoMode() {
-        return el('demoMode').checked;
-      }
-
-      async function loadDemo() {
-        el('status').textContent = 'Loading demo\u2026';
-        const resp = await fetch('/api/demo/nightshift');
-        if (!resp.ok) {
-          el('status').textContent = 'Failed to load demo';
-          return;
-        }
-        const data = await resp.json();
-        renderPayload(data, { cached: true, duration_ms: null });
-      }
-
-      async function analyze(repoUrl) {
-        if (!isLikelyGithubUrl(repoUrl)) {
-          el('status').textContent = 'Please enter a valid GitHub repo URL.';
-          return;
-        }
-
-        el('status').textContent = 'Analyzing\u2026';
-        el('exportLink').style.display = 'none';
-        el('exportStatus').textContent = '';
-
-        // snapshot UI: best-effort load of snapshot index
-        await loadReleaseOptions(repoUrl);
-        const snapIndex = await loadSnapshotIndex(repoUrl);
-        if (snapIndex && snapIndex.snapshots.length > 0) {
-          await wireSnapshotsDownloadLink(repoUrl);
-        }
-
-        const resp = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repo_url: repoUrl })
-        });
-
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          el('status').textContent = 'Analysis failed: ' + (err.detail || resp.status);
-          return;
-        }
-
-        const data = await resp.json();
-        // Remove wrapper fields to keep renderPayload stable.
-        const cached = data.cached || false;
-        const duration = data.duration_ms || null;
-        const payload = { ...data };
-        delete payload.cached;
-        delete payload.duration_ms;
-
-        // Wire export link
-        try {
-          const exp = await fetch('/api/export.html', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ repo_url: repoUrl })
-          });
-          if (exp.ok) {
-            const expData = await exp.json();
-            const html = expData.html;
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            el('exportLink').href = url;
-            el('exportLink').download = 'reposcape-export.html';
-            el('exportLink').style.display = 'inline-flex';
-            el('exportStatus').textContent = 'Ready';
-          }
-        } catch (e) {
-          // ignore
-        }
-
-        renderPayload(payload, { cached, duration_ms: duration });
-      }
-
-      async function compare(repoUrl) {
-        if (!isLikelyGithubUrl(repoUrl)) {
-          el('status').textContent = 'Please enter a valid GitHub repo URL.';
-          return;
-        }
-        window.location.href = `/compare?repo_url=${encodeURIComponent(repoUrl)}`;
-      }
-
-      function renderTreemap(tree) {
-        const container = el('treemap');
-        container.innerHTML = '';
-
-        if (!tree || !tree.nodes) {
-          container.textContent = 'No treemap data available.';
-          return;
-        }
-
-        // naive render: list top 10 files by size
-        const nodes = (tree.nodes || []).filter(n => n && n.type === 'file');
-        nodes.sort((a, b) => (b.size_bytes || 0) - (a.size_bytes || 0));
-
-        const table = document.createElement('table');
-        table.className = 'table';
-        const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>File</th><th>Size</th></tr>';
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        for (const n of nodes.slice(0, 10)) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="mono">${n.path}</td><td>${n.size_bytes}</td>`;
-          tbody.appendChild(tr);
-        }
-        table.appendChild(tbody);
-        container.appendChild(table);
-      }
-
-      function renderContributors(contrib) {
-        const container = el('contributors');
-        container.innerHTML = '';
-
-        if (!contrib || !contrib.top_contributors) {
-          container.textContent = 'No contributor data available.';
-          return;
-        }
-
-        const top = (contrib.top_contributors || []).slice(0, 10);
-        const table = document.createElement('table');
-        table.className = 'table';
-        const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>Author</th><th>Commits</th></tr>';
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        for (const c of top) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="mono">${c.author}</td><td>${c.commits}</td>`;
-          tbody.appendChild(tr);
-        }
-        table.appendChild(tbody);
-        container.appendChild(table);
-      }
-
-      function renderCommitQuality(q) {
-        const container = el('commitQuality');
-        container.innerHTML = '';
-
-        if (!q || !q.summary) {
-          container.textContent = 'No commit quality data available.';
-          return;
-        }
-
-        const pre = document.createElement('pre');
-        pre.className = 'pre';
-        pre.textContent = safeJson(q.summary);
-        container.appendChild(pre);
-      }
-
-      function renderTimeline(tl) {
-        const container = el('timeline');
-        container.innerHTML = '';
-
-        if (!tl || !tl.events) {
-          container.textContent = 'No timeline data available.';
-          return;
-        }
-
-        const pre = document.createElement('pre');
-        pre.className = 'pre';
-        pre.textContent = safeJson({ events: tl.events.slice(0, 5), total_events: tl.events.length });
-        container.appendChild(pre);
-      }
-
-      function renderHeatmap(hm) {
-        const container = el('heatmap');
-        container.innerHTML = '';
-
-        if (!hm || !hm.weeks) {
-          container.textContent = 'No heatmap data available.';
-          return;
-        }
-
-        const pre = document.createElement('pre');
-        pre.className = 'pre';
-        pre.textContent = safeJson({ weeks: hm.weeks.slice(0, 3), total_weeks: hm.weeks.length });
-        container.appendChild(pre);
-      }
-
-      function renderTechDebt(td) {
-        const container = el('techdebt');
-        container.innerHTML = '';
-
-        if (!td || !td.summary) {
-          container.textContent = 'No tech debt data available.';
-          return;
-        }
-
-        const pre = document.createElement('pre');
-        pre.className = 'pre';
-        pre.textContent = safeJson(td.summary);
-        container.appendChild(pre);
-      }
-
-      function renderComplexity(cx) {
-        const container = el('complexity');
-        container.innerHTML = '';
-
-        if (!cx) {
-          container.textContent = 'No complexity data available.';
-          return;
-        }
-
-        const hotspots = (cx.hotspots || []).slice(0, 10);
-        if (hotspots.length === 0) {
-          container.textContent = 'No hotspots found.';
-          return;
-        }
-
-        const table = document.createElement('table');
-        table.className = 'table';
-        const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>Function</th><th>Complexity</th><th>File</th></tr>';
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        for (const h of hotspots) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="mono">${h.function_name}</td><td>${h.complexity}</td><td class="mono">${h.file}</td>`;
-          tbody.appendChild(tr);
-        }
-        table.appendChild(tbody);
-        container.appendChild(table);
-      }
-
-      async function loadSnapshotIndex(repoUrl) {
-        const card = el('snapshotCard');
-        const selectA = el('snapshotA');
-        const selectB = el('snapshotB');
-        const status = el('snapshotStatus');
-        const diff = el('snapshotDiff');
-
-        if (!SNAPSHOTS_ENABLED || DEMO_MODE) {
-          card.style.display = 'none';
-          return null;
-        }
-
-        status.textContent = 'Loading snapshot index\u2026';
-
-        const resp = await fetch('/api/snapshots/index', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repo_url: repoUrl })
-        });
-
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          status.textContent = 'Snapshots unavailable: ' + (err.detail || resp.status);
-          selectA.innerHTML = '';
-          selectB.innerHTML = '';
-          diff.innerHTML = '';
-          const metrics = el('snapshotMetrics');
-          if (metrics) metrics.innerHTML = '';
-          return null;
-        }
-
-        const data = await resp.json();
-
-        const snaps = (data.snapshots || []).slice().reverse();
-        selectA.innerHTML = '';
-        selectB.innerHTML = '';
-        diff.innerHTML = '';
-        const metrics = el('snapshotMetrics');
-        if (metrics) metrics.innerHTML = '';
-
-        if (snaps.length === 0) {
-          status.textContent = 'No snapshots found yet.';
-          return { repo_url: repoUrl, snapshots: [] };
-        }
-
-        for (const s of snaps) {
-          const optA = document.createElement('option');
-          optA.value = s.as_of;
-          optA.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
-          selectA.appendChild(optA);
-
-          const optB = document.createElement('option');
-          optB.value = s.as_of;
-          optB.textContent = `${s.as_of} (${s.file_size_bytes} bytes)`;
-          selectB.appendChild(optB);
-        }
-
-        // Default selection: A = second option (older), B = first option (newer)
-        if (snaps.length >= 2) {
-          selectB.selectedIndex = 0;
-          selectA.selectedIndex = 1;
-        }
-
-        status.textContent = `Found ${snaps.length} snapshot(s).`;
-        return { repo_url: repoUrl, snapshots: snaps };
-      }
-
-      async function loadSelectedSnapshot(repoUrl) {
-        const select = el('snapshotB');
-        const status = el('snapshotStatus');
-        const diff = el('snapshotDiff');
-
-        const asOf = select.value;
-        if (!asOf) {
-          status.textContent = 'Pick snapshot B first.';
-          return;
-        }
-
-        status.textContent = `Loading snapshot ${asOf}\u2026`;
-        diff.innerHTML = '';
-
-        const resp = await fetch('/api/snapshots/get', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repo_url: repoUrl, as_of: asOf })
-        });
-
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          status.textContent = 'Snapshot load failed: ' + (err.detail || resp.status);
-          return;
-        }
-
-        const data = await resp.json();
-        status.textContent = `Loaded snapshot ${asOf}.`;
-        renderSnapshotMetrics(data);
-        renderPayload(data, { cached: true, duration_ms: null });
-        await loadSnapshotSeries(repoUrl);
-      }
-
-      function renderSnapshotMetrics(payload) {
-        const container = el('snapshotMetrics');
-        if (!container) return;
-
-        container.innerHTML = '';
-        const m = payload?.history?.metrics || null;
-        if (!m) return;
-
-        function addChip(key, value) {
-          const chip = document.createElement('span');
-          chip.className = 'badge';
-          chip.innerHTML = `<span class="k">${key}</span><span class="v">${value}</span>`;
-          container.appendChild(chip);
-        }
-
-        addChip('as_of', m.as_of || 'n/a');
-        addChip('LOC', m.total_source_lines ?? 'n/a');
-        addChip('files', m.total_source_files ?? 'n/a');
-        addChip('TODOs', m.todo_count ?? 'n/a');
-        addChip('debt', m.techdebt_score ?? 'n/a');
-        addChip('avg cx', m.avg_complexity ?? 'n/a');
-      }
-
-      function renderSnapshotDiff(metrics) {
-        const container = el('snapshotDiff');
-        container.innerHTML = '';
-
-        if (!metrics || !metrics.delta) {
-          container.textContent = 'No diff metrics available.';
-          return;
-        }
-
-        const table = document.createElement('table');
-        table.className = 'table';
-        const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>Metric</th><th>A</th><th>B</th><th>\u0394</th></tr>';
-        table.appendChild(thead);
-
-        function fmt(v) {
-          if (v == null) return 'n/a';
-          if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(2);
-          return String(v);
-        }
-
-        const rows = [
-          { key: 'techdebt_score', label: 'Tech debt score (lower better)' },
-          { key: 'todo_count', label: 'TODO count' },
-          { key: 'total_source_lines', label: 'Total source lines' },
-          { key: 'total_source_files', label: 'Total source files' },
-          { key: 'avg_complexity', label: 'Avg complexity' },
-        ];
-
-        const tbody = document.createElement('tbody');
-        for (const r of rows) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${r.label}</td>
-            <td>${fmt(metrics.a?.[r.key])}</td>
-            <td>${fmt(metrics.b?.[r.key])}</td>
-            <td>${fmt(metrics.delta?.[r.key])}</td>
-          `;
-          tbody.appendChild(tr);
-        }
-        table.appendChild(tbody);
-        container.appendChild(table);
-      }
-
-      function fmtSeriesValue(v) {
-        if (v == null) return 'n/a';
-        if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(2);
-        return String(v);
-      }
-
-      function makeSeriesMetricSelector(keys, onChange) {
-        const wrap = document.createElement('div');
-        wrap.className = 'row';
-        wrap.style.alignItems = 'center';
-        wrap.style.gap = '0.5rem';
-        wrap.style.flexWrap = 'wrap';
-
-        const label = document.createElement('span');
-        label.className = 'status';
-        label.textContent = 'Metric:';
-        wrap.appendChild(label);
-
-        const select = document.createElement('select');
-        select.setAttribute('aria-label', 'Select metric');
-        for (const k of keys) {
-          const opt = document.createElement('option');
-          opt.value = k;
-          opt.textContent = k;
-          select.appendChild(opt);
-        }
-        select.addEventListener('change', () => onChange(select.value));
-        wrap.appendChild(select);
-
-        return { wrap, select };
-      }
-
-      function numberOrNull(v) {
-        if (v == null) return null;
-        if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    }
+
+    function numberOrNull(v) {
+      if (typeof v === 'number' && isFinite(v)) return v;
+      if (typeof v === 'string' && v.trim() !== '') {
         const n = Number(v);
-        return Number.isFinite(n) ? n : null;
+        if (isFinite(n)) return n;
       }
+      return null;
+    }
 
-      function seriesExtent(points, key) {
-        let lo = null;
-        let hi = null;
-        for (const p of points) {
-          const v = numberOrNull(p?.[key]);
-          if (v == null) continue;
-          lo = lo == null ? v : Math.min(lo, v);
-          hi = hi == null ? v : Math.max(hi, v);
-        }
-        if (lo == null || hi == null) return null;
-        if (lo === hi) return { lo: lo - 1, hi: hi + 1 };
-        return { lo, hi };
-      }
+    function fmtNum(n) {
+      if (n == null) return '';
+      const abs = Math.abs(n);
+      if (abs >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+      if (abs >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+      if (abs >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+      return String(n);
+    }
 
-      function svgEl(name) {
-        return document.createElementNS('http://www.w3.org/2000/svg', name);
+    function fmtSeriesValue(v) {
+      if (v == null || !isFinite(v)) return '';
+      const abs = Math.abs(v);
+      if (abs >= 10000) return fmtNum(Math.round(v));
+      if (abs >= 10) return String(Math.round(v));
+      return String(Math.round(v * 10) / 10);
+    }
+
+    async function apiAnalyze(repoUrl) {
+      const res = await fetch(`/api/analyze?repo_url=${encodeURIComponent(repoUrl)}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `HTTP ${res.status}`);
       }
+      return await res.json();
+    }
+
+    async function apiCompare(leftUrl, rightUrl) {
+      const res = await fetch(`/api/compare?repo_a=${encodeURIComponent(leftUrl)}&repo_b=${encodeURIComponent(rightUrl)}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `HTTP ${res.status}`);
+      }
+      return await res.json();
+    }
+
+    async function apiGetSnapshots(repoUrl) {
+      const res = await fetch(`/api/snapshots/list?repo_url=${encodeURIComponent(repoUrl)}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `HTTP ${res.status}`);
+      }
+      return await res.json();
+    }
+
+    async function apiGetSnapshotSeries(repoUrl) {
+      const res = await fetch(`/api/snapshots/series?repo_url=${encodeURIComponent(repoUrl)}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `HTTP ${res.status}`);
+      }
+      return await res.json();
+    }
+
+    function renderKeyValue(container, data) {
+      container.innerHTML = '';
+      if (!data) return;
+      for (const [k, v] of Object.entries(data)) {
+        const row = document.createElement('div');
+        row.className = 'kv';
+        const kk = document.createElement('div');
+        kk.className = 'k';
+        kk.textContent = k;
+        const vv = document.createElement('div');
+        vv.className = 'v';
+        vv.textContent = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        row.appendChild(kk);
+        row.appendChild(vv);
+        container.appendChild(row);
+      }
+    }
+
+    function renderSummary(container, payload) {
+      container.innerHTML = '';
+      const meta = payload?.metadata || {};
+      const card = document.createElement('div');
+      card.className = 'row';
+
+      const left = document.createElement('div');
+      left.style.display = 'flex';
+      left.style.flexWrap = 'wrap';
+      left.style.gap = '10px';
+
+      const p1 = document.createElement('span');
+      p1.className = 'pill';
+      p1.innerHTML = `<span class="dot"></span>stars: ${fmtNum(meta.stars || 0)}`;
+
+      const p2 = document.createElement('span');
+      p2.className = 'pill';
+      p2.innerHTML = `<span class="dot" style="background: var(--accent2)"></span>language: ${(meta.primary_language || 'unknown')}`;
+
+      const p3 = document.createElement('span');
+      p3.className = 'pill';
+      p3.innerHTML = `<span class="dot" style="background: var(--warning)"></span>updated: ${(meta.last_pushed_at || 'n/a')}`;
+
+      left.appendChild(p1);
+      left.appendChild(p2);
+      left.appendChild(p3);
+
+      const right = document.createElement('div');
+      right.className = 'muted';
+      right.textContent = `commit_count: ${fmtNum(payload?.commits?.total_commits || 0)}`;
+
+      card.appendChild(left);
+      card.appendChild(right);
+      container.appendChild(card);
+    }
+
+    function renderLanguages(container, payload) {
+      container.innerHTML = '';
+      const langs = payload?.languages?.languages || {};
+      if (!langs || Object.keys(langs).length === 0) {
+        container.textContent = 'No language data.';
+        return;
+      }
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th>Language</th><th>Lines</th><th>%</th></tr></thead>`;
+      const tbody = document.createElement('tbody');
+      for (const [k, v] of Object.entries(langs)) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${k}</td><td>${fmtNum(v.lines)}</td><td>${(v.percent || 0).toFixed(1)}</td>`;
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    function renderTree(container, payload) {
+      container.innerHTML = '';
+      const tree = payload?.tree?.tree || null;
+      if (!tree) {
+        container.textContent = 'No tree data.';
+        return;
+      }
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(tree, null, 2);
+      container.appendChild(pre);
+    }
+
+    function renderHeatmap(container, payload) {
+      container.innerHTML = '';
+      const hm = payload?.heatmap?.heatmap || null;
+      if (!hm) {
+        container.textContent = 'No heatmap data.';
+        return;
+      }
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(hm, null, 2);
+      container.appendChild(pre);
+    }
+
+    function renderTechDebt(container, payload) {
+      container.innerHTML = '';
+      const debt = payload?.techdebt || null;
+      if (!debt) {
+        container.textContent = 'No tech debt data.';
+        return;
+      }
+      const rows = [
+        ['score', debt.techdebt_score],
+        ['todo_count', debt.todo_count],
+        ['large_file_count', debt.large_file_count],
+        ['deep_nesting_count', debt.deep_nesting_count]
+      ];
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th>Metric</th><th>Value</th></tr></thead>`;
+      const tbody = document.createElement('tbody');
+      for (const [k, v] of rows) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${k}</td><td>${fmtNum(v)}</td>`;
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    function renderComplexity(container, payload) {
+      container.innerHTML = '';
+      const cx = payload?.complexity || null;
+      if (!cx) {
+        container.textContent = 'No complexity data.';
+        return;
+      }
+      const rows = [
+        ['avg_complexity', cx.avg_complexity],
+        ['max_complexity', cx.max_complexity],
+        ['files_analyzed', cx.files_analyzed]
+      ];
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th>Metric</th><th>Value</th></tr></thead>`;
+      const tbody = document.createElement('tbody');
+      for (const [k, v] of rows) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${k}</td><td>${fmtNum(v)}</td>`;
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    function renderTimeline(container, payload) {
+      container.innerHTML = '';
+      const tl = payload?.timeline || null;
+      if (!tl) {
+        container.textContent = 'No timeline data.';
+        return;
+      }
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(tl, null, 2);
+      container.appendChild(pre);
+    }
+
+    function renderPRVelocity(container, payload) {
+      container.innerHTML = '';
+      const pr = payload?.pr_velocity || null;
+      if (!pr) {
+        container.textContent = 'No PR velocity data.';
+        return;
+      }
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(pr, null, 2);
+      container.appendChild(pre);
+    }
+
+    function renderCommitMessageQuality(container, payload) {
+      container.innerHTML = '';
+      const q = payload?.commit_quality || null;
+      if (!q) {
+        container.textContent = 'No commit message quality data.';
+        return;
+      }
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(q, null, 2);
+      container.appendChild(pre);
+    }
+
+    function renderCompare(container, comparePayload) {
+      container.innerHTML = '';
+      if (!comparePayload) {
+        container.textContent = 'No compare data.';
+        return;
+      }
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(comparePayload, null, 2);
+      container.appendChild(pre);
+    }
+
+    function renderSnapshots(container, snapshotsPayload) {
+      container.innerHTML = '';
+      if (!snapshotsPayload) {
+        container.textContent = '';
+        return;
+      }
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(snapshotsPayload, null, 2);
+      container.appendChild(pre);
+    }
+
+    function extent(vals) {
+      if (!vals || vals.length === 0) return null;
+      let lo = null;
+      let hi = null;
+      for (const v of vals) {
+        if (v == null || !isFinite(v)) continue;
+        if (lo == null || v < lo) lo = v;
+        if (hi == null || v > hi) hi = v;
+      }
+      if (lo == null || hi == null) return null;
+      if (lo === hi) return { lo: lo - 1, hi: hi + 1 };
+      return { lo, hi };
+    }
+
+    function svgEl(name) {
+      return document.createElementNS('http://www.w3.org/2000/svg', name);
+    }
 
       function renderSeriesChart(points, metricKey, baselineAsOf) {
         const W = 780;
         const H = 240;
         const pad = { l: 56, r: 18, t: 18, b: 42 };
 
-        const filtered = points.filter(p => numberOrNull(p?.[metricKey]) != null);
-        if (filtered.length < 2) {
+        const view = (points || []).filter(p => numberOrNull(p?.[metricKey]) != null);
+        if (view.length < 2) {
           const msg = document.createElement('div');
           msg.className = 'status';
           msg.textContent = 'Not enough data points for chart.';
           return msg;
         }
 
-        const ext = seriesExtent(filtered, metricKey);
+        const baselinePoint = baselineAsOf
+          ? view.find(p => (p.as_of || '') === baselineAsOf) || null
+          : null;
+
+        const yAccessor = (p) => {
+          const v = numberOrNull(p?.[metricKey]);
+          if (v == null) return null;
+          if (!baselinePoint) return v;
+          const b = numberOrNull(baselinePoint?.[metricKey]);
+          if (b == null) return v;
+          return v - b;
+        };
+
+        const filtered = view;
+        const yVals = filtered.map(p => yAccessor(p)).filter(v => v != null);
+        const ext = extent(yVals);
         if (!ext) {
           const msg = document.createElement('div');
           msg.className = 'status';
@@ -636,7 +795,7 @@
           return pad.l + ((i - idx0) / span) * (W - pad.l - pad.r);
         };
         const y = (v) => {
-          return pad.t + (1 - (v - ext.lo) / (ext.hi - ext.lo)) * (H - pad.t - pad.b);
+          return pad.t + (1 - (v - ext.lo) / (ext.hi - ext.lo || 1)) * (H - pad.t - pad.b);
         };
 
         const svg = svgEl('svg');
@@ -657,7 +816,7 @@
         svg.appendChild(axis);
 
         // y labels (min/max)
-        function addText(tx, ty, text, anchor) {
+        function addText(tx, ty, labelText, anchor) {
           const t = svgEl('text');
           t.setAttribute('x', String(tx));
           t.setAttribute('y', String(ty));
@@ -665,13 +824,42 @@
           t.setAttribute('font-size', '12');
           t.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
           t.setAttribute('text-anchor', anchor || 'start');
-          t.textContent = text;
+          t.textContent = labelText;
           svg.appendChild(t);
         }
-        addText(pad.l - 8, y(ext.hi) + 4, fmtSeriesValue(ext.hi), 'end');
-        addText(pad.l - 8, y(ext.lo) + 4, fmtSeriesValue(ext.lo), 'end');
 
-        // baseline line
+        const fmt = (val) => {
+          if (!baselinePoint) return fmtSeriesValue(val);
+
+          if (metricKey === 'debt') {
+            const pct = Math.round(val * 10) / 10;
+            const sign = pct > 0 ? '+' : '';
+            return `${sign}${pct}%`;
+          }
+
+          const rounded = Math.round(val);
+          const sign = rounded > 0 ? '+' : '';
+          return `${sign}${rounded}`;
+        };
+
+        addText(pad.l - 8, y(ext.hi) + 4, fmt(ext.hi), 'end');
+        addText(pad.l - 8, y(ext.lo) + 4, fmt(ext.lo), 'end');
+
+        // zero line when baseline is set
+        if (baselinePoint) {
+          const zy = y(0);
+          const zline = svgEl('line');
+          zline.setAttribute('x1', String(pad.l));
+          zline.setAttribute('x2', String(W - pad.r));
+          zline.setAttribute('y1', String(zy));
+          zline.setAttribute('y2', String(zy));
+          zline.setAttribute('stroke', 'rgba(255,255,255,0.18)');
+          zline.setAttribute('stroke-dasharray', '3 3');
+          svg.appendChild(zline);
+          addText(pad.l + 6, zy - 6, '0', 'start');
+        }
+
+        // baseline marker line
         if (baselineAsOf) {
           const bIdx = filtered.findIndex(p => (p.as_of || '') === baselineAsOf);
           if (bIdx >= 0) {
@@ -691,7 +879,7 @@
         // polyline
         const d = filtered.map((p, i) => {
           const px = x(i);
-          const pv = numberOrNull(p[metricKey]);
+          const pv = yAccessor(p);
           const py = y(pv);
           return `${i === 0 ? 'M' : 'L'} ${px} ${py}`;
         }).join(' ');
@@ -706,7 +894,7 @@
         // points
         for (let i = 0; i < filtered.length; i++) {
           const p = filtered[i];
-          const pv = numberOrNull(p[metricKey]);
+          const pv = yAccessor(p);
           const cx = x(i);
           const cy = y(pv);
           const c = svgEl('circle');
@@ -723,284 +911,181 @@
         return wrap;
       }
 
-      function renderSnapshotSeries(series) {
-        const container = el('snapshotSeries');
-        if (!container) return;
-        container.innerHTML = '';
+    function makeSeriesMetricSelector(keys, onSelect) {
+      const wrap = document.createElement('div');
+      wrap.style.display = 'flex';
+      wrap.style.gap = '10px';
+      wrap.style.flexWrap = 'wrap';
+      wrap.style.alignItems = 'center';
 
-        const points = series?.points || [];
-        if (!Array.isArray(points) || points.length === 0) {
-          container.textContent = '';
-          return;
-        }
+      const label = document.createElement('span');
+      label.className = 'muted';
+      label.textContent = 'Metric:';
+      wrap.appendChild(label);
 
-        const metrics = series?.metrics || null;
-        const defaultMetrics = ['techdebt_score', 'todo_count', 'total_source_lines', 'total_source_files', 'avg_complexity'];
-        const keys = Array.isArray(metrics) && metrics.length > 0 ? metrics : defaultMetrics;
-
-        const view = points.slice(-120);
-
-        const header = document.createElement('div');
-        header.className = 'status';
-        header.textContent = `History (${Math.min(12, view.length)}/${points.length} points shown; chart uses ${view.length})`;
-
-        const controls = makeSeriesMetricSelector(keys, (k) => {
-          container.dataset.metric = k;
-          rerender();
-        });
-
-        const baselineSelect = document.createElement('select');
-        baselineSelect.setAttribute('aria-label', 'Select baseline snapshot');
-        const optNone = document.createElement('option');
-        optNone.value = '';
-        optNone.textContent = 'Baseline: (none)';
-        baselineSelect.appendChild(optNone);
-        for (const p of view) {
-          const opt = document.createElement('option');
-          opt.value = p.as_of || '';
-          opt.textContent = p.as_of || '';
-          baselineSelect.appendChild(opt);
-        }
-        baselineSelect.addEventListener('change', () => {
-          container.dataset.baseline = baselineSelect.value;
-          rerender();
-        });
-        controls.wrap.appendChild(baselineSelect);
-
-        const chartWrap = document.createElement('div');
-        chartWrap.style.marginTop = '0.5rem';
-
-        const table = document.createElement('table');
-        table.className = 'table';
-
-        const thead = document.createElement('thead');
-        const ths = ['<th>as_of</th>'].concat(keys.map(k => `<th>${k}</th>`)).join('');
-        thead.innerHTML = `<tr>${ths}</tr>`;
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        const tableView = view.slice(-12);
-        for (const p of tableView) {
-          const tds = ['<td class="mono">' + (p.as_of || '') + '</td>']
-            .concat(keys.map(k => `<td>${fmtSeriesValue(p[k])}</td>`));
-          const tr = document.createElement('tr');
-          tr.innerHTML = tds.join('');
-          tbody.appendChild(tr);
-        }
-        table.appendChild(tbody);
-
-        function rerender() {
-          const metric = container.dataset.metric || keys[0];
-          const baseline = container.dataset.baseline || '';
-          chartWrap.innerHTML = '';
-          chartWrap.appendChild(renderSeriesChart(view, metric, baseline || null));
-        }
-
-        container.appendChild(header);
-        container.appendChild(controls.wrap);
-        container.appendChild(chartWrap);
-        container.appendChild(table);
-
-        container.dataset.metric = container.dataset.metric || keys[0];
-        rerender();
+      const sel = document.createElement('select');
+      sel.setAttribute('aria-label', 'Select series metric');
+      for (const k of keys) {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.textContent = k;
+        sel.appendChild(opt);
       }
-
-      async function loadSnapshotSeries(repoUrl) {
-        const container = el('snapshotSeries');
-        if (!container) return;
-        container.innerHTML = '';
-
-        const resp = await fetch('/api/snapshots/series', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            repo_url: repoUrl,
-            max_points: 200,
-            metrics: ['techdebt_score', 'todo_count', 'total_source_lines', 'total_source_files', 'avg_complexity']
-          })
-        });
-
-        if (!resp.ok) {
-          return;
-        }
-
-        const data = await resp.json().catch(() => ({}));
-        renderSnapshotSeries(data);
-      }
-
-      async function diffSelectedSnapshots(repoUrl) {
-        const aAsOf = el('snapshotA').value;
-        const bAsOf = el('snapshotB').value;
-        const status = el('snapshotStatus');
-
-        if (!aAsOf || !bAsOf) {
-          status.textContent = 'Pick snapshots A and B first.';
-          return;
-        }
-        if (aAsOf >= bAsOf) {
-          status.textContent = 'Snapshot A must be older than snapshot B.';
-          return;
-        }
-
-        status.textContent = `Computing diff ${aAsOf} \u2192 ${bAsOf}\u2026`;
-
-        const resp = await fetch('/api/snapshots/diff', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repo_url: repoUrl, a_as_of: aAsOf, b_as_of: bAsOf })
-        });
-
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          status.textContent = 'Snapshot diff failed: ' + (err.detail || resp.status);
-          return;
-        }
-
-        const data = await resp.json();
-        status.textContent = `Diff ready (${aAsOf} \u2192 ${bAsOf}).`;
-        renderSnapshotDiff(data.metrics);
-      }
-
-      function renderPayload(data, options) {
-        const dur = formatDuration(options?.duration_ms);
-        if (DEMO_MODE) {
-          el('status').textContent = 'Demo loaded';
-        } else if (options?.cached) {
-          el('status').textContent = `Done (cached${dur ? ', ' + dur : ''})`;
-        } else {
-          el('status').textContent = `Done${dur ? ' (' + dur + ')' : ''}`;
-        }
-
-        el('languages').textContent = safeJson(data.languages);
-        renderTreemap(data.treemap);
-        renderContributors(data.contributors);
-        renderCommitQuality(data.commit_quality);
-        renderTimeline(data.timeline);
-        renderHeatmap(data.heatmap);
-        renderTechDebt(data.techdebt);
-        renderComplexity(data.complexity);
-      }
-
-      function parseOwnerRepo(repoUrl) {
-        try {
-          const parts = String(repoUrl).split('/').filter(Boolean);
-          const idx = parts.indexOf('github.com');
-          const tail = idx >= 0 ? parts.slice(idx + 1) : parts;
-          if (tail.length < 2) return null;
-          return { owner: tail[0], repo: tail[1] };
-        } catch (e) {
-          return null;
-        }
-      }
-
-      async function loadReleaseOptions(repoUrl) {
-        const wrap = el('releaseSelectWrap');
-        const select = el('releaseSelect');
-        const info = parseOwnerRepo(repoUrl);
-        if (!wrap || !select || !info) {
-          if (wrap) wrap.style.display = 'none';
-          return;
-        }
-
-        wrap.style.display = 'inline-flex';
-        select.innerHTML = '';
-        const optLatest = document.createElement('option');
-        optLatest.value = 'latest';
-        optLatest.textContent = 'Latest';
-        select.appendChild(optLatest);
-
-        try {
-          const resp = await fetch(`/api/releases?owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&limit=10`);
-          if (!resp.ok) return;
-          const data = await resp.json();
-
-          for (const r of (data.releases || [])) {
-            const opt = document.createElement('option');
-            opt.value = r.tag_name;
-            opt.textContent = r.tag_name;
-            select.appendChild(opt);
-          }
-
-          if ((data.releases || []).length === 0) {
-            const optNone = document.createElement('option');
-            optNone.value = 'none';
-            optNone.textContent = '(no releases found)';
-            select.appendChild(optNone);
-          }
-        } catch (e) {
-          // ignore
-        }
-
-        select.addEventListener('change', async () => {
-          await refreshSnapshotsDownloadLink(repoUrl);
-        });
-      }
-
-      async function getSnapshotsDownloadUrl(repoUrl) {
-        const info = parseOwnerRepo(repoUrl);
-        if (!info) return null;
-
-        const select = el('releaseSelect');
-        const releaseTag = select && select.value ? select.value : 'latest';
-
-        const qs = `owner=${encodeURIComponent(info.owner)}&repo=${encodeURIComponent(info.repo)}&release_tag=${encodeURIComponent(releaseTag)}&asset_name=${encodeURIComponent('reposcape-snapshots.zip')}`;
-        const resp = await fetch(`/api/releases/asset?${qs}`);
-        if (!resp.ok) return null;
-        const data = await resp.json().catch(() => ({}));
-        if (!data || !data.url) return null;
-        return data.url;
-      }
-
-      async function wireSnapshotsDownloadLink(repoUrl) {
-        await refreshSnapshotsDownloadLink(repoUrl);
-
-        const select = el('releaseSelect');
-        if (select && !select.dataset.bound) {
-          select.dataset.bound = '1';
-          select.addEventListener('change', async () => {
-            await refreshSnapshotsDownloadLink(repoUrl);
-          });
-        }
-      }
-
-async function refreshSnapshotsDownloadLink(repoUrl) {
-        const btn = el('downloadSnapshots');
-        if (!btn) return;
-
-        const url = await getSnapshotsDownloadUrl(repoUrl);
-        if (!url) {
-          btn.style.display = 'none';
-          return;
-        }
-
-        btn.style.display = 'inline-flex';
-        btn.onclick = () => {
-          window.open(url, '_blank', 'noopener');
-        };
-      }
-
-      el('analyzeBtn').addEventListener('click', () => analyze(getRepoUrl()));
-      el('compareBtn').addEventListener('click', () => compare(getRepoUrl()));
-
-      el('demoMode').addEventListener('change', async () => {
-        if (getDemoMode()) {
-          await loadDemo();
-        }
+      sel.addEventListener('change', () => {
+        onSelect(sel.value);
       });
 
-      const DEMO_MODE = {{ demo_mode | default(false) | tojson }};
-      if (DEMO_MODE) {
-        setDemoMode(true);
+      wrap.appendChild(sel);
+      return { wrap, select: sel };
+    }
+
+    function renderSnapshotSeries(series) {
+      const container = el('snapshotSeries');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const points = series?.points || [];
+      if (!Array.isArray(points) || points.length === 0) {
+        container.textContent = '';
+        return;
       }
 
-      if (getRepoUrl()) {
-        analyze(getRepoUrl());
-      } else {
-        loadDemo();
+      const metrics = series?.metrics || null;
+      const defaultMetrics = ['techdebt_score', 'todo_count', 'total_source_lines', 'total_source_files', 'avg_complexity'];
+      const keys = Array.isArray(metrics) && metrics.length > 0 ? metrics : defaultMetrics;
+
+      const view = points.slice(-120);
+
+      const header = document.createElement('div');
+      header.className = 'status';
+      header.textContent = `History (${Math.min(12, view.length)}/${points.length} points shown; chart uses ${view.length})`;
+
+      const controls = makeSeriesMetricSelector(keys, (k) => {
+        container.dataset.metric = k;
+        rerender();
+      });
+
+      const baselineSelect = document.createElement('select');
+      baselineSelect.setAttribute('aria-label', 'Select baseline snapshot');
+      const optNone = document.createElement('option');
+      optNone.value = '';
+      optNone.textContent = 'Baseline: (none)';
+      baselineSelect.appendChild(optNone);
+      for (const p of view) {
+        const opt = document.createElement('option');
+        opt.value = p.as_of || '';
+        opt.textContent = p.as_of || '';
+        baselineSelect.appendChild(opt);
+      }
+      baselineSelect.addEventListener('change', () => {
+        container.dataset.baseline = baselineSelect.value;
+        rerender();
+      });
+      controls.wrap.appendChild(baselineSelect);
+
+      const chartWrap = document.createElement('div');
+      chartWrap.style.marginTop = '12px';
+
+      container.appendChild(header);
+      container.appendChild(controls.wrap);
+      container.appendChild(chartWrap);
+
+      container.dataset.metric = keys[0];
+
+      function rerender() {
+        const metric = container.dataset.metric || keys[0];
+        const baseline = container.dataset.baseline || '';
+        chartWrap.innerHTML = '';
+        chartWrap.appendChild(renderSeriesChart(view, metric, baseline || null));
       }
 
-      el('loadSnapshot').addEventListener('click', () => loadSelectedSnapshot(getRepoUrl()));
-      el('diffSnapshots').addEventListener('click', () => diffSelectedSnapshots(getRepoUrl()));
-    </script>
-  </body>
+      rerender();
+    }
+
+    function renderAll(payload) {
+      renderSummary(el('summary'), payload);
+      renderLanguages(el('languages'), payload);
+      renderTree(el('tree'), payload);
+      renderHeatmap(el('heatmap'), payload);
+      renderTechDebt(el('debt'), payload);
+      renderComplexity(el('complexity'), payload);
+      renderTimeline(el('timeline'), payload);
+      renderPRVelocity(el('pr'), payload);
+      renderCommitMessageQuality(el('messages'), payload);
+    }
+
+    function setShareUrl(repoUrl) {
+      const parsed = parseRepo(repoUrl);
+      const shareBtn = el('shareBtn');
+      if (!parsed || !shareBtn) return;
+      shareBtn.disabled = false;
+      shareBtn.onclick = () => {
+        window.open(`/story/${parsed.owner}/${parsed.repo}`, '_blank');
+      };
+    }
+
+    async function onAnalyze() {
+      const repoUrl = el('repoUrl').value;
+      if (!repoUrl) return;
+      setStatus('repoStatus', 'Analyzing…');
+      setStatus('summaryStatus', 'Loading…');
+      setStatus('langStatus', 'Loading…');
+      setStatus('treeStatus', 'Loading…');
+      setStatus('heatmapStatus', 'Loading…');
+      setStatus('debtStatus', 'Loading…');
+      setStatus('cxStatus', 'Loading…');
+      setStatus('timelineStatus', 'Loading…');
+      setStatus('prStatus', 'Loading…');
+      setStatus('msgStatus', 'Loading…');
+      setStatus('compareStatus', 'Waiting');
+      setStatus('snapStatus', 'Loading…');
+      setStatus('seriesStatus', 'Loading…');
+
+      try {
+        const payload = await apiAnalyze(repoUrl);
+        renderKeyValue(el('repoMeta'), payload?.metadata || {});
+        renderAll(payload);
+        setShareUrl(repoUrl);
+
+        setStatus('repoStatus', 'Done');
+        setStatus('summaryStatus', 'Done');
+        setStatus('langStatus', 'Done');
+        setStatus('treeStatus', 'Done');
+        setStatus('heatmapStatus', 'Done');
+        setStatus('debtStatus', 'Done');
+        setStatus('cxStatus', 'Done');
+        setStatus('timelineStatus', 'Done');
+        setStatus('prStatus', 'Done');
+        setStatus('msgStatus', 'Done');
+
+        // snapshots
+        try {
+          const snaps = await apiGetSnapshots(repoUrl);
+          renderSnapshots(el('snapshots'), snaps);
+          setStatus('snapStatus', 'Done');
+        } catch (e) {
+          el('snapshots').textContent = '';
+          setStatus('snapStatus', 'No snapshots');
+        }
+
+        // series
+        try {
+          const series = await apiGetSnapshotSeries(repoUrl);
+          renderSnapshotSeries(series);
+          setStatus('seriesStatus', 'Done');
+        } catch (e) {
+          el('snapshotSeries').textContent = '';
+          setStatus('seriesStatus', 'No history');
+        }
+
+      } catch (e) {
+        setStatus('repoStatus', 'Error');
+        setStatus('summaryStatus', 'Error');
+        console.error(e);
+      }
+    }
+
+    el('analyzeBtn').addEventListener('click', onAnalyze);
+  </script>
+</body>
 </html>
