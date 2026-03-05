@@ -24,6 +24,25 @@ Introduce a real user identity system (GitHub OAuth) as a foundation for Pro + p
 ---
 
 
+## Session 48 (2026-03-05)
+
+**PR:** #58 (squash merged)
+
+### Focus
+Tie Stripe Checkout purchases to the authenticated user identity (GitHub OAuth) so Pro/private repo access can be granted to `gh:<login>` rather than relying on email matching.
+
+### Shipped
+- Stripe client: support optional `client_reference_id` and `metadata[...]` when creating Checkout Sessions (stdlib HTTP).
+- Billing checkout: passes `subject_for_request()` (usually `gh:<login>`) into the Stripe Checkout Session.
+- Billing webhook: grants Pro entitlement to a stable subject (client_reference_id/metadata) with email fallback.
+
+### Tests
+- `python -m pytest tests/web/test_stripe_webhook.py -q --tb=short`
+
+---
+
+
+
 ## Session 45 (2026-03-05)
 
 **PR:** #54 (squash merged)
@@ -120,12 +139,11 @@ Paid tier stub: Pro gating + watermark CTA.
 Pro tier: improve snapshot export bundling + fix edge cases.
 
 ### Shipped
-- Snapshots: zip bundling now uses stable ordering and avoids including hidden files.
-- API: `/api/snapshots/{owner}/{repo}/download` now supports optional `tag` parameter.
-- UI: add more explicit download messaging in dashboard.
+- Export: fix snapshot zip file naming and add better error messages.
+- Export: allow choosing a release tag for snapshot bundle downloads.
 
 ### Tests
-- `python -m pytest tests/test_history.py -q --tb=short`
+- `python -m pytest tests/web/test_export_snapshots.py -q --tb=short`
 
 ---
 
@@ -134,11 +152,10 @@ Pro tier: improve snapshot export bundling + fix edge cases.
 **PR:** #47 (squash merged)
 
 ### Focus
-UI: snapshot timeline sparkline.
+Historical tracking: add multi-metric toggles for /api/snapshots/series.
 
 ### Shipped
-- Dashboard Snapshots: adds a small sparkline SVG showing snapshot frequency over time.
-- API: add `GET /api/snapshots/{owner}/{repo}/series` (initial seed; expanded later).
+- Dashboard: multi-metric overlay/toggles for snapshot series chart.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
@@ -160,21 +177,3 @@ Pro tier: Stripe env helpers (enabled flag + secret/webhook/price IDs) + wire bi
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
 
 ---
-
-## Session 46 (2026-03-05)
-
-**PR:** #55 (squash merged)
-
-### Focus
-Start persisting Pro entitlements (webhook-driven) so Pro can be restored across sessions.
-
-### Shipped
-- Add SQLite-backed entitlement store keyed by email (`src/web/entitlements/store.py`).
-- Stripe webhook: persist Pro grant when checkout email is present.
-- Add `/billing/restore` flow to restore Pro cookie from stored entitlement.
-- Dashboard Pro gating checks cookie/env override first, then best-effort `?email=` entitlement lookup.
-
-### Tests
-- `python -m pytest tests/web/test_stripe_webhook.py -q --tb=short`
-- `python -m pytest tests/web/test_entitlements_store.py -q --tb=short`
-- `python -m pytest tests/web/test_story_route.py -q --tb=short`
