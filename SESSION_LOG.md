@@ -4,6 +4,24 @@ This file is updated at the end of every autonomous dev session.
 
 ---
 
+## Session 49 (2026-03-05)
+
+**PR:** #59 (squash merged)
+
+### Focus
+Security hardening: migrate GitHub OAuth access token storage from client-side cookie to server-side persistence.
+
+### Shipped
+- Adds `src/web/auth/token_store.py`: a tiny stdlib SQLite token store keyed by GitHub login.
+- GitHub OAuth callback now persists the token server-side and stores only `{v, iat, login}` in the signed cookie.
+- `get_user_session()` loads the access token from the server-side store.
+
+### Tests
+- `python -m pytest tests/web/test_auth_cookie.py -q --tb=short`
+- `python -m pytest tests/web/test_stripe_webhook.py -q --tb=short`
+
+---
+
 ## Session 47 (2026-03-05)
 
 **PR:** #56 (squash merged)
