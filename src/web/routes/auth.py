@@ -12,6 +12,7 @@ from src.web.auth.github_oauth import (
     make_state,
     sign_cookie_value,
 )
+from src.web.auth.token_store import store_token
 
 router = APIRouter(tags=["auth"])
 
@@ -49,11 +50,12 @@ def github_callback(request: Request, code: str | None = None, state: str | None
 
     login = fetch_viewer_login(token.access_token)
     cookie_payload = {
-        "v": 1,
+        "v": 2,
         "iat": int(__import__("time").time()),
         "login": login,
-        "token": token.access_token,
     }
+
+    store_token(login, token.access_token, source="github_oauth")
 
     resp = RedirectResponse("/dashboard?auth=ok", status_code=302)
     resp.delete_cookie(_COOKIE_STATE)
