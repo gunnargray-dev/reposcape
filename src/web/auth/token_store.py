@@ -103,6 +103,25 @@ def store_token(login: str, token: str, *, source: str) -> None:
         conn.commit()
 
 
+def delete_token(login: str) -> bool:
+    """Delete a stored token for a GitHub login.
+
+    Returns:
+        True if a row was deleted, False otherwise.
+    """
+
+    norm = normalize_login(login)
+    if not norm:
+        return False
+
+    init_tokens_db()
+    path = _db_path()
+    with _connect(path) as conn:
+        cur = conn.execute("DELETE FROM tokens WHERE login=?", (norm,))
+        conn.commit()
+        return bool(cur.rowcount)
+
+
 def get_token(login: str) -> StoredToken | None:
     """Return stored token for a GitHub login if present."""
 
