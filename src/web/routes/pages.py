@@ -8,6 +8,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from src.web.entitlements.cookies import is_pro
+
 router = APIRouter(tags=["pages"])
 
 _templates_dir = Path(__file__).resolve().parents[1] / "templates"
@@ -27,7 +29,7 @@ def dashboard(request: Request) -> HTMLResponse:
     context = {
         "request": request,
         "snapshots_enabled": bool(request.app.state.get("snapshots_enabled", False)),
-        "pro_enabled": bool(request.app.state.get("pro_enabled", False)),
+        "pro_enabled": is_pro(request),
     }
     return templates.TemplateResponse(request, "dashboard.html", context)
 

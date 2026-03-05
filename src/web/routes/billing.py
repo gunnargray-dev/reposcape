@@ -9,7 +9,7 @@ Design goals:
 
 Endpoints:
 - POST /api/billing/checkout: returns a checkout_url to redirect the user to.
-- GET /billing/success: returns a minimal success page.
+- GET /billing/success: sets a temporary entitlement cookie and redirects.
 - GET /billing/cancel: returns a minimal cancel page.
 
 Notes:
@@ -21,8 +21,9 @@ from __future__ import annotations
 from urllib.parse import urljoin
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
+from src.web.entitlements.cookies import pro_cookie_name
 from src.web.stripe_env import stripe_enabled
 
 router = APIRouter(tags=["billing"])
@@ -74,20 +75,26 @@ def create_checkout_session(request: Request) -> JSONResponse:
     return JSONResponse(content={"checkout_url": checkout_url})
 
 
-@router.get("/billing/success", response_class=HTMLResponse)
-def billing_success(request: Request) -> HTMLResponse:
-    """Checkout success page."""
+@router.get("/billing/success")
+def billing_success(request: Request) -> RedirectResponse:
+    """Checkout success redirect.
 
-    html = """<!doctype html>
-<html lang=\"en\"><head><meta charset=\"utf-8\" />
-<title>Reposcape Pro — Success</title>
-<style>body{font-family:ui-sans-serif,system-ui;max-width:720px;margin:40px auto;padding:0 16px;line-height:1.5}a{color:#2563eb}</style>
-</head><body>
-<h1>Upgrade complete</h1>
-<p>Your payment flow isn't wired yet in this build, but you reached the success page.</p>
-<p><a href=\"/dashboard\">Return to dashboard</a></p>
-</body></html>"""
-    return HTMLResponse(content=html)
+    This endpoint sets a temporary cookie granting Pro features.
+
+    Returns:
+        Redirect response back to the dashboard.
+    """
+
+    response = RedirectResponse(url="/dashboard", status_code=303)
+    response.set_cookie(
+        key=pro_cookie_name(),
+        value="1",
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,
+    )
+    return response
 
 
 @router.get("/billing/cancel", response_class=HTMLResponse)
