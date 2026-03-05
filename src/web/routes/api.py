@@ -11,7 +11,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, HttpUrl
 
 from src.analyze import analyze_repo_url
@@ -19,6 +19,7 @@ from src.compare import build_comparison_payload
 from src.history import build_snapshot_index, get_repo_history_dir, load_snapshot
 from src.history_delta import compute_snapshot_delta
 from src.web.demo import load_demo_payload
+from src.web.auth.session import get_user_session
 from src.web.export import build_export_html
 
 _GITHUB_API = "https://api.github.com"
@@ -220,7 +221,7 @@ def _best_effort_list_releases(owner: str, repo: str, limit: int = 10) -> list[d
 
 
 @router.post("/analyze")
-def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
+def analyze_repo(request: Request, req: AnalyzeRequest) -> dict[str, Any]:
     """Clone a repo and run a set of analyzers.
 
     Note: this endpoint is intentionally synchronous for now.
@@ -233,7 +234,9 @@ def analyze_repo(req: AnalyzeRequest) -> dict[str, Any]:
     """
 
     try:
-        return analyze_repo_url(str(req.repo_url))
+        session = get_user_session(request)
+        token = session.access_token if session else None
+        return analyze_repo_url(str(req.repo_url), github_token=token)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

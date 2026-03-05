@@ -14,12 +14,55 @@ from pathlib import Path
 from typing import Optional
 
 
-def clone_repo(url: str, target_dir: str) -> str:
-    """Clone a public GitHub repository to a local directory.
+def _maybe_inject_github_token(url: str, *, github_token: str | None) -> str:
+    """Return a clone URL that includes an access token when appropriate.
+
+    The web app authenticates users via GitHub OAuth; for private repos we need
+    a token available to `git clone`. For https URLs we can inject a token as:
+
+        https://x-access-token:<token>@github.com/owner/repo.git
+
+    This is passed only to the `git` subprocess and is never stored on disk.
 
     Args:
-        url: Public git repository URL (https or git protocol).
+        url: Original repository URL.
+        github_token: Optional GitHub access token.
+
+    Returns:
+        URL suitable for passing to `git clone`.
+    """
+
+    if not github_token:
+        return url
+
+    if url.startswith("git@"):
+        # SSH clone uses agent/keys; do not attempt token injection.
+        return url
+
+    m = re.match(r"^https?://([^/]+)/(.+)$", url)
+    if not m:
+        return url
+
+    host = m.group(1)
+    rest = m.group(2)
+
+    # Only inject for GitHub hostnames.
+    if host not in {"github.com", "www.github.com"}:
+        return url
+
+    return f"https://x-access-token:{github_token}@{host}/{rest}"
+
+
+
+def clone_repo(url: str, target_dir: str, *, github_token: str | None = None) -> str:
+    """Clone a GitHub repository to a local directory.
+
+    This supports both public and private repositories.
+
+    Args:
+        url: Git repository URL (https or git protocol).
         target_dir: Local directory path to clone into.
+        github_token: Optional GitHub access token used for authenticated https cloning.
 
     Returns:
         Absolute path to the cloned repository.
@@ -35,11 +78,13 @@ def clone_repo(url: str, target_dir: str) -> str:
     if not (url.startswith("http://") or url.startswith("https://") or url.startswith("git@")):
         raise ValueError(f"Invalid repository URL: {url!r}")
 
+    clone_url = _maybe_inject_github_token(url, github_token=github_token)
+
     target_path = Path(target_dir).resolve()
     target_path.mkdir(parents=True, exist_ok=True)
 
     result = subprocess.run(
-        ["git", "clone", "--", url, str(target_path)],
+        ["git", "clone", "--", clone_url, str(target_path)],
         capture_output=True,
         text=True,
     )

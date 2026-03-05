@@ -95,6 +95,7 @@ def analyze_repo_url(
     repo_url: str,
     *,
     snapshot_base_dir: Path | None = None,
+    github_token: str | None = None,
 ) -> dict[str, Any]:
     """Analyze a GitHub repo URL and return a JSON-serializable payload.
 
@@ -118,7 +119,7 @@ def analyze_repo_url(
 
     start = time.perf_counter()
     with tempfile.TemporaryDirectory(prefix="reposcape-") as tmpdir:
-        repo_path = clone_repo(str(repo_url), tmpdir)
+        repo_path = clone_repo(str(repo_url), tmpdir, github_token=github_token)
         commit_datetimes = _load_commit_datetimes(repo_path)
 
         payload: dict[str, Any] = {
