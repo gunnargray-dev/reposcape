@@ -12,7 +12,8 @@ from src.web.auth.github_oauth import (
     make_state,
     sign_cookie_value,
 )
-from src.web.auth.token_store import store_token
+from src.web.auth.session import get_user_session
+from src.web.auth.token_store import delete_token, store_token
 
 router = APIRouter(tags=["auth"])
 
@@ -70,8 +71,12 @@ def github_callback(request: Request, code: str | None = None, state: str | None
 
 
 @router.post("/auth/logout")
-def logout() -> RedirectResponse:
-    """Clear auth cookies."""
+def logout(request: Request) -> RedirectResponse:
+    """Clear auth cookies and revoke server-side token."""
+
+    session = get_user_session(request)
+    if session and session.login:
+        delete_token(session.login)
 
     resp = RedirectResponse("/", status_code=302)
     resp.delete_cookie(_COOKIE_GH)

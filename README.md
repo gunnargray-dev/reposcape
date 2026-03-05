@@ -46,7 +46,20 @@ Paste a repo URL. Get stunning, shareable visualizations.
 - D3.js / Three.js frontend visualizations
 - GitHub API integration
 
-## Development
+## Auth + tokens
+
+Reposcape uses GitHub OAuth for authentication.
+
+### `REPOSCAPE_TOKENS_DB`
+
+When a user completes the GitHub OAuth flow, Reposcape stores the GitHub access token server-side in a small SQLite database.
+
+- Env var: `REPOSCAPE_TOKENS_DB`
+- If unset, defaults to: `.reposcape/tokens.sqlite3` (relative to the process working directory)
+- Schema: a single table `tokens(login TEXT PRIMARY KEY, token TEXT NOT NULL, stored_at INTEGER NOT NULL, source TEXT NOT NULL)`
+
+On logout (`POST /auth/logout`), Reposcape clears the auth cookie and deletes the stored token row for the current GitHub login.
+
 
 This project is built autonomously by [Perplexity Computer](https://perplexity.ai) in 2-hour sessions. Each session reads the repo state, picks tasks from the roadmap, writes and tests code, pushes PRs, and updates the log.
 
@@ -80,8 +93,8 @@ Then open:
 From the dashboard, click **Export HTML** to download a standalone HTML snapshot of the current analysis.
 
 In the exported page you can:
-- **Download PNG** for individual chart panels (client-side SVG  canvas  PNG)
-- **Print / Save PDF** via your browsers print dialog
+- **Download PNG** for individual chart panels (client-side SVG → canvas → PNG)
+- **Print / Save PDF** via your browser’s print dialog
 
 For a more guided PDF flow, open:
 - `/pdf?repo_url=https://github.com/OWNER/REPO`
