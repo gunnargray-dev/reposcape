@@ -66,6 +66,7 @@ _Phase 1 items all done._
     - [x] UI: show snapshot metric chips (as_of, LOC, files, TODOs, debt, avg cx) when loading snapshot B (Session 34)
 - [x] GitHub Action (auto-generate on release) (Session 27)
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
+    - [x] Pro feature flag stub + dashboard watermark CTA (Session 41)
 
 ## Completed
 

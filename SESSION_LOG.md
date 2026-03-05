@@ -580,6 +580,23 @@ History chart UX: clarify overlay normalization.
 
 ---
 
+## Session 41 (2026-03-05)
+
+**PR:** #49 (squash merged)
+
+### Focus
+Pro tier groundwork: feature flag + watermark/upgrade CTA.
+
+### Shipped
+- Add `REPOSCAPE_PRO` env-var-backed Pro feature flag stub (`src/web/pro.py`).
+- Dashboard: show a watermark/upgrade CTA when Pro is disabled (hidden when enabled).
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+- `python -m pytest tests/test_history.py -q --tb=short`
+
+---
+
 ## Session 39 (2026-03-04)
 
 **PR:** #46 (squash merged)
