@@ -70,6 +70,7 @@ _Phase 1 items all done._
     - [x] Billing endpoints stub + dashboard Upgrade wiring (Session 42)
     - [x] Billing: centralize Stripe env configuration helpers (Session 43)
     - [x] Billing: cookie-based Pro entitlements (placeholder) (Session 44)
+    - [x] Billing: create real Stripe Checkout Session (stdlib HTTP) + add webhook verifier + endpoint (Session 45)
 
 ## Completed
 
