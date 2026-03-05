@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from src.web.routes import api, pages, pdf, share, showcase, story
+from src.web.pro import pro_enabled
 
 
 def create_app() -> FastAPI:
@@ -21,6 +22,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Reposcape", version="0.1.0")
 
     app.state["snapshots_enabled"] = bool(os.environ.get("REPOSCAPE_SNAPSHOT_DIR"))
+    app.state["pro_enabled"] = pro_enabled()
 
     app.include_router(api.router)
     app.include_router(pages.router)

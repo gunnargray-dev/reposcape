@@ -293,7 +293,7 @@
     .footer {
       padding: 28px 18px 40px;
       color: rgba(255,255,255,0.60);
-      font-size: 12px;
+      font-size:  12px;
       text-align: center;
     }
 
@@ -316,7 +316,7 @@
 
     select:focus {
       border-color: rgba(102,170,255,0.55);
-      box-shadow: 0 0 0 3px rgba(102,170,255,0.16);
+      box-shadow:  0 0 0 3px rgba(102,170,255,0.16);
     }
 
     .badge {
@@ -875,6 +875,10 @@
   </main>
 
   <div class="footer">
+    <div id="watermark" style="margin-bottom: 10px; display: none;">
+      <span class="pill"><span class="dot" style="background: var(--accent2);"></span><b>Pro</b> to remove watermark + unlock private repos</span>
+      &nbsp;7&nbsp; <a href="#" id="upgradeLink">Upgrade</a>
+    </div>
     <div style="margin-bottom: 8px;">Reposcape 7 a repo analysis toy</div>
     <div class="muted2">
       <a href="/">Home</a>
@@ -884,7 +888,23 @@
   </div>
 
   <script>
+    const PRO_ENABLED = {{ 'true' if pro_enabled else 'false' }};
+
     function el(id) { return document.getElementById(id); }
+
+    function applyProGating() {
+      const wm = el('watermark');
+      if (!wm) return;
+      wm.style.display = PRO_ENABLED ? 'none' : 'block';
+      const up = el('upgradeLink');
+      if (up) {
+        up.onclick = (e) => {
+          e.preventDefault();
+          alert('Pro / Stripe integration is not wired yet.');
+        };
+      }
+    }
+
 
     function setStatus(id, text) {
       const e = el(id);
@@ -899,7 +919,7 @@
           parts.push(`${k}: ${v}`);
         }
       }
-      container.textContent = parts.join(' \u00b7 ');
+      container.textContent = parts.join(' · ');
     }
 
     function parseRepo(url) {
@@ -937,7 +957,7 @@
       const parsed = parseRepo(repoUrl);
       if (!parsed) throw new Error('Invalid repo URL');
       const res = await fetch(`/api/snapshots/${parsed.owner}/${parsed.repo}`);
-      if (!res.ok) throw new Error(`Snapshots failed: ${res.status}`);
+      if (!res.ok) throw new new Error(`Snapshots failed: ${res.status}`);
       return res.json();
     }
 
@@ -1089,7 +1109,7 @@
       pre.style.fontSize = '11px';
       pre.style.whiteSpace = 'pre';
       pre.style.lineHeight = '1.3';
-      const chars = [' ', '7', ':', '*', '#'];
+      const chars = [' ', '·', ':', '*', '#'];
       let out = '';
       for (const w of weeks.slice(-26)) {
         const days = w.days || [];
@@ -1386,493 +1406,24 @@
         }
       }
 
-      function renderSnap(which, data) {
-        setActive(which);
-        section.innerHTML = '';
-        if (!data) {
-          section.innerHTML = '<div class="muted">Not selected</div>';
-          return;
-        }
-        const meta = data?.metadata || {};
-        const m = data?.metrics || {};
-        const items = [
-          ['as_of', meta.as_of || '(unknown)'],
-          ['loc', fmtInt(m.total_source_lines)],
-          ['files', fmtInt(m.total_source_files)],
-          ['TODOs', fmtInt(m.todo_count)],
-          ['debt', fmtFloat(m.techdebt_score, 2)],
-          ['avg cx', fmtFloat(m.avg_complexity, 2)],
-        ];
-        for (const [k, v] of items) {
-          const row = document.createElement('div');
-          row.className = 'kv';
-          const kk = document.createElement('div');
-          kk.className = 'k';
-          kk.textContent = k;
-          const vv = document.createElement('div');
-          vv.className = 'v';
-          vv.textContent = v;
-          row.appendChild(kk);
-          row.appendChild(vv);
-          section.appendChild(row);
-        }
-      }
-
-      btnList.onclick = renderList;
-      btnA.onclick = () => renderSnap('a', selected);
-      btnB.onclick = () => renderSnap('b', selected2);
-
-      container.appendChild(tabs);
-      container.appendChild(section);
-
-      renderList();
-    }
-
-    function linearTrend(values) {
-      const pts = [];
-      for (let i = 0; i < values.length; i++) {
-        const v = values[i];
-        if (v == null || !isFinite(v)) continue;
-        pts.push({ x: i, y: v });
-      }
-      if (pts.length < 2) return null;
-
-      let sx = 0, sy = 0, sxx = 0, sxy = 0;
-      for (const p of pts) {
-        sx += p.x;
-        sy += p.y;
-        sxx += p.x * p.x;
-        sxy += p.x * p.y;
-      }
-      const n = pts.length;
-      const denom = (n * sxx - sx * sx) || 1;
-      const slope = (n * sxy - sx * sy) / denom;
-      const intercept = (sy - slope * sx) / n;
-
-      const fitted = values.map((_, i) => (slope * i + intercept));
-      return { slope, intercept, fitted };
-    }
-
-      function renderMultiSeriesChart(points, metrics, baselineAsOf, opts = {}) {
-        const W = 1120;
-        const H = 320;
-        const pad = { l: 54, r: 16, t: 18, b: 30 };
-
-        const svg = svgEl('svg');
-        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-        svg.setAttribute('width', '100%');
-        svg.setAttribute('height', String(H));
-        svg.style.maxWidth = '100%';
-        svg.style.background = 'rgba(0,0,0,0.22)';
-        svg.style.border = '1px solid rgba(255,255,255,0.10)';
-        svg.style.borderRadius = '14px';
-
-        const view = points;
-        const N = view.length;
-
-        function x(i) {
-          if (N <= 1) return pad.l;
-          return pad.l + (i * (W - pad.l - pad.r)) / (N - 1);
-        }
-
-        function yNorm(t) {
-          const clamped = Math.max(0, Math.min(1, t));
-          return pad.t + (1 - clamped) * (H - pad.t - pad.b);
-        }
-
-        // axes (shared)
-        const xAxis = svgEl('line');
-        xAxis.setAttribute('x1', String(pad.l));
-        xAxis.setAttribute('x2', String(W - pad.r));
-        xAxis.setAttribute('y1', String(H - pad.b));
-        xAxis.setAttribute('y2', String(H - pad.b));
-        xAxis.setAttribute('stroke', 'rgba(255,255,255,0.14)');
-        xAxis.setAttribute('stroke-width', '1');
-        svg.appendChild(xAxis);
-
-        const yAxis = svgEl('line');
-        yAxis.setAttribute('x1', String(pad.l));
-        yAxis.setAttribute('x2', String(pad.l));
-        yAxis.setAttribute('y1', String(pad.t));
-        yAxis.setAttribute('y2', String(H - pad.b));
-        yAxis.setAttribute('stroke', 'rgba(255,255,255,0.14)');
-        yAxis.setAttribute('stroke-width', '1');
-        svg.appendChild(yAxis);
-
-        // x labels (first, mid, last)
-        const ix = [0, Math.floor((N - 1) / 2), N - 1];
-        for (const i of ix) {
-          const p = view[i];
-          const tx = svgEl('text');
-          tx.setAttribute('x', String(x(i)));
-          tx.setAttribute('y', String(H - 10));
-          tx.setAttribute('fill', 'rgba(255,255,255,0.60)');
-          tx.setAttribute('font-size', '11');
-          tx.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
-          tx.setAttribute('text-anchor', i === 0 ? 'start' : (i === N - 1 ? 'end' : 'middle'));
-          tx.textContent = (p?.as_of || '').slice(0, 10);
-          svg.appendChild(tx);
-        }
-
-        // baseline mapping for deltas
-        const baselinePoint = baselineAsOf ? view.find(p => p.as_of === baselineAsOf) : null;
-
-        function yAccessor(metricKey) {
-          return (p) => {
-            const v = p?.metrics?.[metricKey];
-            if (v == null || !isFinite(v)) return null;
-            if (baselinePoint) {
-              const b = baselinePoint?.metrics?.[metricKey];
-              if (b == null || !isFinite(b)) return null;
-              // relative delta
-              if (b === 0) return null;
-              return (v - b) / b;
-            }
-            return v;
-          };
-        }
-
-        // per-series extents
-        const series = metrics.map((k) => {
-          const yAcc = yAccessor(k);
-          const vals = view.map(p => yAcc(p)).filter(v => v != null && isFinite(v));
-          const lo = vals.length ? Math.min(...vals) : 0;
-          const hi = vals.length ? Math.max(...vals) : 1;
-          return { key: k, yAcc, ext: { lo, hi } };
-        });
-
-        function defaultColor(i) {
-          const palette = ['#66aaff', '#a8ffb0', '#ffc46b', '#ff5b79', '#c9a3ff', '#7de2ff', '#ffd1a3'];
-          return palette[i % palette.length];
-        }
-
-        const colorFor = opts.colorFor || ((k) => {
-          const i = metrics.indexOf(k);
-          return defaultColor(i >= 0 ? i : 0);
-        });
-
-        // render series
-        for (let si = 0; si < series.length; si++) {
-          const s = series[si];
-          const color = colorFor(s.key);
-
-          const ext = s.ext;
-          const denom = (ext.hi - ext.lo) || 1;
-
-          const d = view.map((p, i) => {
-            const px = x(i);
-            const vv = s.yAcc(p);
-            const t = vv == null ? null : (vv - ext.lo) / denom;
-            const py = yNorm(t == null ? 0 : t);
-            return `${i === 0 ? 'M' : 'L'} ${px} ${py}`;
-          }).join(' ');
-
-          const path = svgEl('path');
-          path.setAttribute('d', d);
-          path.setAttribute('stroke', color);
-          path.setAttribute('fill', 'none');
-          path.setAttribute('stroke-width', '2');
-          path.setAttribute('opacity', '0.95');
-          svg.appendChild(path);
-
-          if (opts.showTrendline) {
-            const vals = view.map(p => s.yAcc(p));
-            const tr = linearTrend(vals);
-            if (tr && tr.fitted) {
-              const td = tr.fitted.map((v, i) => {
-                const px = x(i);
-                const t = (v - ext.lo) / denom;
-                const py = yNorm(t);
-                return `${i === 0 ? 'M' : 'L'} ${px} ${py}`;
-              }).join(' ');
-              const tpath = svgEl('path');
-              tpath.setAttribute('d', td);
-              tpath.setAttribute('stroke', color);
-              tpath.setAttribute('fill', 'none');
-              tpath.setAttribute('stroke-width', '2');
-              tpath.setAttribute('stroke-dasharray', '6 4');
-              tpath.setAttribute('opacity', '0.45');
-              svg.appendChild(tpath);
-            }
-          }
-
-          // legend (wrap every ~4 items)
-          const col = si % 4;
-          const row = Math.floor(si / 4);
-          const lx = pad.l + 10 + (col * 170);
-          const ly = pad.t + 14 + (row * 16);
-          const sw = svgEl('rect');
-          sw.setAttribute('x', String(lx));
-          sw.setAttribute('y', String(ly - 10));
-          sw.setAttribute('width', '10');
-          sw.setAttribute('height', '10');
-          sw.setAttribute('rx', '2');
-          sw.setAttribute('fill', color);
-          sw.setAttribute('opacity', '0.9');
-          svg.appendChild(sw);
-
-          const label = svgEl('text');
-          label.setAttribute('x', String(lx + 14));
-          label.setAttribute('y', String(ly));
-          label.setAttribute('fill', 'rgba(255,255,255,0.75)');
-          label.setAttribute('font-size', '12');
-          label.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
-          label.textContent = s.key;
-          svg.appendChild(label);
-        }
-
-        const note = svgEl('text');
-        note.setAttribute('x', String(W - pad.r));
-        note.setAttribute('y', String(H - 12));
-        note.setAttribute('fill', 'rgba(255,255,255,0.55)');
-        note.setAttribute('font-size', '11');
-        note.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
-        note.setAttribute('text-anchor', 'end');
-        note.textContent = 'Overlay view: each selected metric is normalized to its own min..max range for comparability.';
-        svg.appendChild(note);
-
-        const wrap = document.createElement('div');
-        wrap.appendChild(svg);
-        return wrap;
-      }
-
-    function makeSeriesMetricSelector(keys, onSelect) {
-      const wrap = document.createElement('div');
-      wrap.style.display = 'flex';
-      wrap.style.gap = '10px';
-      wrap.style.flexWrap = 'wrap';
-      wrap.style.alignItems = 'center';
-
-      const label = document.createElement('span');
-      label.className = 'muted';
-      label.textContent = 'Metric:';
-      wrap.appendChild(label);
-
-      const sel = document.createElement('select');
-      sel.setAttribute('aria-label', 'Select series metric');
-      for (const k of keys) {
-        const opt = document.createElement('option');
-        opt.value = k;
-        opt.textContent = k;
-        sel.appendChild(opt);
-      }
-      sel.addEventListener('change', () => {
-        onSelect(sel.value);
-      });
-
-      wrap.appendChild(sel);
-      return { wrap, select: sel };
-    }
-
-    function renderSnapshotSeries(series) {
-      const container = el('snapshotSeries');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const points = series?.points || [];
-      if (!Array.isArray(points) || points.length === 0) {
-        container.textContent = '';
-        return;
-      }
-
-      const metrics = series?.metrics || null;
-      const defaultMetrics = ['techdebt_score', 'todo_count', 'total_source_lines', 'total_source_files', 'avg_complexity'];
-      const keys = Array.isArray(metrics) && metrics.length > 0 ? metrics : defaultMetrics;
-
-      const view = points.slice(-120);
-
-      const header = document.createElement('div');
-      header.className = 'status';
-      header.textContent = `History (${Math.min(12, view.length)}/${points.length} points shown; chart uses ${view.length}; overlay supports multiple metrics)`;
-
-      const controls = document.createElement('div');
-      controls.style.display = 'flex';
-      controls.style.gap = '10px';
-      controls.style.flexWrap = 'wrap';
-      controls.style.alignItems = 'center';
-
-      const label = document.createElement('span');
-      label.className = 'muted';
-      label.textContent = 'Metrics:';
-      controls.appendChild(label);
-
-      function metricColor(i) {
-        const palette = ['#66aaff', '#a8ffb0', '#ffc46b', '#ff5b79', '#c9a3ff', '#7de2ff', '#ffd1a3'];
-        return palette[i % palette.length];
-      }
-
-      function defaultSelectedMetrics() {
-        // Pick a sane default set, but don't error if keys are missing.
-        const preferred = ['total_source_lines', 'total_source_files', 'todo_count', 'techdebt_score', 'avg_complexity'];
-        const out = [];
-        for (const k of preferred) {
-          if (keys.includes(k)) out.push(k);
-        }
-        if (out.length > 0) return out.slice(0, 3);
-        return keys.slice(0, Math.min(3, keys.length));
-      }
-
-      const selected = new Set(defaultSelectedMetrics());
-
-      function renderMetricToggles() {
-        // Clear existing toggles (keep label only)
-        while (controls.childNodes.length > 1) controls.removeChild(controls.lastChild);
-
-        const wrap = document.createElement('div');
-        wrap.style.display = 'flex';
-        wrap.style.gap = '8px';
-        wrap.style.flexWrap = 'wrap';
-        wrap.style.alignItems = 'center';
-
-        for (let i = 0; i < keys.length; i++) {
-          const k = keys[i];
-          const item = document.createElement('label');
-          item.style.display = 'inline-flex';
-          item.style.alignItems = 'center';
-          item.style.gap = '6px';
-          item.style.padding = '6px 10px';
-          item.style.borderRadius = '999px';
-          item.style.border = '1px solid rgba(255,255,255,0.12)';
-          item.style.background = selected.has(k) ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)';
-          item.style.cursor = 'pointer';
-
-          const swatch = document.createElement('span');
-          swatch.style.display = 'inline-block';
-          swatch.style.width = '10px';
-          swatch.style.height = '10px';
-          swatch.style.borderRadius = '999px';
-          swatch.style.background = metricColor(i);
-          swatch.style.opacity = selected.has(k) ? '1' : '0.55';
-
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.checked = selected.has(k);
-          cb.style.margin = '0';
-          cb.addEventListener('change', () => {
-            if (cb.checked) {
-              selected.add(k);
-            } else {
-              selected.delete(k);
-            }
-            // Prevent empty selection: keep at least one.
-            if (selected.size === 0) selected.add(k);
-            renderMetricToggles();
-            rerender();
-          });
-
-          const txt = document.createElement('span');
-          txt.className = 'muted';
-          txt.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
-          txt.style.fontSize = '12px';
-          txt.textContent = k;
-
-          item.appendChild(swatch);
-          item.appendChild(cb);
-          item.appendChild(txt);
-          wrap.appendChild(item);
-        }
-
-        controls.appendChild(wrap);
-      }
-
-      renderMetricToggles();
-
-      const trendToggle = document.createElement('label');
-      trendToggle.style.display = 'inline-flex';
-      trendToggle.style.alignItems = 'center';
-      trendToggle.style.gap = '8px';
-      const trendCb = document.createElement('input');
-      trendCb.type = 'checkbox';
-      trendCb.checked = false;
-      trendCb.addEventListener('change', () => {
-        container.dataset.trend = trendCb.checked ? '1' : '';
-        rerender();
-      });
-      const trendTxt = document.createElement('span');
-      trendTxt.className = 'muted';
-      trendTxt.textContent = 'Trendline';
-      trendToggle.appendChild(trendCb);
-      trendToggle.appendChild(trendTxt);
-      controls.wrap.appendChild(trendToggle);
-
-      const baselineSelect = document.createElement('select');
-      baselineSelect.setAttribute('aria-label', 'Select baseline snapshot');
-      const optNone = document.createElement('option');
-      optNone.value = '';
-      optNone.textContent = 'Baseline: (none)';
-      baselineSelect.appendChild(optNone);
-      for (const p of view) {
-        const opt = document.createElement('option');
-        opt.value = p.as_of || '';
-        opt.textContent = p.as_of || '';
-        baselineSelect.appendChild(opt);
-      }
-      baselineSelect.addEventListener('change', () => {
-        container.dataset.baseline = baselineSelect.value;
-        rerender();
-      });
-      controls.wrap.appendChild(baselineSelect);
-
-      const chartWrap = document.createElement('div');
-      chartWrap.style.marginTop = '12px';
-
-      container.appendChild(header);
-      container.appendChild(controls.wrap);
-      container.appendChild(chartWrap);
-
-      function rerender() {
-        const baseline = container.dataset.baseline || '';
-        const showTrend = (container.dataset.trend || '') === '1';
-
-        const metrics = Array.from(selected.values());
-        chartWrap.innerHTML = '';
-        chartWrap.appendChild(renderMultiSeriesChart(view, metrics, baseline || null, {
-          showTrendline: showTrend,
-          colorFor: (k) => metricColor(keys.indexOf(k) >= 0 ? keys.indexOf(k) : 0),
-        }));
-      }
-
-      rerender();
-    }
-
-    function renderAll(payload) {
-      renderSummary(el('summary'), payload);
-      renderLanguages(el('languages'), payload);
-      renderTree(el('tree'), payload);
-      renderHeatmap(el('heatmap'), payload);
-      renderTechDebt(el('debt'), payload);
-      renderComplexity(el('complexity'), payload);
-      renderTimeline(el('timeline'), payload);
-      renderPRVelocity(el('pr'), payload);
-      renderCommitMessageQuality(el('messages'), payload);
-    }
-
-    function setShareUrl(repoUrl) {
-      const parsed = parseRepo(repoUrl);
-      const shareBtn = el('shareBtn');
-      if (!parsed || !shareBtn) return;
-      shareBtn.disabled = false;
-      shareBtn.onclick = () => {
-        window.open(`/story/${parsed.owner}/${parsed.repo}`, '_blank');
-      };
-    }
+    applyProGating();
 
     async function onAnalyze() {
       const repoUrl = el('repoUrl').value;
       if (!repoUrl) return;
-      setStatus('repoStatus', 'Analyzing');
-      setStatus('summaryStatus', 'Loading');
-      setStatus('langStatus', 'Loading');
-      setStatus('treeStatus', 'Loading');
-      setStatus('heatmapStatus', 'Loading');
-      setStatus('debtStatus', 'Loading');
-      setStatus('cxStatus', 'Loading');
-      setStatus('timelineStatus', 'Loading');
-      setStatus('prStatus', 'Loading');
-      setStatus('msgStatus', 'Loading');
+      setStatus('repoStatus', 'Analyzing…');
+      setStatus('summaryStatus', 'Loading…');
+      setStatus('langStatus', 'Loading…');
+      setStatus('treeStatus', 'Loading…');
+      setStatus('heatmapStatus', 'Loading…');
+      setStatus('debtStatus', 'Loading…');
+      setStatus('cxStatus', 'Loading…');
+      setStatus('timelineStatus', 'Loading…');
+      setStatus('prStatus', 'Loading…');
+      setStatus('msgStatus', 'Loading…');
       setStatus('compareStatus', 'Waiting');
-      setStatus('snapStatus', 'Loading');
-      setStatus('seriesStatus', 'Loading');
+      setStatus('snapStatus', 'Loading…');
+      setStatus('seriesStatus', 'Loading…');
 
       try {
         const payload = await apiAnalyze(repoUrl);
@@ -1898,64 +1449,68 @@
           setStatus('snapStatus', 'Done');
         } catch (e) {
           el('snapshots').textContent = '';
-          setStatus('snapStatus', 'No snapshots');
+          setStatus('snapStatus', 'Unavailable');
         }
 
-        // series
+        // history series
         try {
           const series = await apiGetSnapshotSeries(repoUrl);
           renderSnapshotSeries(series);
           setStatus('seriesStatus', 'Done');
         } catch (e) {
           el('snapshotSeries').textContent = '';
-          setStatus('seriesStatus', 'No history');
+          setStatus('seriesStatus', 'Unavailable');
         }
 
-      } catch (e) {
+      } catch (err) {
+        console.error(err);
         setStatus('repoStatus', 'Error');
         setStatus('summaryStatus', 'Error');
-        console.error(e);
+        setStatus('langStatus', 'Error');
+        setStatus('treeStatus', 'Error');
+        setStatus('heatmapStatus', 'Error');
+        setStatus('debtStatus', 'Error');
+        setStatus('cxStatus', 'Error');
+        setStatus('timelineStatus', 'Error');
+        setStatus('prStatus', 'Error');
+        setStatus('msgStatus', 'Error');
       }
     }
 
-    // Compare mode wiring
-    let compareA = null;
-    let compareB = null;
+    // Compare mode state
+    let compareRepoA = '';
+    let compareRepoB = '';
 
-    function setCompareButtons() {
-      const go = el('compareGo');
-      if (!go) return;
-      go.disabled = !(compareA && compareB);
+    function refreshCompare() {
+      el('compareA').textContent = compareRepoA || '(none)';
+      el('compareB').textContent = compareRepoB || '(none)';
+      el('compareGo').disabled = !(compareRepoA && compareRepoB);
     }
 
     el('compareSetA').onclick = () => {
-      compareA = el('repoUrl').value || null;
-      el('compareA').textContent = compareA || '(none)';
-      setCompareButtons();
+      compareRepoA = el('repoUrl').value || '';
+      refreshCompare();
     };
 
     el('compareSetB').onclick = () => {
-      compareB = el('repoUrl').value || null;
-      el('compareB').textContent = compareB || '(none)';
-      setCompareButtons();
+      compareRepoB = el('repoUrl').value || '';
+      refreshCompare();
     };
 
     el('compareClear').onclick = () => {
-      compareA = null;
-      compareB = null;
-      el('compareA').textContent = '(none)';
-      el('compareB').textContent = '(none)';
+      compareRepoA = '';
+      compareRepoB = '';
       el('compareResult').innerHTML = '';
       setStatus('compareStatus', 'Waiting');
-      setCompareButtons();
+      refreshCompare();
     };
 
     el('compareGo').onclick = async () => {
-      if (!(compareA && compareB)) return;
-      setStatus('compareStatus', 'Comparing');
+      if (!(compareRepoA && compareRepoB)) return;
+      setStatus('compareStatus', 'Comparing…');
       try {
-        const payload = await apiCompare(compareA, compareB);
-        renderCompareResult(el('compareResult'), payload);
+        const out = await apiCompare(compareRepoA, compareRepoB);
+        renderCompareResult(el('compareResult'), out);
         setStatus('compareStatus', 'Done');
       } catch (e) {
         console.error(e);
@@ -1963,242 +1518,7 @@
       }
     };
 
-    function renderCompareResult(container, payload) {
-      if (!container) return;
-      container.innerHTML = '';
-      const metrics = payload?.metrics || {};
-      const rows = [
-        ['Source lines', fmtInt(metrics.total_source_lines_a), fmtInt(metrics.total_source_lines_b), fmtInt(metrics.delta_total_source_lines)],
-        ['Source files', fmtInt(metrics.total_source_files_a), fmtInt(metrics.total_source_files_b), fmtInt(metrics.delta_total_source_files)],
-        ['TODOs', fmtInt(metrics.todo_count_a), fmtInt(metrics.todo_count_b), fmtInt(metrics.delta_todo_count)],
-        ['Tech debt', fmtFloat(metrics.techdebt_score_a, 2), fmtFloat(metrics.techdebt_score_b, 2), fmtFloat(metrics.delta_techdebt_score, 2)],
-        ['Avg complexity', fmtFloat(metrics.avg_complexity_a, 2), fmtFloat(metrics.avg_complexity_b, 2), fmtFloat(metrics.delta_avg_complexity, 2)],
-      ];
-
-      const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      thead.innerHTML = '<tr><th>Metric</th><th>A</th><th>B</th><th>Delta</th></tr>';
-      table.appendChild(thead);
-
-      const tbody = document.createElement('tbody');
-      for (const [k, a, b, d] of rows) {
-        const tr = document.createElement('tr');
-        const td0 = document.createElement('td');
-        td0.textContent = k;
-        const td1 = document.createElement('td');
-        td1.textContent = a;
-        const td2 = document.createElement('td');
-        td2.textContent = b;
-        const td3 = document.createElement('td');
-        td3.textContent = d;
-        tr.appendChild(td0);
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-        tr.appendChild(td3);
-        tbody.appendChild(tr);
-      }
-      table.appendChild(tbody);
-
-      container.appendChild(table);
-    }
-
-    // Snapshot diff wiring
-    async function loadDiff() {
-      const repoUrl = el('repoUrl').value;
-      const a = el('snapA').value;
-      const b = el('snapB').value;
-      if (!repoUrl || !a || !b) return;
-      setStatus('diffStatus', 'Loading');
-      try {
-        const diff = await apiGetSnapshotDiff(repoUrl, a, b);
-        renderDiff(el('diffOut'), diff);
-        renderSnapBChips(el('snapBChips'), diff);
-        renderTimelineEvents(el('timelineOut'), diff);
-        el('diffMini').textContent = `${diff?.a?.as_of || a} -> ${diff?.b?.as_of || b}`;
-        setStatus('diffStatus', 'Done');
-      } catch (e) {
-        console.error(e);
-        setStatus('diffStatus', 'Error');
-      }
-    }
-
-    function renderSnapBChips(container, diff) {
-      if (!container) return;
-      container.innerHTML = '';
-      const b = diff?.b || {};
-      const m = b?.metrics || {};
-      const asOf = b?.as_of || '';
-      const chips = [
-        ['as_of', asOf],
-        ['loc', fmtInt(m.total_source_lines)],
-        ['files', fmtInt(m.total_source_files)],
-        ['TODOs', fmtInt(m.todo_count)],
-        ['debt', fmtFloat(m.techdebt_score, 2)],
-        ['avg cx', fmtFloat(m.avg_complexity, 2)],
-      ];
-      for (const [k, v] of chips) {
-        const pill = document.createElement('span');
-        pill.className = 'pill';
-        pill.innerHTML = `<span class="dot"></span><span class="muted2">${k}</span> <b>${v}</b>`;
-        container.appendChild(pill);
-      }
-    }
-
-    function renderDiff(container, diff) {
-      if (!container) return;
-      container.innerHTML = '';
-      const rows = diff?.deltas || [];
-      if (!Array.isArray(rows) || rows.length === 0) {
-        container.innerHTML = '<div class="muted">No diff</div>';
-        return;
-      }
-
-      const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      thead.innerHTML = '<tr><th>Metric</th><th>A</th><th>B</th><th>\u0394</th><th>%</th></tr>';
-      table.appendChild(thead);
-
-      const tbody = document.createElement('tbody');
-      for (const r of rows) {
-        const tr = document.createElement('tr');
-        const td0 = document.createElement('td');
-        td0.textContent = r.key;
-
-        const td1 = document.createElement('td');
-        td1.textContent = r.a;
-
-        const td2 = document.createElement('td');
-        td2.textContent = r.b;
-
-        const td3 = document.createElement('td');
-        td3.textContent = r.delta;
-        td3.className = r.delta >= 0 ? 'delta-pos' : 'delta-neg';
-
-        const td4 = document.createElement('td');
-        td4.textContent = fmtPct(r.pct);
-        td4.className = (r.pct || 0) >= 0 ? 'delta-pos' : 'delta-neg';
-
-        tr.appendChild(td0);
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-        tr.appendChild(td3);
-        tr.appendChild(td4);
-        tbody.appendChild(tr);
-      }
-      table.appendChild(tbody);
-
-      container.appendChild(table);
-    }
-
-    function renderTimelineEvents(container, diff) {
-      if (!container) return;
-      container.innerHTML = '';
-      const events = diff?.timeline || [];
-      if (!Array.isArray(events) || events.length === 0) {
-        container.innerHTML = '<div class="muted">No timeline</div>';
-        return;
-      }
-
-      const wrap = document.createElement('div');
-      wrap.className = 'timeline';
-
-      for (const e of events) {
-        const item = document.createElement('div');
-        item.className = 'timeline-item';
-        const top = document.createElement('div');
-        top.className = 't';
-
-        const left = document.createElement('div');
-        left.className = 'mono';
-        left.textContent = e.as_of;
-
-        const right = document.createElement('div');
-        right.className = 'meta';
-        right.textContent = `${e.change_count || 0} changes`;
-
-        top.appendChild(left);
-        top.appendChild(right);
-
-        const msg = document.createElement('div');
-        msg.className = 'msg';
-        msg.textContent = e.summary || '';
-
-        const chips = document.createElement('div');
-        chips.style.marginTop = '8px';
-        chips.style.display = 'flex';
-        chips.style.gap = '8px';
-        chips.style.flexWrap = 'wrap';
-
-        for (const c of (e.changes || [])) {
-          const chip = document.createElement('span');
-          chip.className = 'chip ' + ((c.delta || 0) >= 0 ? 'chippos' : 'chipneg');
-          chip.innerHTML = `<span class="muted2">${c.key}</span> <b>${c.delta >= 0 ? '+' : ''}${c.delta}</b>`;
-          chips.appendChild(chip);
-        }
-
-        item.appendChild(top);
-        item.appendChild(msg);
-        item.appendChild(chips);
-        wrap.appendChild(item);
-      }
-
-      container.appendChild(wrap);
-    }
-
-    async function populateDiffSelectors(repoUrl) {
-      const parsed = parseRepo(repoUrl);
-      if (!parsed) return;
-      try {
-        const snaps = await apiGetSnapshots(repoUrl);
-        const list = snaps?.snapshots || [];
-        const aSel = el('snapA');
-        const bSel = el('snapB');
-        aSel.innerHTML = '';
-        bSel.innerHTML = '';
-        for (const s of list) {
-          const optA = document.createElement('option');
-          optA.value = s.as_of;
-          optA.textContent = s.as_of;
-          const optB = document.createElement('option');
-          optB.value = s.as_of;
-          optB.textContent = s.as_of;
-          aSel.appendChild(optA);
-          bSel.appendChild(optB);
-        }
-        // defaults
-        if (list.length >= 2) {
-          aSel.value = list[list.length - 2].as_of;
-          bSel.value = list[list.length - 1].as_of;
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    el('diffBtn').onclick = loadDiff;
-
-    // tabs
-    el('diffTabDelta').onclick = () => {
-      el('diffTabDelta').classList.add('active');
-      el('diffTabTimeline').classList.remove('active');
-      el('timelineOut').style.display = 'none';
-      el('diffOut').style.display = '';
-    };
-
-    el('diffTabTimeline').onclick = () => {
-      el('diffTabTimeline').classList.add('active');
-      el('diffTabDelta').classList.remove('active');
-      el('timelineOut').style.display = '';
-      el('diffOut').style.display = 'none';
-    };
-
-    // populate diff selectors after analyze
-    const oldAnalyze = onAnalyze;
-    onAnalyze = async () => {
-      await oldAnalyze();
-      const repoUrl = el('repoUrl').value;
-      if (repoUrl) populateDiffSelectors(repoUrl);
-    };
+    refreshCompare();
   </script>
 </body>
 </html>
