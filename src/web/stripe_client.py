@@ -23,6 +23,8 @@ def create_checkout_session(
     price_id: str,
     success_url: str,
     cancel_url: str,
+    client_reference_id: str | None = None,
+    metadata: dict[str, str] | None = None,
 ) -> tuple[str, str]:
     """Create a Stripe Checkout Session and return its URL and ID.
 
@@ -31,6 +33,8 @@ def create_checkout_session(
         price_id: Stripe price ID.
         success_url: URL Stripe redirects to after successful purchase.
         cancel_url: URL Stripe redirects to if user cancels.
+        client_reference_id: Optional stable reference ID (e.g., gh:<login>).
+        metadata: Optional key/value metadata stored on the session.
 
     Returns:
         Tuple of (checkout_url, session_id).
@@ -44,7 +48,7 @@ def create_checkout_session(
     if not price_id:
         raise StripeAPIError("missing_price_id")
 
-    form = {
+    form: dict[str, str] = {
         "mode": "payment",
         "success_url": success_url,
         "cancel_url": cancel_url,
@@ -52,6 +56,15 @@ def create_checkout_session(
         "line_items[0][quantity]": "1",
         "allow_promotion_codes": "true",
     }
+
+    if client_reference_id:
+        form["client_reference_id"] = client_reference_id
+
+    if metadata:
+        for key, value in metadata.items():
+            if not key or value is None:
+                continue
+            form[f"metadata[{key}]"] = str(value)
 
     body = urllib.parse.urlencode(form).encode("utf-8")
     req = urllib.request.Request(

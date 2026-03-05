@@ -27,6 +27,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from src.web.entitlements.cookies import pro_cookie_name
+from src.web.entitlements.identity import subject_for_request
 from src.web.entitlements.store import grant_pro
 
 
@@ -54,6 +55,39 @@ def _extract_checkout_email(event: dict) -> str | None:
     except Exception:
         return None
 
+
+def _extract_checkout_subject(event: dict) -> str | None:
+    """Return a stable entitlement subject from the Stripe event.
+
+    Preference order:
+    1) client_reference_id set during checkout (e.g., gh:<login>)
+    2) metadata['reposcape_subject'] set during checkout
+    3) checkout email fallback (legacy)
+    """
+
+    try:
+        data = event.get("data")
+        if not isinstance(data, dict):
+            return None
+        obj = data.get("object")
+        if not isinstance(obj, dict):
+            return None
+
+        candidates: list[str | None] = [
+            obj.get("client_reference_id"),
+            obj.get("metadata", {}).get("reposcape_subject") if isinstance(obj.get("metadata"), dict) else None,
+            _extract_checkout_email(event),
+        ]
+
+        for c in candidates:
+            if not c:
+                continue
+            s = str(c).strip()
+            if s:
+                return s
+        return None
+    except Exception:
+        return None
 
 from src.web.stripe_client import StripeAPIError, create_checkout_session
 from src.web.stripe_env import (
@@ -112,6 +146,8 @@ def api_checkout(request: Request) -> JSONResponse:
             },
         )
 
+    subject = subject_for_request(request)
+
     success_url = urljoin(_base_url(request), "billing/success")
     cancel_url = urljoin(_base_url(request), "billing/cancel")
 
@@ -121,6 +157,8 @@ def api_checkout(request: Request) -> JSONResponse:
             price_id=price_id,
             success_url=success_url,
             cancel_url=cancel_url,
+            client_reference_id=subject,
+            metadata={"reposcape_subject": subject} if subject else None,
         )
     except StripeAPIError as e:
         return JSONResponse(
@@ -169,10 +207,10 @@ async def stripe_webhook(request: Request) -> JSONResponse:
     if event_type != "checkout.session.completed":
         return JSONResponse(content={"received": True})
 
-    email = _extract_checkout_email(event)
-    if email:
+    subject = _extract_checkout_subject(event)
+    if subject:
         try:
-            grant_pro(email, source="stripe_webhook")
+            grant_pro(subject, source="stripe_webhook")
         except Exception:
             pass
 
