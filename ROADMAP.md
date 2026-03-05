@@ -69,6 +69,7 @@ _Phase 1 items all done._
     - [x] Pro feature flag stub + dashboard watermark CTA (Session 41)
     - [x] Billing endpoints stub + dashboard Upgrade wiring (Session 42)
     - [x] Billing: centralize Stripe env configuration helpers (Session 43)
+    - [x] Billing: cookie-based Pro entitlements (placeholder) (Session 44)
 
 ## Completed
 
@@ -84,4 +85,4 @@ _Phase 1 items all done._
 - [x] Code complexity heatmap (Session 4)
 - [x] Commit timeline (Session 5)
 - [x] PR velocity tracker (Session 5)
-- [x] Tech debt scorer (Session 5)
+- [x] Tech debt scorer (TODO density, large files, deep nesting) (Session 5)
