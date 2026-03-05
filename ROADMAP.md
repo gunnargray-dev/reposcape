@@ -67,6 +67,7 @@ _Phase 1 items all done._
 - [x] GitHub Action (auto-generate on release) (Session 27)
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
     - [x] Pro feature flag stub + dashboard watermark CTA (Session 41)
+    - [x] Billing endpoints stub + dashboard Upgrade wiring (Session 42)
 
 ## Completed
 
