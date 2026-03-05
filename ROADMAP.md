@@ -75,6 +75,7 @@ _Phase 1 items all done._
     - [x] Billing: create real Stripe Checkout Session (stdlib HTTP) + add webhook verifier + endpoint (Session 45)
     - [x] Entitlements: persist Pro by email (SQLite) + restore flow (Session 46)
     - [x] Identity: GitHub OAuth login + signed session cookie (Session 47)
+    - [x] Stripe: store entitlement under authenticated subject (gh:<login>) via client_reference_id/metadata (Session 48)
 
 ## Completed
 
