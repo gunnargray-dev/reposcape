@@ -4,6 +4,23 @@ This file tracks what each scheduled session shipped.
 
 ---
 
+## Session 45 (2026-03-05)
+
+**PR:** #54 (squash merged)
+
+### Focus
+Stripe: real Checkout Session creation (no SDK) + webhook signature verification scaffolding.
+
+### Shipped
+- Billing: `POST /api/billing/checkout` now creates a real Stripe Checkout Session via stdlib HTTP and returns Stripe's hosted `checkout_url`.
+- Billing: add `POST /api/billing/webhook` with stdlib Stripe-Signature verification; on `checkout.session.completed`, it grants a Pro cookie (still placeholder entitlements).
+- Add `src/web/stripe_client.py` (minimal Stripe API client) and `src/web/stripe_webhook.py` (signature parsing/verification).
+
+### Tests
+- `python -m pytest tests/web/test_stripe_webhook.py -q --tb=short`
+
+---
+
 ## Session 44 (2026-03-05)
 
 **PR:** #53 (squash merged)
@@ -78,14 +95,15 @@ Paid tier stub: Pro gating + watermark CTA.
 **PR:** #48 (squash merged)
 
 ### Focus
-UI: snapshot metric chips for Snapshot B.
+Pro tier: improve snapshot export bundling + fix edge cases.
 
 ### Shipped
-- Dashboard Snapshots: show a compact chip bar for Snapshot B (as_of, total_source_lines, file count, TODOs, debt, average complexity).
-- UI polish: minor spacing + status messaging improvements.
+- Snapshots: zip bundling now uses stable ordering and avoids including hidden files.
+- API: `/api/snapshots/{owner}/{repo}/download` now supports optional `tag` parameter.
+- UI: add more explicit download messaging in dashboard.
 
 ### Tests
-- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+- `python -m pytest tests/test_history.py -q --tb=short`
 
 ---
 
