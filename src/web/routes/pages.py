@@ -27,6 +27,7 @@ def dashboard(request: Request) -> HTMLResponse:
     context = {
         "request": request,
         "snapshots_enabled": bool(request.app.state.get("snapshots_enabled", False)),
+        "pro_enabled": bool(request.app.state.get("pro_enabled", False)),
     }
     return templates.TemplateResponse(request, "dashboard.html", context)
 
