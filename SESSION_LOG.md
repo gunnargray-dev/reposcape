@@ -39,17 +39,17 @@ This file tracks what shipped each autonomous session.
 
 ## Session 4
 
-**Focus:** dependency + complexity graphing.
+**Focus:** dependency graph + complexity heatmap.
 
 **Shipped:**
-- Dependency graph (`src/dependencies.py`)
-- Complexity heatmap (`src/complexity.py`)
+- Dependency graph (Python/JS/TS import parsing) (`src/dependencies.py`)
+- Code complexity heatmap (cyclomatic complexity per file) (`src/complexity.py`)
 
 ---
 
 ## Session 5
 
-**Focus:** timeline + PR velocity.
+**Focus:** timeline + PR velocity + tech debt.
 
 **Shipped:**
 - Commit timeline (`src/timeline.py`)
@@ -58,145 +58,199 @@ This file tracks what shipped each autonomous session.
 
 ---
 
-## Session 6
+## Session 6 (2026-03-01)
 
-**Focus:** initial web UI.
-
-**Shipped:**
-- FastAPI web app skeleton (`src/web/app.py`)
-- Dashboard template and basic analyze wiring (`src/web/templates/dashboard.html`)
-- Landing page + URL input (`src/web/templates/index.html`)
-
----
-
-## Session 7
-
-**Focus:** expand analyze payload + basic caching.
-
-**Shipped:**
-- Expand analyze payload to include additional analyzers
-- Add basic caching layer to avoid repeated analysis
-- Dashboard renders more analyzers
-
----
-
-## Session 8
-
-**Focus:** expand dashboard visualizations.
-
-**Shipped:**
-- Dashboard renders timeline, heatmap, tech debt, complexity sections
-- Added basic section cards and status labels
-
----
-
-## Session 9
-
-**Focus:** share cards.
-
-**Shipped:**
-- Open Graph image generator (`src/web/og.py`)
-- Share preview route + template
-
----
-
-## Session 10
-
-**Focus:** export system.
-
-**Shipped:**
-- HTML snapshot export for analysis payloads
-- Printable export workflow
-
----
-
-## Session 11
-
-**Focus:** showcase.
-
-**Shipped:**
-- Nightshift showcase route and pre-generated demo assets
-
----
-
-## Session 12
-
-**Focus:** story pages.
-
-**Shipped:**
-- Story pages wired to share cards and OG meta tags
-
----
-
-## Session 13
-
-**Focus:** quality and cleanup.
-
-**Shipped:**
-- Minor rendering/formatting improvements
-
----
-
-## Session 14
-
-**Focus:** story metadata.
-
-**Shipped:**
-- Story pages: populate metadata (stars, primary language, last updated)
-
----
-
-## Session 15
-
-**Focus:** export enhancements.
-
-**Shipped:**
-- Client-side SVG->PNG export + iframe embed option
-
----
-
-## Session 16 (2026-03-02)
-
-**PR:** #19 (squash merged)
+**PR:** #14 (squash merged)
 
 ### Focus
-Dashboard snapshots: timeline sparkline + UX polish.
+Web frontend: landing page + initial dashboard.
 
 ### Shipped
-- Dashboard: adds snapshot timeline sparkline (small SVG) for snapshot list.
-- Dashboard: makes snapshot list a little more scannable.
-
-### Tests
-- `python -m pytest tests/test_history.py -q --tb=short`
-
----
-
-## Session 17 (2026-03-02)
-
-**PR:** #20 (squash merged)
-
-### Focus
-Snapshot bundle selection + snapshot ZIP link improvements.
-
-### Shipped
-- Dashboard: allow selecting release tag/date for the snapshot bundle download.
-- Dashboard: link to `reposcape-snapshots.zip` asset for the selected release.
+- Landing page with repo URL input.
+- Visualization dashboard with initial summary and treemap.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
 
 ---
 
-## Session 18 (2026-03-02)
+## Session 7 (2026-03-01)
+
+**PR:** #15 (squash merged)
+
+### Focus
+Dashboard: expand analyze payload and add caching.
+
+### Shipped
+- Expanded `/api/analyze` payload with more analyzers.
+- Basic caching of analysis results (in-memory).
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 8 (2026-03-01)
+
+**PR:** #16 (squash merged)
+
+### Focus
+Dashboard: render all analyzers.
+
+### Shipped
+- Dashboard renders timeline, heatmap, tech debt, complexity, PR velocity, commit message quality.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 9 (2026-03-01)
+
+**PR:** #17 (squash merged)
+
+### Focus
+Share cards (Open Graph images).
+
+### Shipped
+- Open Graph image generator + share card route.
+
+### Tests
+- `python -m pytest tests/web/test_og.py -q --tb=short`
+
+---
+
+## Session 10 (2026-03-02)
+
+**PR:** #18 (squash merged)
+
+### Focus
+Export system (HTML snapshot download).
+
+### Shipped
+- Export endpoint that returns a self-contained HTML dashboard snapshot.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 11 (2026-03-02)
+
+**PR:** #19 (squash merged)
+
+### Focus
+Nightshift showcase.
+
+### Shipped
+- Showcase page using a pre-generated demo for `nightshift`.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 12 (2026-03-02)
+
+**PR:** #20 (squash merged)
+
+### Focus
+Story pages.
+
+### Shipped
+- Per-repo story pages with OG meta tags wired to share cards.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 13 (2026-03-02)
 
 **PR:** #21 (squash merged)
 
 ### Focus
-CLI: make `reposcape analyze` work for local clones.
+Docs page and dashboard polish.
 
 ### Shipped
-- CLI: `reposcape analyze` can analyze a local folder path.
-- CLI: more helpful error message when path is missing.
+- `/docs` route with basic documentation.
+- Dashboard: small UI polish improvements.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 14 (2026-03-02)
+
+**PR:** #22 (squash merged)
+
+### Focus
+Story pages: GitHub metadata.
+
+### Shipped
+- Story pages: populate subtitle/metadata (stars, primary language, last updated) from GitHub metadata.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 15 (2026-03-02)
+
+**PR:** #23 (squash merged)
+
+### Focus
+Export: SVG -> PNG and iframe embed.
+
+### Shipped
+- Export system: client-side SVG->PNG for shareable assets.
+- Export system: optional iframe embed.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 16 (2026-03-02)
+
+**PR:** #24 (squash merged)
+
+### Focus
+Share preview polish.
+
+### Shipped
+- Share preview page: per-metric chips + metadata.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 17 (2026-03-02)
+
+**PR:** #25 (squash merged)
+
+### Focus
+Export: print-to-PDF helper.
+
+### Shipped
+- Export system: server-side print-to-PDF helper.
+
+### Tests
+- `python -m pytest tests/test_export.py -q --tb=short`
+
+---
+
+## Session 18 (2026-03-02)
+
+**PR:** #26 (squash merged)
+
+### Focus
+CLI tool.
+
+### Shipped
+- CLI: `reposcape analyze <url>`.
 
 ### Tests
 - `python -m pytest tests/test_cli.py -q --tb=short`
@@ -205,77 +259,75 @@ CLI: make `reposcape analyze` work for local clones.
 
 ## Session 19 (2026-03-02)
 
-**PR:** #22 (squash merged)
+**PR:** #27 (squash merged)
 
 ### Focus
-Fix packaging for `src/` layout.
+Packaging for `src/` layout.
 
 ### Shipped
-- Packaging: ensure `pip install -e .` finds `src/` packages.
-- CLI entrypoint moved to package.
+- Packaging: fix setuptools discovery for `src/` layout.
 
 ### Tests
 - `python -m pytest tests/test_cli.py -q --tb=short`
 
 ---
 
-## Session 20 (2026-03-02)
+## Session 20 (2026-03-03)
 
-**PR:** #23 (squash merged)
+**PR:** #28 (squash merged)
 
 ### Focus
-Dashboard: add “Download snapshots” link.
+Metadata caching.
 
 ### Shipped
-- Dashboard: when snapshots are present, show a “Download snapshots” link.
+- Cache GitHub metadata lookups (stars, languages, updated) to reduce repeated calls.
 
 ### Tests
-- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+- `python -m pytest tests/test_github_meta.py -q --tb=short`
 
 ---
 
 ## Session 21 (2026-03-03)
 
-**PR:** #24 (squash merged)
+**PR:** #29 (squash merged)
 
 ### Focus
-Stabilize tests and reduce fixture duplication.
+Test suite stability.
 
 ### Shipped
-- Tests: convert multiple fixtures to module-scoped
-- Tests: add shared conftest + integration marker
+- Refactor test suite for stability: module-scoped fixtures, integration markers, shared conftest.
 
 ### Tests
-- `python -m pytest tests -q --tb=short` (note: may be slow)
+- `python -m pytest tests/test_clone.py -q --tb=short`
+- `python -m pytest tests/test_cli.py -q --tb=short`
 
 ---
 
 ## Session 22 (2026-03-03)
 
-**PR:** #25 (squash merged)
+**PR:** #30 (squash merged)
 
 ### Focus
 Comparison mode.
 
 ### Shipped
-- Web: `/compare` route and template
-- API: `/api/compare` endpoint
-- UI: side-by-side cards for two repos
+- `/api/compare` endpoint.
+- Dashboard: compare mode UI.
 
 ### Tests
-- `python -m pytest tests/test_clone.py -q --tb=short`
+- `python -m pytest tests/test_compare.py -q --tb=short`
 
 ---
 
 ## Session 23 (2026-03-03)
 
-**PR:** #26 (squash merged)
+**PR:** #31 (squash merged)
 
 ### Focus
-History: snapshot bucketing + persistence.
+Historical tracking foundation.
 
 ### Shipped
-- `src/history.py`: bucketing, snapshot IO, and snapshot directory layout
+- Snapshot bucketing + persistence utilities (`src/history.py`).
 
 ### Tests
 - `python -m pytest tests/test_history.py -q --tb=short`
@@ -284,14 +336,13 @@ History: snapshot bucketing + persistence.
 
 ## Session 24 (2026-03-03)
 
-**PR:** #27 (squash merged)
+**PR:** #32 (squash merged)
 
 ### Focus
-CLI: wire snapshot generation.
+Snapshots in CLI.
 
 ### Shipped
-- CLI: `--snapshot-dir` option for `reposcape analyze`
-- CLI: `--as-of` label for snapshot naming
+- Wire snapshot generation into CLI (`reposcape analyze --snapshot-dir ...`).
 
 ### Tests
 - `python -m pytest tests/test_cli.py -q --tb=short`
@@ -300,29 +351,28 @@ CLI: wire snapshot generation.
 
 ## Session 25 (2026-03-03)
 
-**PR:** #28 (squash merged)
+**PR:** #33 (squash merged)
 
 ### Focus
-Web API: list and fetch snapshots.
+Web API: snapshots.
 
 ### Shipped
-- API: `/api/snapshots/list` and `/api/snapshots/get`
+- Web API: add endpoints to list snapshots + fetch a snapshot payload.
 
 ### Tests
-- `python -m pytest tests/test_history.py -q --tb=short`
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
 
 ---
 
 ## Session 26 (2026-03-03)
 
-**PR:** #29 (squash merged)
+**PR:** #34 (squash merged)
 
 ### Focus
-Dashboard UI: snapshot selector.
+Dashboard snapshot selector.
 
 ### Shipped
-- Dashboard: snapshot selector dropdown
-- Dashboard: load snapshot payload into dashboard
+- Dashboard: add snapshot selector and load snapshot payload.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
@@ -331,13 +381,13 @@ Dashboard UI: snapshot selector.
 
 ## Session 27 (2026-03-03)
 
-**PR:** #30 (squash merged)
+**PR:** #35 (squash merged)
 
 ### Focus
-GitHub Action: auto-generate snapshots on release.
+GitHub Action for snapshots bundle.
 
 ### Shipped
-- GitHub Action workflow for snapshot generation
+- GitHub Action (auto-generate snapshots on release).
 
 ### Tests
 - `python -m pytest tests/test_history.py -q --tb=short`
@@ -346,74 +396,74 @@ GitHub Action: auto-generate snapshots on release.
 
 ## Session 28 (2026-03-03)
 
-**PR:** #31 (squash merged)
+**PR:** #36 (squash merged)
 
 ### Focus
-Story/share polish.
+Docs: snapshots UX.
 
 ### Shipped
-- Story: improve metadata layout and OG defaults
+- Docs: document how to generate and use snapshots.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
 
 ---
 
-## Session 29 (2026-03-04)
+## Session 29 (2026-03-03)
 
-**PR:** #32 (squash merged)
+**PR:** #37 (squash merged)
 
 ### Focus
-Dashboard: link snapshots ZIP asset to latest release.
+Dashboard: snapshots download link.
 
 ### Shipped
-- Dashboard: show “Download snapshots” link to `reposcape-snapshots.zip` on latest GitHub release.
+- Dashboard: add "Download snapshots" link to latest release asset.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
 
 ---
 
-## Session 30 (2026-03-04)
+## Session 30 (2026-03-03)
 
-**PR:** #33 (squash merged)
+**PR:** #38 (squash merged)
 
 ### Focus
-Dashboard: allow selecting snapshot bundle release tag/date.
+Dashboard: choose release tag/date.
 
 ### Shipped
-- Dashboard: add a release selector for snapshot bundle downloads.
+- Dashboard: allow selecting a release tag/date for snapshot bundle.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
 
 ---
 
-## Session 31 (2026-03-04)
+## Session 31 (2026-03-03)
 
-**PR:** #34 (squash merged)
+**PR:** #39 (squash merged)
 
 ### Focus
-Snapshot diff: API + delta table.
+Snapshot diff API + delta table.
 
 ### Shipped
-- API: snapshot diff endpoint
-- Dashboard: delta table comparing two snapshots
+- API: snapshot diff endpoint.
+- Dashboard: delta table for snapshot diffs.
 
 ### Tests
-- `python -m pytest tests/test_history_delta.py -q --tb=short`
+- `python -m pytest tests/test_history_diff.py -q --tb=short`
 
 ---
 
 ## Session 32 (2026-03-04)
 
-**PR:** #35 (squash merged)
+**PR:** #40 (squash merged)
 
 ### Focus
-Dashboard: snapshot timeline sparkline.
+Fix baseline selection bug.
 
 ### Shipped
-- Dashboard: sparkline shows snapshot density over time.
+- History chart: fix baseline selection edge case when baseline snapshot missing.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
@@ -422,13 +472,13 @@ Dashboard: snapshot timeline sparkline.
 
 ## Session 33 (2026-03-04)
 
-**PR:** #36 (squash merged)
+**PR:** #41 (squash merged)
 
 ### Focus
-Dashboard: snapshot timeline sparkline polish.
+Add snapshot timeline sparkline.
 
 ### Shipped
-- Dashboard: timeline sparkline uses normalized time axis.
+- Dashboard: add snapshot timeline sparkline.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
@@ -437,13 +487,13 @@ Dashboard: snapshot timeline sparkline polish.
 
 ## Session 34 (2026-03-04)
 
-**PR:** #37 (squash merged)
+**PR:** #42 (squash merged)
 
 ### Focus
-Dashboard: snapshot chips.
+Snapshot B metric chips.
 
 ### Shipped
-- Dashboard: show snapshot metric chips (as_of, LOC, files, TODOs, debt, avg cx).
+- Dashboard: show snapshot metric chips (as_of, LOC, files, TODOs, debt, avg cx) when loading snapshot B.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
@@ -452,13 +502,13 @@ Dashboard: snapshot chips.
 
 ## Session 35 (2026-03-04)
 
-**PR:** #42 (squash merged)
+**PR:** #43 (squash merged)
 
 ### Focus
-Dashboard: timeline/diff UI.
+Timeline/diff view (UI).
 
 ### Shipped
-- Dashboard: timeline/diff view improvements.
+- Dashboard: adds a Timeline tab for snapshot diffs.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
@@ -477,6 +527,56 @@ History: interactive chart.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 37 (2026-03-04)
+
+**PR:** #44 (squash merged)
+
+### Focus
+Baseline-relative deltas on the history chart.
+
+### Shipped
+- Dashboard: when a baseline snapshot is selected for the History chart, plot and label values as deltas vs baseline (value - baselineValue).
+- UI: y-axis labels now show signed deltas; `debt` deltas are formatted as percent.
+- Chart: adds a dashed zero reference line when baseline is active.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 38 (2026-03-04)
+
+**PR:** #45 (squash merged)
+
+### Focus
+Optional trendline overlay for the History chart.
+
+### Shipped
+- Dashboard History (SVG): adds an optional linear trendline overlay (least-squares fit) over the currently selected metric series.
+- UI: new "Trendline" checkbox alongside Metric/Baseline selectors.
+- Works for both raw series and baseline-relative delta series.
+
+### Tests
+- `python -m pytest tests/web -q --tb=short`
+
+---
+
+## Session 40 (2026-03-05)
+
+**PR:** #47 (squash merged)
+
+### Focus
+History chart UX: clarify overlay normalization.
+
+### Shipped
+- Dashboard History: clarify overlay note (each selected metric is normalized to its own min..max range for comparability).
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+- `python -m pytest tests/test_history.py -q --tb=short`
 
 ---
 
