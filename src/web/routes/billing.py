@@ -27,6 +27,34 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from src.web.entitlements.cookies import pro_cookie_name
+from src.web.entitlements.store import grant_pro
+
+
+def _extract_checkout_email(event: dict) -> str | None:
+    """Return customer email from a checkout.session.completed event."""
+
+    try:
+        data = event.get("data")
+        if not isinstance(data, dict):
+            return None
+        obj = data.get("object")
+        if not isinstance(obj, dict):
+            return None
+        candidates = [
+            obj.get("customer_details", {}).get("email") if isinstance(obj.get("customer_details"), dict) else None,
+            obj.get("customer_email"),
+        ]
+        for c in candidates:
+            if not c:
+                continue
+            s = str(c).strip()
+            if s and "@" in s:
+                return s
+        return None
+    except Exception:
+        return None
+
+
 from src.web.stripe_client import StripeAPIError, create_checkout_session
 from src.web.stripe_env import (
     stripe_enabled,
@@ -140,6 +168,13 @@ async def stripe_webhook(request: Request) -> JSONResponse:
     event_type = str(event.get("type") or "")
     if event_type != "checkout.session.completed":
         return JSONResponse(content={"received": True})
+
+    email = _extract_checkout_email(event)
+    if email:
+        try:
+            grant_pro(email, source="stripe_webhook")
+        except Exception:
+            pass
 
     response = JSONResponse(content={"received": True})
     response.set_cookie(

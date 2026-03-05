@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from src.web.entitlements.cookies import is_pro
+from src.web.entitlements.email import is_pro
 
 router = APIRouter(tags=["pages"])
 
