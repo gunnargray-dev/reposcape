@@ -356,7 +356,7 @@
     .dash-tabs button {
       background: rgba(255,255,255,0.08);
       color: var(--text);
-      border: 1px solid rgba(255,255,255,0.14);
+      border:  1px solid rgba(255,255,255,0.14);
       font-weight: 600;
       padding: 8px 10px;
       border-radius: 10px;
@@ -898,9 +898,24 @@
       wm.style.display = PRO_ENABLED ? 'none' : 'block';
       const up = el('upgradeLink');
       if (up) {
-        up.onclick = (e) => {
+        up.onclick = async (e) => {
           e.preventDefault();
-          alert('Pro / Stripe integration is not wired yet.');
+          try {
+            const r = await fetch('/api/billing/checkout', { method: 'POST' });
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({}));
+              alert(err.message || 'Billing is not configured on this deployment.');
+              return;
+            }
+            const data = await r.json();
+            if (data && data.checkout_url) {
+              window.location.href = data.checkout_url;
+            } else {
+              alert('Unexpected billing response.');
+            }
+          } catch {
+            alert('Unable to start checkout.');
+          }
         };
       }
     }
@@ -1078,20 +1093,25 @@
         container.innerHTML = '<div class="muted">No tree data</div>';
         return;
       }
-      // Simple treemap-like list (no D3 for now).
-      const sorted = [...nodes].sort((a, b) => (b.size || 0) - (a.size || 0)).slice(0, 18);
-      for (const n of sorted) {
-        const row = document.createElement('div');
-        row.className = 'kv';
-        const k = document.createElement('div');
-        k.className = 'k';
-        k.textContent = n.path;
-        const v = document.createElement('div');
-        v.className = 'v';
-        v.textContent = `${fmtInt(n.size)} bytes`;
-        row.appendChild(k);
-        row.appendChild(v);
-        container.appendChild(row);
+      // Simplified text listing of top-level nodes
+      const ul = document.createElement('ul');
+      ul.style.margin = '0';
+      ul.style.paddingLeft = '18px';
+      ul.style.fontFamily = 'var(--mono)';
+      ul.style.fontSize = '12px';
+      const max = Math.min(20, nodes.length);
+      for (let i = 0; i < max; i++) {
+        const li = document.createElement('li');
+        li.textContent = `${nodes[i].name} (${fmtInt(nodes[i].size)} bytes)`;
+        ul.appendChild(li);
+      }
+      container.appendChild(ul);
+      if (nodes.length > max) {
+        const more = document.createElement('div');
+        more.className = 'muted2';
+        more.style.marginTop = '10px';
+        more.textContent = `+ ${nodes.length - max} more nodes…`;
+        container.appendChild(more);
       }
     }
 
@@ -1100,317 +1120,170 @@
       container.innerHTML = '';
       const weeks = payload?.heatmap?.weeks || [];
       if (!Array.isArray(weeks) || weeks.length === 0) {
-        container.innerHTML = '<div class="muted">No heatmap</div>';
+        container.innerHTML = '<div class="muted">No heatmap data</div>';
         return;
       }
-      const pre = document.createElement('pre');
-      pre.style.margin = 0;
-      pre.style.fontFamily = 'var(--mono)';
-      pre.style.fontSize = '11px';
-      pre.style.whiteSpace = 'pre';
-      pre.style.lineHeight = '1.3';
-      const chars = [' ', '·', ':', '*', '#'];
-      let out = '';
-      for (const w of weeks.slice(-26)) {
-        const days = w.days || [];
-        const row = days.map(d => {
-          const v = d.count || 0;
-          const idx = Math.max(0, Math.min(chars.length - 1, Math.floor(v / 3)));
-          return chars[idx];
-        }).join('');
-        out += row + '\n';
-      }
-      pre.textContent = out;
-      container.appendChild(pre);
-      container.insertAdjacentHTML('beforeend', '<div class="small" style="margin-top:10px;">(ASCII preview; use export for high-fidelity)</div>');
-    }
-
-    function renderTechDebt(container, payload) {
-      if (!container) return;
-      container.innerHTML = '';
-      const d = payload?.techdebt || {};
-      const items = [
-        ['Tech debt score', fmtFloat(d.score, 2)],
-        ['TODO count', fmtInt(d.todo_count)],
-        ['Large files', fmtInt(d.large_files)],
-        ['Deep nesting files', fmtInt(d.deep_nesting_files)],
-      ];
-      for (const [k, v] of items) {
-        const row = document.createElement('div');
-        row.className = 'kv';
-        const kk = document.createElement('div');
-        kk.className = 'k';
-        kk.textContent = k;
-        const vv = document.createElement('div');
-        vv.className = 'v';
-        vv.textContent = v;
-        row.appendChild(kk);
-        row.appendChild(vv);
-        container.appendChild(row);
-      }
-
-      const topTodos = d.top_todos || [];
-      if (Array.isArray(topTodos) && topTodos.length) {
-        const h = document.createElement('div');
-        h.className = 'subhead';
-        h.style.marginTop = '14px';
-        h.textContent = 'Top TODO files';
-        container.appendChild(h);
-        for (const t of topTodos.slice(0, 8)) {
-          const row = document.createElement('div');
-          row.className = 'kv';
-          const kk = document.createElement('div');
-          kk.className = 'k';
-          kk.textContent = t.path;
-          const vv = document.createElement('div');
-          vv.className = 'v';
-          vv.textContent = fmtInt(t.count);
-          row.appendChild(kk);
-          row.appendChild(vv);
-          container.appendChild(row);
+      // Render a minimal compact summary
+      let total = 0;
+      for (const w of weeks) {
+        for (const d of (w.days || [])) {
+          total += d.count || 0;
         }
       }
+      container.innerHTML = `<div class="status">Total commits (approx): ${fmtInt(total)}</div>`;
+    }
+
+    function renderDebt(container, payload) {
+      if (!container) return;
+      container.innerHTML = '';
+      const score = payload?.techdebt?.score;
+      const todos = payload?.techdebt?.todo_count;
+      const large = payload?.techdebt?.large_files || [];
+      if (typeof score !== 'number') {
+        container.innerHTML = '<div class="muted">No tech debt data</div>';
+        return;
+      }
+      const lines = [];
+      lines.push(`Score: ${fmtFloat(score, 2)}`);
+      lines.push(`TODOs: ${fmtInt(todos || 0)}`);
+      lines.push(`Large files: ${fmtInt(large.length)}`);
+      container.innerHTML = `<div class="status">${lines.join(' · ')}</div>`;
     }
 
     function renderComplexity(container, payload) {
       if (!container) return;
       container.innerHTML = '';
-      const c = payload?.complexity || {};
-      const items = [
-        ['Average complexity', fmtFloat(c.avg_complexity, 2)],
-        ['Max complexity', fmtFloat(c.max_complexity, 2)],
-        ['Files analyzed', fmtInt(c.file_count)],
-      ];
-      for (const [k, v] of items) {
-        const row = document.createElement('div');
-        row.className = 'kv';
-        const kk = document.createElement('div');
-        kk.className = 'k';
-        kk.textContent = k;
-        const vv = document.createElement('div');
-        vv.className = 'v';
-        vv.textContent = v;
-        row.appendChild(kk);
-        row.appendChild(vv);
-        container.appendChild(row);
+      const avg = payload?.complexity?.avg;
+      const files = payload?.complexity?.files || [];
+      if (typeof avg !== 'number') {
+        container.innerHTML = '<div class="muted">No complexity data</div>';
+        return;
       }
-
-      const worst = c.worst_files || [];
-      if (Array.isArray(worst) && worst.length) {
-        const h = document.createElement('div');
-        h.className = 'subhead';
-        h.style.marginTop = '14px';
-        h.textContent = 'Worst files';
-        container.appendChild(h);
-        for (const f of worst.slice(0, 10)) {
-          const row = document.createElement('div');
-          row.className = 'kv';
-          const kk = document.createElement('div');
-          kk.className = 'k';
-          kk.textContent = f.path;
-          const vv = document.createElement('div');
-          vv.className = 'v';
-          vv.textContent = fmtFloat(f.complexity, 2);
-          row.appendChild(kk);
-          row.appendChild(vv);
-          container.appendChild(row);
-        }
-      }
+      container.innerHTML = `<div class="status">Avg complexity: ${fmtFloat(avg, 2)} · Files analyzed: ${fmtInt(files.length)}</div>`;
     }
 
     function renderTimeline(container, payload) {
       if (!container) return;
       container.innerHTML = '';
-      const tl = payload?.timeline?.events || [];
-      if (!Array.isArray(tl) || tl.length === 0) {
-        container.innerHTML = '<div class="muted">No timeline</div>';
+      const points = payload?.timeline?.points || [];
+      if (!Array.isArray(points) || points.length === 0) {
+        container.innerHTML = '<div class="muted">No timeline data</div>';
+        return;
+      }
+      const first = points[0];
+      const last = points[points.length - 1];
+      container.innerHTML = `<div class="status">From ${first.date} to ${last.date} · ${fmtInt(points.length)} points</div>`;
+    }
+
+    function renderPR(container, payload) {
+      if (!container) return;
+      container.innerHTML = '';
+      const pr = payload?.pr_velocity;
+      if (!pr || typeof pr !== 'object') {
+        container.innerHTML = '<div class="muted">No PR velocity data</div>';
+        return;
+      }
+      const median = pr.median_days;
+      const count = pr.total_prs;
+      container.innerHTML = `<div class="status">PRs: ${fmtInt(count || 0)} · Median open-to-merge: ${fmtFloat(median || 0, 2)} days</div>`;
+    }
+
+    function renderMessages(container, payload) {
+      if (!container) return;
+      container.innerHTML = '';
+      const q = payload?.commit_quality;
+      if (!q || typeof q !== 'object') {
+        container.innerHTML = '<div class="muted">No commit message data</div>';
+        return;
+      }
+      const score = q.score;
+      const total = q.total;
+      container.innerHTML = `<div class="status">Quality score: ${fmtFloat(score || 0, 2)} · Messages: ${fmtInt(total || 0)}</div>`;
+    }
+
+    function renderSnapshots(container, payload) {
+      if (!container) return;
+      container.innerHTML = '';
+      const snaps = payload?.snapshots || [];
+      if (!Array.isArray(snaps) || snaps.length === 0) {
+        container.innerHTML = '<div class="muted">No snapshots</div>';
+        return;
+      }
+      container.innerHTML = `<div class="status">Snapshots available: ${fmtInt(snaps.length)}</div>`;
+    }
+
+    function renderChips(container, chips) {
+      if (!container) return;
+      container.innerHTML = '';
+      if (!chips || typeof chips !== 'object') return;
+      for (const [k, v] of Object.entries(chips)) {
+        const p = document.createElement('span');
+        p.className = 'pill';
+        p.innerHTML = `<b>${k}</b> ${String(v)}`;
+        container.appendChild(p);
+      }
+    }
+
+    function renderDiff(container, diff) {
+      if (!container) return;
+      container.innerHTML = '';
+      if (!diff || typeof diff !== 'object') {
+        container.innerHTML = '<div class="muted">No diff</div>';
         return;
       }
       const pre = document.createElement('pre');
-      pre.style.margin = 0;
-      pre.style.fontFamily = 'var(--mono)';
-      pre.style.fontSize = '11px';
-      pre.style.whiteSpace = 'pre-wrap';
-      pre.style.lineHeight = '1.35';
-      const lines = [];
-      for (const e of tl.slice(0, 40)) {
-        lines.push(`${e.date}  ${e.type}  ${e.summary}`);
-      }
-      pre.textContent = lines.join('\n');
+      pre.textContent = JSON.stringify(diff, null, 2);
       container.appendChild(pre);
     }
 
-    function renderPRVelocity(container, payload) {
+    function renderTimelineView(container, rows) {
       if (!container) return;
       container.innerHTML = '';
-      const pr = payload?.pr_velocity || {};
-      const items = [
-        ['PRs analyzed', fmtInt(pr.pr_count)],
-        ['Median time-to-merge (h)', fmtFloat(pr.median_hours_to_merge, 1)],
-        ['Mean time-to-merge (h)', fmtFloat(pr.mean_hours_to_merge, 1)],
-        ['Throughput (per week)', fmtFloat(pr.prs_per_week, 2)],
-      ];
-      for (const [k, v] of items) {
-        const row = document.createElement('div');
-        row.className = 'kv';
-        const kk = document.createElement('div');
-        kk.className = 'k';
-        kk.textContent = k;
-        const vv = document.createElement('div');
-        vv.className = 'v';
-        vv.textContent = v;
-        row.appendChild(kk);
-        row.appendChild(vv);
-        container.appendChild(row);
-      }
-    }
-
-    function renderCommitMessageQuality(container, payload) {
-      if (!container) return;
-      container.innerHTML = '';
-      const q = payload?.commit_quality || {};
-      const items = [
-        ['Score', fmtFloat(q.score, 2)],
-        ['Messages analyzed', fmtInt(q.message_count)],
-        ['Good messages', fmtInt(q.good_messages)],
-        ['Bad messages', fmtInt(q.bad_messages)],
-      ];
-      for (const [k, v] of items) {
-        const row = document.createElement('div');
-        row.className = 'kv';
-        const kk = document.createElement('div');
-        kk.className = 'k';
-        kk.textContent = k;
-        const vv = document.createElement('div');
-        vv.className = 'v';
-        vv.textContent = v;
-        row.appendChild(kk);
-        row.appendChild(vv);
-        container.appendChild(row);
-      }
-
-      const examples = q.examples || {};
-      const good = examples.good || [];
-      const bad = examples.bad || [];
-      if ((good && good.length) || (bad && bad.length)) {
-        const h = document.createElement('div');
-        h.className = 'subhead';
-        h.style.marginTop = '14px';
-        h.textContent = 'Examples';
-        container.appendChild(h);
-
-        const pre = document.createElement('pre');
-        pre.style.margin = '8px 0 0 0';
-        pre.style.fontFamily = 'var(--mono)';
-        pre.style.fontSize = '11px';
-        pre.style.whiteSpace = 'pre-wrap';
-        pre.style.lineHeight = '1.35';
-        let out = '';
-        if (good && good.length) {
-          out += 'Good:\n' + good.slice(0, 8).map(s => `  - ${s}`).join('\n') + '\n\n';
-        }
-        if (bad && bad.length) {
-          out += 'Bad:\n' + bad.slice(0, 8).map(s => `  - ${s}`).join('\n');
-        }
-        pre.textContent = out.trim();
-        container.appendChild(pre);
-      }
-    }
-
-    function renderSnapshots(container, snaps) {
-      if (!container) return;
-      container.innerHTML = '';
-      const list = snaps?.snapshots || [];
-      const selected = snaps?.selected || null;
-      const selected2 = snaps?.selected2 || null;
-
-      if (!Array.isArray(list) || list.length === 0) {
-        container.innerHTML = '<div class="muted">No snapshots available</div>';
+      if (!Array.isArray(rows) || rows.length === 0) {
+        container.innerHTML = '<div class="muted">No timeline rows</div>';
         return;
       }
-
-      const tabs = document.createElement('div');
-      tabs.className = 'dash-tabs';
-
-      const btnList = document.createElement('button');
-      btnList.textContent = 'List';
-      btnList.className = 'secondary active';
-
-      const btnA = document.createElement('button');
-      btnA.textContent = 'Snapshot A';
-      btnA.className = 'secondary';
-
-      const btnB = document.createElement('button');
-      btnB.textContent = 'Snapshot B';
-      btnB.className = 'secondary';
-
-      tabs.appendChild(btnList);
-      tabs.appendChild(btnA);
-      tabs.appendChild(btnB);
-
-      const section = document.createElement('div');
-      section.style.marginTop = '12px';
-
-      function setActive(which) {
-        btnList.classList.toggle('active', which === 'list');
-        btnA.classList.toggle('active', which === 'a');
-        btnB.classList.toggle('active', which === 'b');
+      const wrap = document.createElement('div');
+      wrap.className = 'timeline';
+      for (const r of rows) {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        const top = document.createElement('div');
+        top.className = 't';
+        const left = document.createElement('div');
+        left.className = 'mono';
+        left.textContent = r.label || '';
+        const right = document.createElement('div');
+        right.className = 'meta';
+        right.textContent = r.meta || '';
+        top.appendChild(left);
+        top.appendChild(right);
+        const msg = document.createElement('div');
+        msg.className = 'msg';
+        msg.textContent = r.message || '';
+        item.appendChild(top);
+        item.appendChild(msg);
+        wrap.appendChild(item);
       }
+      container.appendChild(wrap);
+    }
 
-      function renderList() {
-        setActive('list');
-        section.innerHTML = '';
+    function buildStoryUrl(repoUrl, payload) {
+      const parsed = parseRepo(repoUrl);
+      if (!parsed) return null;
+      // Prefer cached token if provided
+      const token = payload?.cache_token || '';
+      const qs = token ? `?t=${encodeURIComponent(token)}` : '';
+      return `/story/${parsed.owner}/${parsed.repo}${qs}`;
+    }
 
-        const hint = document.createElement('div');
-        hint.className = 'callout';
-        hint.innerHTML = 'Choose a snapshot to load its cached metrics. Use the <b>Snapshot Diff</b> section to compare.';
-        section.appendChild(hint);
-
-        const ul = document.createElement('div');
-        ul.style.marginTop = '12px';
-        for (const s of list) {
-          const row = document.createElement('div');
-          row.className = 'kv';
-          const k = document.createElement('div');
-          k.className = 'k';
-          k.textContent = s.as_of;
-          const v = document.createElement('div');
-          v.className = 'v';
-          const a = document.createElement('a');
-          a.href = '#';
-          a.textContent = 'Load';
-          a.onclick = async (e) => {
-            e.preventDefault();
-            try {
-              const repoUrl = el('repoUrl').value;
-              const payload = await apiGetSnapshotPayload(repoUrl, s.as_of);
-              renderAll(payload);
-              renderKeyValue(el('repoMeta'), payload?.metadata || {});
-              el('compareA').textContent = repoUrl;
-            } catch (err) {
-              console.error(err);
-            }
-          };
-          v.appendChild(a);
-          row.appendChild(k);
-          row.appendChild(v);
-          ul.appendChild(row);
-        }
-        section.appendChild(ul);
-
-        if (snaps?.bundle_url) {
-          const dl = document.createElement('div');
-          dl.style.marginTop = '12px';
-          dl.innerHTML = `<a href="${snaps.bundle_url}" target="_blank" rel="noopener noreferrer">Download snapshots bundle</a>`;
-          section.appendChild(dl);
-        }
-      }
-
-    applyProGating();
+    let lastPayload = null;
+    let compareA = null;
+    let compareB = null;
 
     async function onAnalyze() {
-      const repoUrl = el('repoUrl').value;
-      if (!repoUrl) return;
+      applyProGating();
+      const url = el('repoUrl').value.trim();
       setStatus('repoStatus', 'Analyzing…');
       setStatus('summaryStatus', 'Loading…');
       setStatus('langStatus', 'Loading…');
@@ -1421,49 +1294,89 @@
       setStatus('timelineStatus', 'Loading…');
       setStatus('prStatus', 'Loading…');
       setStatus('msgStatus', 'Loading…');
-      setStatus('compareStatus', 'Waiting');
       setStatus('snapStatus', 'Loading…');
       setStatus('seriesStatus', 'Loading…');
+      setStatus('diffStatus', 'Waiting');
+
+      el('repoMeta').textContent = url;
+      el('shareBtn').disabled = true;
 
       try {
-        const payload = await apiAnalyze(repoUrl);
-        renderKeyValue(el('repoMeta'), payload?.metadata || {});
-        renderAll(payload);
-        setShareUrl(repoUrl);
+        const payload = await apiAnalyze(url);
+        lastPayload = payload;
+        setStatus('repoStatus', 'OK');
+        setStatus('summaryStatus', 'OK');
+        setStatus('langStatus', 'OK');
+        setStatus('treeStatus', 'OK');
+        setStatus('heatmapStatus', 'OK');
+        setStatus('debtStatus', 'OK');
+        setStatus('cxStatus', 'OK');
+        setStatus('timelineStatus', 'OK');
+        setStatus('prStatus', 'OK');
+        setStatus('msgStatus', 'OK');
+        setStatus('snapStatus', payload.snapshots ? 'OK' : 'None');
+        setStatus('seriesStatus', 'Waiting');
 
-        setStatus('repoStatus', 'Done');
-        setStatus('summaryStatus', 'Done');
-        setStatus('langStatus', 'Done');
-        setStatus('treeStatus', 'Done');
-        setStatus('heatmapStatus', 'Done');
-        setStatus('debtStatus', 'Done');
-        setStatus('cxStatus', 'Done');
-        setStatus('timelineStatus', 'Done');
-        setStatus('prStatus', 'Done');
-        setStatus('msgStatus', 'Done');
+        renderSummary(el('summary'), payload);
+        renderLanguages(el('languages'), payload);
+        renderTree(el('tree'), payload);
+        renderHeatmap(el('heatmap'), payload);
+        renderDebt(el('debt'), payload);
+        renderComplexity(el('complexity'), payload);
+        renderTimeline(el('timeline'), payload);
+        renderPR(el('pr'), payload);
+        renderMessages(el('messages'), payload);
+        renderSnapshots(el('snapshots'), payload);
 
-        // snapshots
-        try {
-          const snaps = await apiGetSnapshots(repoUrl);
-          renderSnapshots(el('snapshots'), snaps);
-          setStatus('snapStatus', 'Done');
-        } catch (e) {
-          el('snapshots').textContent = '';
-          setStatus('snapStatus', 'Unavailable');
+        const storyUrl = buildStoryUrl(url, payload);
+        if (storyUrl) {
+          const btn = el('shareBtn');
+          btn.disabled = false;
+          btn.onclick = () => { window.location.href = storyUrl; };
         }
 
-        // history series
-        try {
-          const series = await apiGetSnapshotSeries(repoUrl);
-          renderSnapshotSeries(series);
-          setStatus('seriesStatus', 'Done');
-        } catch (e) {
-          el('snapshotSeries').textContent = '';
-          setStatus('seriesStatus', 'Unavailable');
+        // Snapshot list
+        if (payload.snapshots && {{ 'true' if snapshots_enabled else 'false' }}) {
+          try {
+            const s = await apiGetSnapshots(url);
+            const snapA = el('snapA');
+            const snapB = el('snapB');
+            snapA.innerHTML = '';
+            snapB.innerHTML = '';
+            for (const it of (s.snapshots || [])) {
+              const o1 = document.createElement('option');
+              o1.value = it.as_of;
+              o1.textContent = it.as_of;
+              snapA.appendChild(o1);
+              const o2 = document.createElement('option');
+              o2.value = it.as_of;
+              o2.textContent = it.as_of;
+              snapB.appendChild(o2);
+            }
+            if ((s.snapshots || []).length >= 2) {
+              snapA.selectedIndex = 0;
+              snapB.selectedIndex = (s.snapshots || []).length - 1;
+            }
+          } catch (e) {
+            // ignore
+          }
         }
 
-      } catch (err) {
-        console.error(err);
+        // Snapshot series
+        if (payload.snapshots && {{ 'true' if snapshots_enabled else 'false' }}) {
+          try {
+            setStatus('seriesStatus', 'Loading…');
+            const s = await apiGetSnapshotSeries(url);
+            setStatus('seriesStatus', 'OK');
+            renderSnapshotSeries(el('snapshotSeries'), s);
+          } catch {
+            setStatus('seriesStatus', 'Error');
+          }
+        }
+
+        applyProGating();
+
+      } catch (e) {
         setStatus('repoStatus', 'Error');
         setStatus('summaryStatus', 'Error');
         setStatus('langStatus', 'Error');
@@ -1474,51 +1387,135 @@
         setStatus('timelineStatus', 'Error');
         setStatus('prStatus', 'Error');
         setStatus('msgStatus', 'Error');
+        setStatus('snapStatus', 'Error');
+        setStatus('seriesStatus', 'Error');
+        el('summary').innerHTML = `<div class="muted">${String(e)}</div>`;
       }
     }
 
-    // Compare mode state
-    let compareRepoA = '';
-    let compareRepoB = '';
-
-    function refreshCompare() {
-      el('compareA').textContent = compareRepoA || '(none)';
-      el('compareB').textContent = compareRepoB || '(none)';
-      el('compareGo').disabled = !(compareRepoA && compareRepoB);
+    function updateCompareButtons() {
+      el('compareA').textContent = compareA || '(none)';
+      el('compareB').textContent = compareB || '(none)';
+      el('compareGo').disabled = !(compareA && compareB);
     }
 
-    el('compareSetA').onclick = () => {
-      compareRepoA = el('repoUrl').value || '';
-      refreshCompare();
-    };
-
-    el('compareSetB').onclick = () => {
-      compareRepoB = el('repoUrl').value || '';
-      refreshCompare();
-    };
-
-    el('compareClear').onclick = () => {
-      compareRepoA = '';
-      compareRepoB = '';
-      el('compareResult').innerHTML = '';
-      setStatus('compareStatus', 'Waiting');
-      refreshCompare();
-    };
+    el('compareSetA').onclick = () => { compareA = el('repoUrl').value.trim(); updateCompareButtons(); };
+    el('compareSetB').onclick = () => { compareB = el('repoUrl').value.trim(); updateCompareButtons(); };
+    el('compareClear').onclick = () => { compareA = null; compareB = null; updateCompareButtons(); };
 
     el('compareGo').onclick = async () => {
-      if (!(compareRepoA && compareRepoB)) return;
-      setStatus('compareStatus', 'Comparing…');
+      const out = el('compareResult');
+      out.innerHTML = '';
+      el('compareStatus').textContent = 'Comparing…';
       try {
-        const out = await apiCompare(compareRepoA, compareRepoB);
-        renderCompareResult(el('compareResult'), out);
-        setStatus('compareStatus', 'Done');
+        const r = await apiCompare(compareA, compareB);
+        el('compareStatus').textContent = 'OK';
+        const pre = document.createElement('pre');
+        pre.textContent = JSON.stringify(r, null, 2);
+        out.appendChild(pre);
       } catch (e) {
-        console.error(e);
-        setStatus('compareStatus', 'Error');
+        el('compareStatus').textContent = 'Error';
+        out.innerHTML = `<div class="muted">${String(e)}</div>`;
       }
     };
 
-    refreshCompare();
+    // Diff
+    el('diffBtn').onclick = async () => {
+      const url = el('repoUrl').value.trim();
+      const a = el('snapA').value;
+      const b = el('snapB').value;
+      setStatus('diffStatus', 'Loading…');
+      try {
+        const d = await apiGetSnapshotDiff(url, a, b);
+        setStatus('diffStatus', 'OK');
+        renderDiff(el('diffOut'), d.diff);
+        renderKeyValue(el('diffMini'), d.meta);
+        // Load snapshot B chips
+        const pb = await apiGetSnapshotPayload(url, b);
+        renderChips(el('snapBChips'), pb.chips || {});
+      } catch (e) {
+        setStatus('diffStatus', 'Error');
+        el('diffOut').innerHTML = `<div class="muted">${String(e)}</div>`;
+      }
+    };
+
+    el('diffTabDelta').onclick = () => {
+      el('diffTabDelta').classList.add('active');
+      el('diffTabTimeline').classList.remove('active');
+      el('diffOut').style.display = 'block';
+      el('timelineOut').style.display = 'none';
+    };
+
+    el('diffTabTimeline').onclick = async () => {
+      el('diffTabTimeline').classList.add('active');
+      el('diffTabDelta').classList.remove('active');
+      el('diffOut').style.display = 'none';
+      el('timelineOut').style.display = 'block';
+      const url = el('repoUrl').value.trim();
+      const a = el('snapA').value;
+      const b = el('snapB').value;
+      setStatus('diffStatus', 'Loading…');
+      try {
+        const d = await apiGetSnapshotDiff(url, a, b);
+        setStatus('diffStatus', 'OK');
+        renderTimelineView(el('timelineOut'), d.timeline || []);
+      } catch (e) {
+        setStatus('diffStatus', 'Error');
+        el('timelineOut').innerHTML = `<div class="muted">${String(e)}</div>`;
+      }
+    };
+
+    // Snapshot series chart (kept as-is)
+    function renderSnapshotSeries(container, series) {
+      if (!container) return;
+      container.innerHTML = '';
+      if (!series || typeof series !== 'object' || !Array.isArray(series.points) || series.points.length === 0) {
+        container.innerHTML = '<div class="muted">No series</div>';
+        return;
+      }
+      const meta = document.createElement('div');
+      meta.className = 'callout';
+      meta.innerHTML = `<b>${series.points.length}</b> snapshots in series · baseline <b>${series.baseline_as_of || ''}</b>`;
+      container.appendChild(meta);
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 1000 120');
+      svg.setAttribute('class', 'spark');
+      const pts = series.points;
+      const values = pts.map(p => p.delta_total_source_lines || 0);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = (max - min) || 1;
+      const pad = 12;
+      const w = 1000 - pad*2;
+      const h = 120 - pad*2;
+      const coords = values.map((v, i) => {
+        const x = pad + (i/(values.length-1 || 1)) * w;
+        const y = pad + (1 - ((v - min)/span)) * h;
+        return [x, y];
+      });
+      const d = coords.map((c, i) => `${i===0 ? 'M' : 'L'} ${c[0].toFixed(1)} ${c[1].toFixed(1)}`).join(' ');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      svg.appendChild(path);
+      const last = coords[coords.length - 1];
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', String(last[0]));
+      dot.setAttribute('cy', String(last[1]));
+      dot.setAttribute('r', '4');
+      svg.appendChild(dot);
+      container.appendChild(svg);
+
+      const tiny = document.createElement('div');
+      tiny.className = 'mini';
+      tiny.style.marginTop = '10px';
+      const lastP = pts[pts.length - 1];
+      tiny.textContent = `Last delta_total_source_lines: ${fmtInt(lastP.delta_total_source_lines || 0)} (baseline-relative)`;
+      container.appendChild(tiny);
+    }
+
+    // init
+    updateCompareButtons();
+    applyProGating();
   </script>
 </body>
 </html>
