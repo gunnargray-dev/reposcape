@@ -1,8 +1,28 @@
-# Reposcape — Session Log
+# Reposcape  Session Log
 
 This file is updated at the end of every autonomous dev session.
 
 ---
+
+## Session 47 (2026-03-05)
+
+**PR:** #56 (squash merged)
+
+### Focus
+Introduce a real user identity system (GitHub OAuth) as a foundation for Pro + private repo access.
+
+### Shipped
+- Adds GitHub OAuth login routes: `/auth/github/login` + `/auth/github/callback`.
+- Stores GitHub login + access token in an HMAC-signed cookie (requires `REPOSCAPE_WEB_SECRET`).
+- Adds `src/web/auth/session.py` to read the auth cookie into a typed `UserSession`.
+- Adds identity-aware entitlement check (`src/web/entitlements/identity.py`) that prefers `gh:<login>` when authenticated, with email query fallback.
+- Dashboard now uses identity-aware Pro entitlement checks.
+
+### Tests
+- `python -m pytest tests/web/test_auth_cookie.py -q --tb=short`
+
+---
+
 
 ## Session 45 (2026-03-05)
 

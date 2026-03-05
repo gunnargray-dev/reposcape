@@ -12,10 +12,10 @@ Paste a repo URL. Get stunning, shareable visualizations.
 
 | Metric | Value |
 |--------|-------|
-| Sessions | 18 |
-| PRs merged | 24 |
-| Source modules | 13 |
-| Tests passing | 407 |
+| Sessions | 19 |
+| PRs merged | 25 |
+| Source modules | 14 |
+| Tests passing | 410 |
 | Visualizations | 9 |
 
 ---
@@ -80,14 +80,25 @@ Then open:
 From the dashboard, click **Export HTML** to download a standalone HTML snapshot of the current analysis.
 
 In the exported page you can:
-- **Download PNG** for individual chart panels (client-side SVG → canvas → PNG)
-- **Print / Save PDF** via your browser’s print dialog
+- **Download PNG** for individual chart panels (client-side SVG  canvas  PNG)
+- **Print / Save PDF** via your browsers print dialog
 
 For a more guided PDF flow, open:
 - `/pdf?repo_url=https://github.com/OWNER/REPO`
 
 Tip: for best PNG results, use Chrome.
 
+
+### GitHub OAuth (optional)
+
+To support private repo access and user-linked Pro entitlements, configure GitHub OAuth:
+
+- `REPOSCAPE_GITHUB_CLIENT_ID`
+- `REPOSCAPE_GITHUB_CLIENT_SECRET`
+- `REPOSCAPE_WEB_SECRET` (HMAC signing secret for auth cookies)
+- Optional: `REPOSCAPE_GITHUB_OAUTH_REDIRECT_URL` (defaults to `http://localhost:8000/auth/github/callback`)
+
+Then visit: `/auth/github/login`
 
 ### Story URLs
 

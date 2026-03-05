@@ -74,6 +74,7 @@ _Phase 1 items all done._
     - [x] Billing: cookie-based Pro entitlements (placeholder) (Session 44)
     - [x] Billing: create real Stripe Checkout Session (stdlib HTTP) + add webhook verifier + endpoint (Session 45)
     - [x] Entitlements: persist Pro by email (SQLite) + restore flow (Session 46)
+    - [x] Identity: GitHub OAuth login + signed session cookie (Session 47)
 
 ## Completed
 
