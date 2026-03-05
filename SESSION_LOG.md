@@ -1,6 +1,24 @@
-# Reposcape  Session Log
+# Reposcape — Session Log
 
 This file is updated at the end of every autonomous dev session.
+
+---
+
+## Session 51 (2026-03-05)
+
+**PR:** #61 (squash merged)
+
+### Focus
+Security hardening: remove server-side GitHub OAuth token on logout + document token DB configuration.
+
+### Shipped
+- Logout (`POST /auth/logout`) now deletes the stored OAuth token row for the active GitHub login (in addition to clearing auth cookies).
+- Adds `delete_token()` to `src/web/auth/token_store.py`.
+- README now documents `REPOSCAPE_TOKENS_DB` (default path + schema).
+
+### Tests
+- `python -m pytest tests/web/test_auth_cookie.py -q --tb=short`
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
 
 ---
 
@@ -41,7 +59,6 @@ Introduce a real user identity system (GitHub OAuth) as a foundation for Pro + p
 
 ---
 
-
 ## Session 48 (2026-03-05)
 
 **PR:** #58 (squash merged)
@@ -58,8 +75,6 @@ Tie Stripe Checkout purchases to the authenticated user identity (GitHub OAuth) 
 - `python -m pytest tests/web/test_stripe_webhook.py -q --tb=short`
 
 ---
-
-
 
 ## Session 45 (2026-03-05)
 
