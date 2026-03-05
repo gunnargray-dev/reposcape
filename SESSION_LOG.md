@@ -96,6 +96,22 @@ Start wiring the Pro upgrade flow: stable billing endpoints and a real dashboard
 
 ---
 
+## Session 43 (2026-03-05)
+
+**PR:** #52 (squash merged)
+
+### Focus
+Stripe integration prep: centralize Stripe environment configuration.
+
+### Shipped
+- Add `src/web/stripe_env.py` to centralize reading Stripe-related env vars (enabled flag, secret key, webhook secret, price id).
+- Billing: `src/web/routes/billing.py` now uses `stripe_enabled()`.
+
+### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
 ## Session 40 (2026-03-05)
 
 **PR:** #47 (squash merged)

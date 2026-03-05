@@ -68,6 +68,7 @@ _Phase 1 items all done._
 - [ ] Pro tier + Stripe (payments, private repos, watermark removal)
     - [x] Pro feature flag stub + dashboard watermark CTA (Session 41)
     - [x] Billing endpoints stub + dashboard Upgrade wiring (Session 42)
+    - [x] Billing: centralize Stripe env configuration helpers (Session 43)
 
 ## Completed
 
