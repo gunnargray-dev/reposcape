@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from src.web.routes import api, billing, billing_restore, pages, pdf, share, showcase, story
+from src.web.routes import api, auth, billing, billing_restore, pages, pdf, share, showcase, story
 from src.web.pro import pro_enabled
 
 
@@ -25,6 +25,7 @@ def create_app() -> FastAPI:
     app.state["pro_enabled"] = pro_enabled()
 
     app.include_router(api.router)
+    app.include_router(auth.router)
     app.include_router(billing.router)
     app.include_router(billing_restore.router)
     app.include_router(pages.router)
