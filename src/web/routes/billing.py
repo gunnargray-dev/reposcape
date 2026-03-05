@@ -18,11 +18,12 @@ Notes:
 
 from __future__ import annotations
 
-import os
 from urllib.parse import urljoin
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+
+from src.web.stripe_env import stripe_enabled
 
 router = APIRouter(tags=["billing"])
 
@@ -43,23 +44,6 @@ def _base_url(request: Request) -> str:
     return f"{scheme}://{host}/"
 
 
-def _billing_enabled() -> bool:
-    """Return True if billing endpoints should respond.
-
-    This is a safety valve to avoid accidentally presenting broken payment UX.
-    It can be turned on in environments where Stripe wiring exists.
-
-    Environment variable:
-        REPOSCAPE_BILLING_ENABLED
-
-    Returns:
-        Whether billing endpoints are enabled.
-    """
-
-    raw = os.getenv("REPOSCAPE_BILLING_ENABLED", "").strip().lower()
-    return raw in {"1", "true", "yes", "on"}
-
-
 @router.post("/api/billing/checkout")
 def create_checkout_session(request: Request) -> JSONResponse:
     """Create a checkout session and return a redirect URL.
@@ -77,7 +61,7 @@ def create_checkout_session(request: Request) -> JSONResponse:
         JSON payload containing checkout_url.
     """
 
-    if not _billing_enabled():
+    if not stripe_enabled():
         return JSONResponse(
             status_code=501,
             content={
