@@ -76,6 +76,7 @@ _Phase 1 items all done._
     - [x] Entitlements: persist Pro by email (SQLite) + restore flow (Session 46)
     - [x] Identity: GitHub OAuth login + signed session cookie (Session 47)
     - [x] Stripe: store entitlement under authenticated subject (gh:<login>) via client_reference_id/metadata (Session 48)
+    - [x] Security: migrate access token storage from cookie to server-side persistence (Session 49)
 
 ## Completed
 
