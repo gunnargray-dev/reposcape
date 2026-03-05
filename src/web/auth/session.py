@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from fastapi import Request
 
 from src.web.auth.github_oauth import verify_cookie_value
+from src.web.auth.token_store import get_token
 
 _COOKIE_GH = "reposcape_gh"
 _MAX_AGE_SECONDS = 60 * 60 * 24 * 30
@@ -32,8 +33,8 @@ def get_user_session(request: Request) -> UserSession | None:
         return None
 
     login = str(data.get("login") or "").strip()
-    token = str(data.get("token") or "").strip()
-    if not login or not token:
+    token = get_token(login)
+    if not token:
         return None
 
-    return UserSession(login=login, access_token=token)
+    return UserSession(login=login, access_token=token.token)
