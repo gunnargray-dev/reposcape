@@ -1,6 +1,6 @@
-# Reposcape Session Log
+# Reposcape — Session Log
 
-This file tracks what each scheduled session shipped.
+This file is updated at the end of every autonomous dev session.
 
 ---
 
@@ -9,12 +9,13 @@ This file tracks what each scheduled session shipped.
 **PR:** #54 (squash merged)
 
 ### Focus
-Stripe: real Checkout Session creation (no SDK) + webhook signature verification scaffolding.
+Use real Stripe Checkout Sessions (stdlib HTTP) and add a webhook verifier endpoint.
 
 ### Shipped
-- Billing: `POST /api/billing/checkout` now creates a real Stripe Checkout Session via stdlib HTTP and returns Stripe's hosted `checkout_url`.
-- Billing: add `POST /api/billing/webhook` with stdlib Stripe-Signature verification; on `checkout.session.completed`, it grants a Pro cookie (still placeholder entitlements).
-- Add `src/web/stripe_client.py` (minimal Stripe API client) and `src/web/stripe_webhook.py` (signature parsing/verification).
+- `POST /api/billing/checkout` now creates a Stripe Checkout Session and returns `checkout_url`.
+- Adds `src/web/stripe_client.py` (minimal Stripe API client) and `src/web/stripe_webhook.py` (signature parsing/verification).
+- Adds `POST /api/billing/webhook` to verify Stripe-Signature (stdlib HMAC) and (temporarily) grant Pro cookie on `checkout.session.completed`.
+- Updates ROADMAP.
 
 ### Tests
 - `python -m pytest tests/web/test_stripe_webhook.py -q --tb=short`
@@ -26,12 +27,13 @@ Stripe: real Checkout Session creation (no SDK) + webhook signature verification
 **PR:** #53 (squash merged)
 
 ### Focus
-Pro tier UX: cookie-based entitlement placeholder to unblock end-to-end Upgrade flow.
+Add a placeholder Pro entitlement so the dashboard can hide watermark + show upgrade CTA.
 
 ### Shipped
-- Billing: `/billing/success` now sets an HttpOnly Pro cookie and redirects to `/dashboard`.
-- Pages: dashboard template context now checks Pro entitlements per-request (env var OR cookie), enabling watermark removal after “Upgrade”.
-- Add `src/web/entitlements/` package to centralize request-based gating.
+- Add `src/web/entitlements/cookies.py`: tiny cookie-based entitlement helper.
+- `/billing/success` sets HttpOnly cookie and redirects to `/dashboard`.
+- Dashboard template uses request-based entitlement check.
+- Updates ROADMAP.
 
 ### Tests
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`
@@ -39,12 +41,12 @@ Pro tier UX: cookie-based entitlement placeholder to unblock end-to-end Upgrade 
 
 ---
 
-## Session 43 (2026-03-04)
+## Session 43 (2026-03-05)
 
 **PR:** #52 (squash merged)
 
 ### Focus
-Pro tier: Stripe env helpers (enabled flag + secret/webhook/price IDs) + wire billing stub to use them.
+Billing: centralize Stripe env reading.
 
 ### Shipped
 - Add `src/web/stripe_env.py` to centralize reading Stripe env vars (`REPOSCAPE_BILLING_ENABLED`, `REPOSCAPE_STRIPE_SECRET_KEY`, `REPOSCAPE_STRIPE_WEBHOOK_SECRET`, `REPOSCAPE_STRIPE_PRICE_ID`).
@@ -135,4 +137,24 @@ Pro tier: Stripe env helpers (enabled flag + secret/webhook/price IDs) + wire bi
 - Billing route: returns 501 when billing is not enabled.
 
 ### Tests
+- `python -m pytest tests/web/test_story_route.py -q --tb=short`
+
+---
+
+## Session 46 (2026-03-05)
+
+**PR:** #55 (squash merged)
+
+### Focus
+Start persisting Pro entitlements (webhook-driven) so Pro can be restored across sessions.
+
+### Shipped
+- Add SQLite-backed entitlement store keyed by email (`src/web/entitlements/store.py`).
+- Stripe webhook: persist Pro grant when checkout email is present.
+- Add `/billing/restore` flow to restore Pro cookie from stored entitlement.
+- Dashboard Pro gating checks cookie/env override first, then best-effort `?email=` entitlement lookup.
+
+### Tests
+- `python -m pytest tests/web/test_stripe_webhook.py -q --tb=short`
+- `python -m pytest tests/web/test_entitlements_store.py -q --tb=short`
 - `python -m pytest tests/web/test_story_route.py -q --tb=short`

@@ -45,6 +45,8 @@ _Phase 1 items all done._
 
 ## Phase 4 -- Growth & Monetization (Sessions 16-20)
 
+- [x] Pro tier + Stripe (payments, private repos, watermark removal): foundations + webhook-backed entitlements (Sessions 41-46)
+
 - [x] CLI tool (`reposcape analyze <url>`) (Session 18)
 - [x] Packaging: fix `pip install -e .` / setuptools discovery for `src/` layout (Session 19)
 - [x] Test suite stability: module-scoped fixtures, integration markers, shared conftest (Session 21)
@@ -71,6 +73,7 @@ _Phase 1 items all done._
     - [x] Billing: centralize Stripe env configuration helpers (Session 43)
     - [x] Billing: cookie-based Pro entitlements (placeholder) (Session 44)
     - [x] Billing: create real Stripe Checkout Session (stdlib HTTP) + add webhook verifier + endpoint (Session 45)
+    - [x] Entitlements: persist Pro by email (SQLite) + restore flow (Session 46)
 
 ## Completed
 
